@@ -28,14 +28,18 @@ enum class TimeOfDay(
     NIGHT("Nachts", "Spätmahlzeit (22:00 - 06:00)", 0.80, 22, 6, Icons.Default.Bedtime, NightColor);
 
     companion object {
-        fun current(): TimeOfDay {
-            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        fun fromHour(hour: Int): TimeOfDay {
             return when (hour) {
                 in 6..10 -> MORNING
                 in 11..16 -> NOON
                 in 17..21 -> EVENING
                 else -> NIGHT
             }
+        }
+
+        fun current(): TimeOfDay {
+            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            return fromHour(hour)
         }
     }
 }

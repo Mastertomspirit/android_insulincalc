@@ -21,8 +21,16 @@ class InsulinRepository(
         userSettingsDao.saveSettings(settings)
     }
 
+    suspend fun getAllLogsDirect(): List<CalculationLog> {
+        return calculationLogDao.getAllLogsDirect()
+    }
+
     suspend fun saveCalculation(log: CalculationLog): Long {
         return calculationLogDao.insertLog(log)
+    }
+
+    suspend fun saveLogs(logs: List<CalculationLog>): List<Long> {
+        return calculationLogDao.insertLogs(logs)
     }
 
     suspend fun deleteLog(logId: Long) {

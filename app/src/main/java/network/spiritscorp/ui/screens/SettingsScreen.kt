@@ -1,5 +1,7 @@
 package network.spiritscorp.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,16 +27,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Brightness5
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.material3.Button
@@ -80,6 +83,8 @@ import network.spiritscorp.ui.theme.NoonColor
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -577,7 +582,7 @@ fun SettingsScreen(
                 }
 
                 Text(
-                    text = "Exportiere deine Daten als JSON-Backup oder im CSV-Format für Tabellenkalkulationen.",
+                    text = "Speichere deine Daten als JSON-Backupdatei oder als CSV-Tabelle auf deinem Gerät bzw. importiere bestehende Backups.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
@@ -586,37 +591,90 @@ fun SettingsScreen(
                 val context = LocalContext.current
                 val logs by viewModel.historyLogs.collectAsState(initial = emptyList())
 
+                // Activity Result Launchers for file operations
+                val jsonExportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.CreateDocument("application/json")
+                ) { uri ->
+                    if (uri != null) {
+                        viewModel.viewModelScope.launch {
+                            val json = DatabaseBackupManager.exportToJson(context)
+                            val success = DatabaseBackupManager.writeTextToUri(context, uri, json)
+                            if (success) {
+                                Toast.makeText(context, "JSON-Backupdatei erfolgreich gespeichert!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Fehler beim Speichern der JSON-Datei.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+                val csvExportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.CreateDocument("text/csv")
+                ) { uri ->
+                    if (uri != null) {
+                        viewModel.viewModelScope.launch {
+                            val allLogs = viewModel.getAllLogsDirect()
+                            val csv = DatabaseBackupManager.exportToCsv(allLogs)
+                            val success = DatabaseBackupManager.writeTextToUri(context, uri, csv)
+                            if (success) {
+                                Toast.makeText(context, "Tagebuch (${allLogs.size} Einträge) erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+                val fileImportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocument()
+                ) { uri ->
+                    if (uri != null) {
+                        viewModel.viewModelScope.launch {
+                            val result = DatabaseBackupManager.importFromUri(context, uri)
+                            if (result.success) {
+                                Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(context, "Import fehlgeschlagen: ${result.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
                         onClick = {
-                            viewModel.viewModelScope.launch {
-                                val json = DatabaseBackupManager.exportToJson(context)
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                clipboard.setPrimaryClip(ClipData.newPlainText("InsulinDB JSON", json))
-                                Toast.makeText(context, "Datenbank (JSON) in Zwischenablage kopiert!", Toast.LENGTH_SHORT).show()
-                            }
+                            val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                            jsonExportLauncher.launch("insulin_backup_$dateTag.json")
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("export_json_file_button"),
                         shape = RoundedCornerShape(10.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("JSON Export")
                     }
 
                     Button(
                         onClick = {
-                            viewModel.viewModelScope.launch {
-                                val csv = DatabaseBackupManager.exportToCsv(logs)
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                clipboard.setPrimaryClip(ClipData.newPlainText("InsulinDB CSV", csv))
-                                Toast.makeText(context, "Tagebuch (CSV) in Zwischenablage kopiert!", Toast.LENGTH_SHORT).show()
-                            }
+                            val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                            csvExportLauncher.launch("insulin_tagebuch_$dateTag.csv")
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("export_csv_file_button"),
                         shape = RoundedCornerShape(10.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("CSV Export")
                     }
                 }
@@ -625,31 +683,19 @@ fun SettingsScreen(
 
                 Button(
                     onClick = {
-                        viewModel.viewModelScope.launch {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clipData = clipboard.primaryClip
-                            if (clipData != null && clipData.itemCount > 0) {
-                                val jsonText = clipData.getItemAt(0).text?.toString() ?: ""
-                                if (jsonText.isNotBlank() && jsonText.contains("settings")) {
-                                    val success = DatabaseBackupManager.importFromJson(context, jsonText)
-                                    if (success) {
-                                        Toast.makeText(context, "Backup erfolgreich importiert!", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Fehler beim Importieren des JSON.", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    Toast.makeText(context, "Zwischenablage enthält kein gültiges JSON-Backup.", Toast.LENGTH_LONG).show()
-                                }
-                            } else {
-                                Toast.makeText(context, "Zwischenablage ist leer.", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("import_file_button"),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                 ) {
-                    Text("Aus Zwischenablage importieren (JSON)")
+                    Icon(
+                        imageVector = Icons.Default.FileUpload,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Backup-Datei importieren (.json / .csv)")
                 }
             }
         }

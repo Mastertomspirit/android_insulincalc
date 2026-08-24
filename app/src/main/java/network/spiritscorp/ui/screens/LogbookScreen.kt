@@ -1,9 +1,9 @@
 package network.spiritscorp.ui.screens
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
@@ -59,6 +62,22 @@ fun LogbookScreen(
 ) {
     val context = LocalContext.current
     var showClearDialog by remember { mutableStateOf(false) }
+
+    val csvFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) {
+            viewModel.viewModelScope.launch {
+                val csvContent = DatabaseBackupManager.exportToCsv(logs)
+                val success = DatabaseBackupManager.writeTextToUri(context, uri, csvContent)
+                if (success) {
+                    Toast.makeText(context, "Tagebuch (${logs.size} Einträge) erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     val totalCarbsToday = remember(logs) {
         val todayStart = System.currentTimeMillis() - (24 * 60 * 60 * 1000)
@@ -99,10 +118,8 @@ fun LogbookScreen(
                         IconButton(
                             onClick = {
                                 if (logs.isNotEmpty()) {
-                                    val text = generateExportText(logs)
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    clipboard.setPrimaryClip(ClipData.newPlainText("Insulin Tagebuch", text))
-                                    Toast.makeText(context, "Protokoll in Zwischenablage kopiert!", Toast.LENGTH_SHORT).show()
+                                    val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                    csvFileLauncher.launch("insulin_tagebuch_$dateTag.csv")
                                 } else {
                                     Toast.makeText(context, "Keine Einträge vorhanden", Toast.LENGTH_SHORT).show()
                                 }
@@ -110,8 +127,8 @@ fun LogbookScreen(
                             modifier = Modifier.testTag("export_logs_button")
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Tagebuch exportieren",
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = "Tagebuch als CSV-Datei exportieren",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

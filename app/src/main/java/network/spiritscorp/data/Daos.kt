@@ -13,8 +13,14 @@ interface CalculationLogDao {
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     fun getAllLogs(): Flow<List<CalculationLog>>
 
+    @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
+    suspend fun getAllLogsDirect(): List<CalculationLog>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLog(log: CalculationLog): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLogs(logs: List<CalculationLog>): List<Long>
 
     @Query("DELETE FROM calculation_logs WHERE id = :logId")
     suspend fun deleteLogById(logId: Long)

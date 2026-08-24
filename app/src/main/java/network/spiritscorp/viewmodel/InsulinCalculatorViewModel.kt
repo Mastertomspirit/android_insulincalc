@@ -357,6 +357,10 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         }
     }
 
+    suspend fun getAllLogsDirect(): List<CalculationLog> {
+        return repository.getAllLogsDirect()
+    }
+
     fun updateUserSettings(settings: UserSettings) {
         viewModelScope.launch {
             repository.saveSettings(settings)
