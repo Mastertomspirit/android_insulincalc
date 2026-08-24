@@ -9,9 +9,10 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 /**
- * Unit tests verifying core diabetes calculation models, unit conversions, and domain rules.
+ * Unit tests verifying unit conversions, blood glucose calculations,
+ * and default user settings integrity.
  */
-class ExampleUnitTest {
+class InsulinUnitConversionTest {
 
     @Test
     fun testCarbUnitConversionFormulas() {

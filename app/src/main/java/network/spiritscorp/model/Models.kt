@@ -8,21 +8,21 @@ data class CalculationLog(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val timestamp: Long = System.currentTimeMillis(),
-    val mealTitle: String,
-    val rawCarbInput: Double,
-    val carbUnit: String,
-    val carbGrams: Double,
+    val mealTitle: String = "Mahlzeit",
+    val rawCarbInput: Double = 0.0,
+    val carbUnit: String = "g KH",
+    val carbGrams: Double = 0.0,
     val beValue: Double = 0.0,
     val keValue: Double = 0.0,
-    val timeOfDay: String,
-    val insulinFactor: Double, // IE pro KE (10g)
-    val mealInsulin: Double,
+    val timeOfDay: String = "Morgens",
+    val insulinFactor: Double = 1.0, // IE pro KE (10g)
+    val mealInsulin: Double = 0.0,
     val bloodGlucose: Double? = null,
     val targetGlucose: Double? = null,
     val correctionFactor: Double? = null,
     val correctionInsulin: Double? = null,
-    val totalInsulin: Double,
-    val roundedInsulin: Double,
+    val totalInsulin: Double = 0.0,
+    val roundedInsulin: Double = 0.0,
     val notes: String = ""
 )
 
