@@ -10,15 +10,15 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  namespace = "network.spiritscorp"
+  compileSdk = 37
 
   defaultConfig {
-    applicationId = "com.aistudio.insulincalc.dbqxyz"
+    applicationId = "network.spiritscorp.insulincalc"
     minSdk = 24
-    targetSdk = 36
+    targetSdk = 37
     versionCode = 1
-    versionName = "1.0"
+    versionName = "1.0.2"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -31,12 +31,6 @@ android {
       keyAlias = "upload"
       keyPassword = System.getenv("KEY_PASSWORD")
     }
-    create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
-    }
   }
 
   buildTypes {
@@ -46,28 +40,37 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug { }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
   }
   buildFeatures {
     compose = true
     buildConfig = true
   }
-  testOptions { unitTests { isIncludeAndroidResources = true } }
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+      all {
+        val testTask = this as? Test
+        testTask?.jvmArgs("--enable-native-access=ALL-UNNAMED")
+      }
+    }
+  }
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true
   }
+  buildToolsVersion = "36.0.0"
 }
 
-// Configure the Secrets Gradle Plugin to use .env and .env.example files
+// Configure the Secrets Gradle Plugin to use .env and .env.spiritscorp files
 // to match the convention used in Web projects.
 secrets {
   propertiesFileName = ".env"
-  defaultPropertiesFileName = ".env.example"
+  defaultPropertiesFileName = ".env.spiritscorp"
   ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 

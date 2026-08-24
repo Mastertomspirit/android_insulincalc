@@ -1,6 +1,6 @@
 # 💉 Insulin-Rechner & Mahlzeiten-Assistent
 
-Eine moderne, übersichtliche und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 2). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
+Eine moderne, übersichtliche und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 3). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
 
 ---
 
