@@ -1,25 +1,21 @@
-// import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
-
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
-  // alias(libs.plugins.google.services)
 }
 
 android {
   namespace = "network.spiritscorp"
-  compileSdk = 35
+  compileSdk = 37
 
   defaultConfig {
     applicationId = "network.spiritscorp.insulincalc"
-    minSdk = 24
-    targetSdk = 35
-    versionCode = 1
-    versionName = "1.0.2"
+    minSdk = 30
+    targetSdk = 37
+    versionCode = 2
+    versionName = "1.1.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -44,11 +40,8 @@ android {
     debug { }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-  kotlinOptions {
-    jvmTarget = "17"
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
   }
   buildFeatures {
     compose = true
@@ -125,7 +118,6 @@ dependencies {
   implementation(libs.okhttp)
   // implementation(libs.play.services.location)
   implementation(libs.retrofit)
-  testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
   testImplementation(libs.junit)
