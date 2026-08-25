@@ -28,6 +28,7 @@ moshiKotlinCodegen = "1.15.2"
 robolectric = "4.16.1"
 roborazzi = "1.73.0"
 secretsGradlePlugin = "2.0.1"
+jsonVersion = "20260814"
 
 
 [libraries]
@@ -67,10 +68,10 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-junit-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
+json = { module = "org.json:json", version.ref = "jsonVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-# kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
