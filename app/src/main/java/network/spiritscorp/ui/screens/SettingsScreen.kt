@@ -866,7 +866,7 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "insulin_calc V1.1.1 • by Tom Spirit",
+                    text = "Insulin Calc V1.1.2 • by Tom Spirit",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
