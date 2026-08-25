@@ -37,8 +37,8 @@ data class UserSettings(
     val defaultCarbUnit: String = "GRAMS",
     val beGramsDivisor: Int = 12, // 12g or 10g per BE
     val glucoseUnit: String = "mg/dl",
-    val targetGlucoseMgDl: Double = 100.0,
-    val correctionFactorMgDl: Double = 40.0, // 1 IE senkt BZ um 40 mg/dl
+    val targetGlucoseMgDl: Double = 120.0,
+    val correctionFactorMgDl: Double = 50.0, // 1 IE senkt BZ um 40 mg/dl
     val roundingStep: Double = 0.5, // 0.1, 0.5, or 1.0
     val showDisclaimer: Boolean = true,
     val selectedTheme: String = "MEDICAL_TEAL",

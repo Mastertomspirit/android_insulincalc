@@ -6,8 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -188,7 +192,21 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
         ) {
             AnimatedContent(
                 targetState = uiState.activeTab,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                transitionSpec = {
+                    val isForward = targetState > initialState
+                    val slideDistance = 300
+                    (slideInHorizontally(
+                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                        initialOffsetX = { if (isForward) slideDistance else -slideDistance }
+                    ) + fadeIn(
+                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                    )) togetherWith (slideOutHorizontally(
+                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                        targetOffsetX = { if (isForward) -slideDistance else slideDistance }
+                    ) + fadeOut(
+                        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                    ))
+                },
                 label = "tab_animation"
             ) { tabIndex ->
                 when (tabIndex) {

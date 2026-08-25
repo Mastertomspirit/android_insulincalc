@@ -2,6 +2,7 @@ package network.spiritscorp.data
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import network.spiritscorp.model.CalculationLog
@@ -503,7 +504,7 @@ object DatabaseBackupManager {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DatabaseBackupManager", "Failed to read content from URI: $uri", e)
             null
         }
     }
@@ -519,7 +520,7 @@ object DatabaseBackupManager {
                 true
             } ?: false
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DatabaseBackupManager", "Failed to write content to URI: $uri", e)
             false
         }
     }
