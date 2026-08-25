@@ -1,5 +1,7 @@
 package network.spiritscorp.ui.screens
 
+import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -30,16 +32,18 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.InvertColors
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import network.spiritscorp.data.DatabaseBackupManager
+import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.EveningColor
@@ -95,21 +100,47 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
-
     val currentSettings = settings ?: UserSettings()
 
+    // Factor states
     var morningFactor by remember(currentSettings) { mutableDoubleStateOf(currentSettings.morningFactor) }
     var noonFactor by remember(currentSettings) { mutableDoubleStateOf(currentSettings.noonFactor) }
     var eveningFactor by remember(currentSettings) { mutableDoubleStateOf(currentSettings.eveningFactor) }
     var nightFactor by remember(currentSettings) { mutableDoubleStateOf(currentSettings.nightFactor) }
 
+    // Unit states
+    var glucoseUnit by remember(currentSettings) {
+        mutableStateOf(if (currentSettings.glucoseUnit.lowercase().contains("mmol")) GlucoseUnit.MMOL_L else GlucoseUnit.MG_DL)
+    }
     var defaultCarbUnit by remember(currentSettings) { mutableStateOf(currentSettings.defaultCarbUnit) }
     var beDivisor by remember(currentSettings) { mutableIntStateOf(currentSettings.beGramsDivisor) }
+
+    // BG & Correction Target values
+    var targetGlucose by remember(currentSettings, glucoseUnit) {
+        mutableStateOf(
+            if (glucoseUnit == GlucoseUnit.MMOL_L) {
+                val mmol = GlucoseUnit.MMOL_L.fromMgDl(currentSettings.targetGlucoseMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else String.format(Locale.US, "%.1f", mmol)
+            } else {
+                currentSettings.targetGlucoseMgDl.toInt().toString()
+            }
+        )
+    }
+
+    var correctionFactor by remember(currentSettings, glucoseUnit) {
+        mutableStateOf(
+            if (glucoseUnit == GlucoseUnit.MMOL_L) {
+                val mmol = GlucoseUnit.MMOL_L.fromMgDl(currentSettings.correctionFactorMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else String.format(Locale.US, "%.1f", mmol)
+            } else {
+                currentSettings.correctionFactorMgDl.toInt().toString()
+            }
+        )
+    }
+
+    // Appearance & Rounding
     var selectedThemeName by remember(currentSettings) { mutableStateOf(currentSettings.selectedTheme) }
     var themeMode by remember(currentSettings) { mutableStateOf(currentSettings.themeMode) }
-
-    var targetGlucose by remember(currentSettings) { mutableStateOf(currentSettings.targetGlucoseMgDl.toInt().toString()) }
-    var correctionFactor by remember(currentSettings) { mutableStateOf(currentSettings.correctionFactorMgDl.toInt().toString()) }
     var roundingStep by remember(currentSettings) { mutableDoubleStateOf(currentSettings.roundingStep) }
 
     Column(
@@ -119,7 +150,7 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Daytime Factors Card (with 0.05 step resolution)
+        // SECTION 1: Tageszeit-Faktoren
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,32 +160,15 @@ fun SettingsScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Tageszeit-Faktoren (Schritte in 0,05 IE)",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Text(
-                    text = "Stelle deine individuellen Faktoren präzise in 0,05er Schritten ein (z.B. 0,45 • 0,50 • 0,55 • 1,25 IE / KE).",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                SettingsSectionHeader(
+                    icon = Icons.Default.Tune,
+                    title = "1. Tageszeit-Faktoren",
+                    subtitle = "Insulin-Faktoren pro KE (10g KH) in 0,05er Schritten"
                 )
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Morning
                 FactorRow(
                     title = "Morgens (Frühstück)",
                     subtitle = "06:00 - 11:00 Uhr (oft erhöht)",
@@ -167,7 +181,6 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Noon
                 FactorRow(
                     title = "Mittags (Mittagessen)",
                     subtitle = "11:00 - 17:00 Uhr",
@@ -180,7 +193,6 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Evening
                 FactorRow(
                     title = "Abends (Abendessen)",
                     subtitle = "17:00 - 22:00 Uhr",
@@ -193,7 +205,6 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Night
                 FactorRow(
                     title = "Nachts (Spätmahlzeit)",
                     subtitle = "22:00 - 06:00 Uhr",
@@ -206,7 +217,159 @@ fun SettingsScreen(
             }
         }
 
-        // Standard Unit Card (Default = BE)
+        // SECTION 2: Blutzucker-Einheit & Korrektur-Parameter
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("settings_bg_card"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SettingsSectionHeader(
+                    icon = Icons.Default.Opacity,
+                    title = "2. Blutzucker & Korrektur",
+                    subtitle = "Einheit (mg/dl vs. mmol/l), Zielwert und Korrekturfaktor"
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Glucose Unit Switcher (Segmented Control)
+                Text(
+                    text = "Blutzucker-Messeinheit:",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val isMgDl = glucoseUnit == GlucoseUnit.MG_DL
+                    val isMmolL = glucoseUnit == GlucoseUnit.MMOL_L
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                if (glucoseUnit != GlucoseUnit.MG_DL) {
+                                    // Convert current values to mg/dl
+                                    val targetVal = targetGlucose.toDoubleOrNull() ?: 6.7
+                                    val corrVal = correctionFactor.toDoubleOrNull() ?: 2.8
+                                    targetGlucose = (GlucoseUnit.MMOL_L.toMgDl(targetVal)).toInt().toString()
+                                    correctionFactor = (GlucoseUnit.MMOL_L.toMgDl(corrVal)).toInt().toString()
+                                    glucoseUnit = GlucoseUnit.MG_DL
+                                }
+                            }
+                            .testTag("settings_glucose_unit_mgdl"),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isMgDl) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        border = if (isMgDl) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 10.dp, horizontal = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "mg/dl",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = if (isMgDl) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Milligramm / Deziliter",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.5.sp),
+                                color = if (isMgDl) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                if (glucoseUnit != GlucoseUnit.MMOL_L) {
+                                    // Convert current values to mmol/l
+                                    val targetVal = targetGlucose.toDoubleOrNull() ?: 120.0
+                                    val corrVal = correctionFactor.toDoubleOrNull() ?: 50.0
+                                    val targetMmol = GlucoseUnit.MMOL_L.fromMgDl(targetVal)
+                                    val corrMmol = GlucoseUnit.MMOL_L.fromMgDl(corrVal)
+                                    targetGlucose = String.format(Locale.US, "%.1f", targetMmol)
+                                    correctionFactor = String.format(Locale.US, "%.1f", corrMmol)
+                                    glucoseUnit = GlucoseUnit.MMOL_L
+                                }
+                            }
+                            .testTag("settings_glucose_unit_mmoll"),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isMmolL) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        border = if (isMmolL) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 10.dp, horizontal = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "mmol/l",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = if (isMmolL) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Millimol / Liter",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.5.sp),
+                                color = if (isMmolL) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Target and Correction inputs
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedTextField(
+                        value = targetGlucose,
+                        onValueChange = { targetGlucose = it.replace(',', '.') },
+                        label = { Text("Ziel-BZ (${glucoseUnit.shortName})") },
+                        placeholder = { Text(if (glucoseUnit == GlucoseUnit.MMOL_L) "6.7" else "120") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("settings_target_glucose_field"),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = correctionFactor,
+                        onValueChange = { correctionFactor = it.replace(',', '.') },
+                        label = { Text("Korrektur (${glucoseUnit.shortName})") },
+                        placeholder = { Text(if (glucoseUnit == GlucoseUnit.MMOL_L) "2.8" else "50") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("settings_correction_factor_field"),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
+
+                Text(
+                    text = "Korrekturfaktor = um wie viel ${glucoseUnit.shortName} 1 IE Insulin deinen Blutzucker senkt.",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+
+        // SECTION 3: Kohlenhydrat-Einheiten & Rundung
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -216,27 +379,26 @@ fun SettingsScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Scale,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Standard-Einheit für Kohlenhydrate",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                SettingsSectionHeader(
+                    icon = Icons.Default.Scale,
+                    title = "3. Kohlenhydrate & Rundung",
+                    subtitle = "Standard-Einheit, BE-Divisor und Dosierungs-Rundung"
+                )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Standard-Einheit im Rechner:",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
 
                 val unitOptions = listOf(
-                    "GRAMS" to "Gramm Kohlenhydrate (g KH) – Standard",
-                    "BE" to "BE (Broteinheit)",
-                    "KE" to "KE / KHE (Kohlenhydrateinheit = 10g KH)"
+                    "GRAMS" to "Gramm Kohlenhydrate (g KH)",
+                    "BE" to "Broteinheit (BE)",
+                    "KE" to "Kohlenhydrateinheit (KE / 10g)"
                 )
 
                 unitOptions.forEach { (unitKey, label) ->
@@ -244,7 +406,7 @@ fun SettingsScreen(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 3.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .clickable { defaultCarbUnit = unitKey },
                         shape = RoundedCornerShape(10.dp),
@@ -272,18 +434,13 @@ fun SettingsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
                     text = "Broteinheit (BE) Divisor:",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Wie viel Gramm Kohlenhydrate entsprechen 1 BE?",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -315,10 +472,52 @@ fun SettingsScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Rundung der Insulindosis:",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                val roundingOptions = listOf(
+                    0.5 to "Halbe Einheiten (0.5 IE) – Standard für Pen",
+                    0.1 to "Zehntel Einheiten (0.1 IE) – für Insulinpumpe",
+                    1.0 to "Ganze Einheiten (1.0 IE)"
+                )
+
+                roundingOptions.forEach { (step, label) ->
+                    val isStepSelected = roundingStep == step
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { roundingStep = step }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = isStepSelected,
+                            onClick = { roundingStep = step }
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = if (isStepSelected) FontWeight.SemiBold else FontWeight.Normal
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
         }
 
-        // Color Themes & Appearance Card
+        // SECTION 4: Farbdesign & Erscheinungsbild
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -328,27 +527,21 @@ fun SettingsScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Palette,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Farbdesign & Themes",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                SettingsSectionHeader(
+                    icon = Icons.Default.Palette,
+                    title = "4. Farbdesign & Design",
+                    subtitle = "Akzentfarben und Hell-/Dunkel-Modus"
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Wähle deinen bevorzugten Farbton für die Benutzeroberfläche.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    text = "Farbschema:",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(8.dp))
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -402,10 +595,9 @@ fun SettingsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Dark/Light Mode Selection
                 Text(
                     text = "Erscheinungsbild:",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -449,149 +641,25 @@ fun SettingsScreen(
             }
         }
 
-        // Blood Glucose Target & Correction Settings
+        // SECTION 5: Datensicherung & Backup
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("settings_bg_card"),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Speed,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Blutzucker-Korrektur Parameter",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                SettingsSectionHeader(
+                    icon = Icons.Default.Save,
+                    title = "5. Datensicherung & Backup",
+                    subtitle = "Sichere deine Daten lokal oder importiere Backups"
+                )
 
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedTextField(
-                        value = targetGlucose,
-                        onValueChange = { targetGlucose = it },
-                        label = { Text("Ziel-BZ (mg/dl)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("settings_target_glucose_field"),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = correctionFactor,
-                        onValueChange = { correctionFactor = it },
-                        label = { Text("Korrekturfaktor") },
-                        placeholder = { Text("z.B. 40") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("settings_correction_factor_field"),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-                }
-                Text(
-                    text = "Korrekturfaktor = um wie viel mg/dl 1 IE Insulin den Blutzucker senkt (z.B. 40 mg/dl).",
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-        }
-
-        // Rounding Preference
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Rundung der Insulindosis",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val roundingOptions = listOf(
-                    0.5 to "Halbe Einheiten (0.5 IE) – Standard für Pen",
-                    0.1 to "Zehntel Einheiten (0.1 IE) – für Insulinpumpe",
-                    1.0 to "Ganze Einheiten (1.0 IE)"
-                )
-
-                roundingOptions.forEach { (step, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = roundingStep == step,
-                            onClick = { roundingStep = step }
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
-
-        // Database Backup & Export Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Datenbank & Backup",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Text(
-                    text = "Speichere deine Daten als JSON-Backupdatei oder als CSV-Tabelle auf deinem Gerät bzw. importiere bestehende Backups.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                )
-
                 val context = LocalContext.current
-                val logs by viewModel.historyLogs.collectAsState(initial = emptyList())
 
-                // Activity Result Launchers for file operations
                 val jsonExportLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.CreateDocument("application/json")
                 ) { uri ->
@@ -699,8 +767,16 @@ fun SettingsScreen(
                 }
             }
         }
+
+        // SAVE BUTTON (Prominent Primary Action)
         Button(
             onClick = {
+                val targetNum = targetGlucose.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                val corrNum = correctionFactor.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
+
+                val targetMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(targetNum) else targetNum
+                val corrMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(corrNum) else corrNum
+
                 val updated = currentSettings.copy(
                     morningFactor = morningFactor,
                     noonFactor = noonFactor,
@@ -708,33 +784,36 @@ fun SettingsScreen(
                     nightFactor = nightFactor,
                     defaultCarbUnit = defaultCarbUnit,
                     beGramsDivisor = beDivisor,
+                    glucoseUnit = glucoseUnit.shortName,
+                    targetGlucoseMgDl = targetMgDl,
+                    correctionFactorMgDl = corrMgDl,
+                    roundingStep = roundingStep,
                     selectedTheme = selectedThemeName,
-                    themeMode = themeMode,
-                    targetGlucoseMgDl = targetGlucose.toDoubleOrNull() ?: 100.0,
-                    correctionFactorMgDl = correctionFactor.toDoubleOrNull() ?: 40.0,
-                    roundingStep = roundingStep
+                    themeMode = themeMode
                 )
                 viewModel.updateUserSettings(updated)
             },
             modifier = Modifier
                 .fillMaxWidth()
+                .height(52.dp)
                 .testTag("save_settings_button"),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp)
         ) {
-            Icon(imageVector = Icons.Default.Save, contentDescription = null)
+            Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Einstellungen & Design speichern",
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                text = "Einstellungen speichern",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
             )
         }
 
-        // Medical Safety & Professional Advice Card
+        // SECTION 6: Medizinischer Hinweis & Version
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
         ) {
             Row(
                 modifier = Modifier.padding(14.dp),
@@ -744,7 +823,7 @@ fun SettingsScreen(
                     imageVector = Icons.Default.HealthAndSafety,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(22.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
@@ -756,32 +835,74 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Diese App ist eine Berechnungshilfe und ersetzt keine ärztliche Beratung. Faktoren unterliegen Schwankungen durch Bewegung, Krankheit, Stress oder Hormone. Passe deine Dosis im Zweifel mit deinem behandelnden Diabetesteam an.",
-                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
+
         // Footer Info
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(14.dp),
-                horizontalAlignment = Alignment.CenterHorizontally // Zentriert alles darin
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Insulincalc V1.0.2     by tomSpirit",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "Insulincalc V1.1.0 • by tomSpirit",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun SettingsSectionHeader(
+    icon: ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+            modifier = Modifier.size(36.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -804,7 +925,7 @@ private fun FactorRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -813,14 +934,14 @@ private fun FactorRow(
                 Surface(
                     shape = CircleShape,
                     color = iconColor.copy(alpha = 0.15f),
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = iconColor,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -851,7 +972,7 @@ private fun FactorRow(
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(42.dp)
                         .testTag("decrease_${tagPrefix}_factor"),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -863,12 +984,12 @@ private fun FactorRow(
                     Text(text = "-0,05", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.weight(1.2f).height(44.dp)
+                    modifier = Modifier.weight(1.2f).height(42.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
@@ -881,7 +1002,7 @@ private fun FactorRow(
                     }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Button(
                     onClick = {
@@ -890,7 +1011,7 @@ private fun FactorRow(
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(42.dp)
                         .testTag("increase_${tagPrefix}_factor"),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -905,4 +1026,3 @@ private fun FactorRow(
         }
     }
 }
-

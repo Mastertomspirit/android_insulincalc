@@ -22,4 +22,13 @@ enum class GlucoseUnit(val label: String, val shortName: String) {
         MG_DL -> mgDl
         MMOL_L -> mgDl / 18.0182
     }
+
+    companion object {
+        fun fromString(str: String?): GlucoseUnit {
+            return when (str?.trim()?.lowercase()) {
+                "mmol/l", "mmol", "mmol_l" -> MMOL_L
+                else -> MG_DL
+            }
+        }
+    }
 }

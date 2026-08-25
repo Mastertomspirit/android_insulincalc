@@ -28,8 +28,9 @@ data class CalculatorUiState(
     val selectedTimeOfDay: TimeOfDay = TimeOfDay.current(),
     val factorOverride: Double? = null,
     val isAutoTimeDetection: Boolean = true,
+    val glucoseUnit: network.spiritscorp.model.GlucoseUnit = network.spiritscorp.model.GlucoseUnit.MG_DL,
     val currentGlucoseInput: String = "",
-    val targetGlucoseInput: String = "100",
+    val targetGlucoseInput: String = "120",
     val correctionFactorInput: String = "50",
     val showCorrection: Boolean = false,
     val mealTitle: String = "",
@@ -84,18 +85,33 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     init {
         viewModelScope.launch {
             val settings = repository.getSettings()
+            val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
+            val initialTime = TimeOfDay.current()
+            val unit = when (settings.defaultCarbUnit) {
+                "BE" -> CarbUnit.BE
+                "KE" -> CarbUnit.KE
+                else -> CarbUnit.GRAMS
+            }
+            val targetStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
+                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            } else {
+                settings.targetGlucoseMgDl.toString().replace(".0", "")
+            }
+            val corrStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
+                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            } else {
+                settings.correctionFactorMgDl.toString().replace(".0", "")
+            }
+
             _uiState.update { current ->
-                val initialTime = TimeOfDay.current()
-                val unit = when (settings.defaultCarbUnit) {
-                    "BE" -> CarbUnit.BE
-                    "KE" -> CarbUnit.KE
-                    else -> CarbUnit.GRAMS
-                }
                 current.copy(
                     selectedUnit = unit,
+                    glucoseUnit = gUnit,
                     carbInput = "",
-                    targetGlucoseInput = settings.targetGlucoseMgDl.toString().replace(".0", ""),
-                    correctionFactorInput = settings.correctionFactorMgDl.toString().replace(".0", ""),
+                    targetGlucoseInput = targetStr,
+                    correctionFactorInput = corrStr,
                     selectedTimeOfDay = initialTime
                 )
             }
@@ -252,11 +268,13 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
         var isHypoRisk = false
         var advisory = "Standard-Dosis für die Mahlzeit"
+        val gUnit = state.glucoseUnit
+        val hypoThreshold = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) 3.9 else 70.0
 
         if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null && corrFactor > 0) {
-            if (currentBg < 70) {
+            if (currentBg < hypoThreshold) {
                 isHypoRisk = true
-                advisory = "Achtung: Niedriger Blutzucker! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
+                advisory = "Achtung: Niedriger Blutzucker (< ${if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "3.9 mmol/l" else "70 mg/dl"})! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
             } else if (currentBg < targetBg) {
                 val diff = targetBg - currentBg
                 // Negative correction
@@ -364,8 +382,29 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     fun updateUserSettings(settings: UserSettings) {
         viewModelScope.launch {
             repository.saveSettings(settings)
+            val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
+            val targetStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
+                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            } else {
+                settings.targetGlucoseMgDl.toString().replace(".0", "")
+            }
+            val corrStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
+                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            } else {
+                settings.correctionFactorMgDl.toString().replace(".0", "")
+            }
+
+            _uiState.update { current ->
+                current.copy(
+                    glucoseUnit = gUnit,
+                    targetGlucoseInput = targetStr,
+                    correctionFactorInput = corrStr,
+                    snackbarMessage = "Einstellungen gespeichert!"
+                )
+            }
             recalculate()
-            _uiState.update { it.copy(snackbarMessage = "Einstellungen gespeichert!") }
         }
     }
 

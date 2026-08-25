@@ -543,9 +543,13 @@ fun CalculatorScreen(
                             OutlinedTextField(
                                 value = uiState.currentGlucoseInput,
                                 onValueChange = { viewModel.onGlucoseInputChange(it) },
-                                label = { Text("Aktueller BZ (mg/dl)") },
-                                placeholder = { Text("z.B. 160") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                label = { Text("Aktueller BZ (${uiState.glucoseUnit.shortName})") },
+                                placeholder = {
+                                    Text(
+                                        if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 modifier = Modifier
                                     .weight(1f)
                                     .testTag("current_glucose_field"),
@@ -557,8 +561,13 @@ fun CalculatorScreen(
                             OutlinedTextField(
                                 value = uiState.targetGlucoseInput,
                                 onValueChange = { viewModel.onTargetGlucoseChange(it) },
-                                label = { Text("Zielwert (mg/dl)") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                label = { Text("Zielwert (${uiState.glucoseUnit.shortName})") },
+                                placeholder = {
+                                    Text(
+                                        if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 modifier = Modifier
                                     .weight(1f)
                                     .testTag("target_glucose_field"),
@@ -571,9 +580,13 @@ fun CalculatorScreen(
                         OutlinedTextField(
                             value = uiState.correctionFactorInput,
                             onValueChange = { viewModel.onCorrectionFactorChange(it) },
-                            label = { Text("Korrekturfaktor (mg/dl pro 1 IE)") },
-                            placeholder = { Text("z.B. 40") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text("Korrekturfaktor (${uiState.glucoseUnit.shortName} pro 1 IE)") },
+                            placeholder = {
+                                Text(
+                                    if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("correction_factor_field"),

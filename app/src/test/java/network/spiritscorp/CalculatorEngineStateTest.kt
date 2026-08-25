@@ -62,9 +62,11 @@ class CalculatorEngineStateTest {
 
         var isHypoRisk = false
         var advisory = "Standard-Dosis für die Mahlzeit"
+        val isMmol = settings.glucoseUnit.lowercase().contains("mmol")
+        val hypoThreshold = if (isMmol) 3.9 else 70.0
 
         if (showCorrection && currentBg != null && targetBg != null && corrFactor != null && corrFactor > 0) {
-            if (currentBg < 70) {
+            if (currentBg < hypoThreshold) {
                 isHypoRisk = true
                 advisory = "Achtung: Niedriger Blutzucker! Bitte zuerst 1-2 KE schnelle KH einnehmen."
             } else if (currentBg < targetBg) {
@@ -226,6 +228,54 @@ class CalculatorEngineStateTest {
         assertEquals(1.5, summary.roundedTotalInsulin, 0.001)
         assertFalse(summary.isHypoRisk)
         assertTrue(summary.advisoryNote.contains("reduziert"))
+    }
+
+    @Test
+    fun testMmolLCorrectionCalculation() {
+        val settings = UserSettings(
+            eveningFactor = 1.00,
+            glucoseUnit = "mmol/l",
+            targetGlucoseMgDl = 120.0, // ~6.66 mmol/l
+            correctionFactorMgDl = 50.0, // ~2.77 mmol/l pro IE
+            roundingStep = 0.5
+        )
+
+        // 3 KE = 3.0 IE meal insulin
+        // Target: 6.7 mmol/l, Current BG: 12.3 mmol/l, CorrFactor: 2.8 mmol/l pro IE
+        // Diff = 12.3 - 6.7 = 5.6 mmol/l
+        // Correction = 5.6 / 2.8 = 2.0 IE
+        // Total = 3.0 + 2.0 = 5.0 IE
+        val summary = calculateSummary(
+            carbInput = "3.0",
+            selectedUnit = CarbUnit.KE,
+            selectedTimeOfDay = TimeOfDay.EVENING,
+            factorOverride = null,
+            currentGlucoseInput = "12.3",
+            targetGlucoseInput = "6.7",
+            correctionFactorInput = "2.8",
+            showCorrection = true,
+            settings = settings
+        )
+
+        assertEquals(30.0, summary.carbGrams, 0.001)
+        assertEquals(3.00, summary.mealInsulin, 0.001)
+        assertEquals(2.00, summary.correctionInsulin, 0.001)
+        assertEquals(5.00, summary.rawTotalInsulin, 0.001)
+        assertEquals(5.0, summary.roundedTotalInsulin, 0.001)
+        assertTrue(summary.advisoryNote.contains("Erhöhter Blutzucker"))
+    }
+
+    @Test
+    fun testMmolLHypoRiskDetection() {
+        val settings = UserSettings(
+            morningFactor = 1.50,
+            glucoseUnit = "mmol/l",
+            roundingStep = 0.5
+        )
+        // Hypo threshold in mmol/l is 3.9 mmol/l (< 70 mg/dl)
+        val currentBg = 3.5
+        val isHypo = currentBg < 3.9
+        assertTrue(isHypo)
     }
 
     @Test

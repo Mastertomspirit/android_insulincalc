@@ -39,7 +39,8 @@ class InsulinRepositoryIntegrationTest {
         assertNotNull(settings)
         assertEquals(1.50, settings.morningFactor, 0.001)
         assertEquals("GRAMS", settings.defaultCarbUnit)
-        assertEquals(100.0, settings.targetGlucoseMgDl, 0.001)
+        assertEquals(120.0, settings.targetGlucoseMgDl, 0.001)
+        assertEquals(50.0, settings.correctionFactorMgDl, 0.001)
 
         // Verify it was persisted
         val direct = fakeSettingsDao.getSettingsDirect()

@@ -38,6 +38,18 @@ class InsulinUnitConversionTest {
         // 5.55 mmol/l in mg/dl: 5.55 * 18.0182 ≈ 100 mg/dl
         val mgDl = GlucoseUnit.MMOL_L.toMgDl(5.55)
         assertEquals(100.0, mgDl, 0.1)
+
+        // 120 mg/dl in mmol/l: 120 / 18.0182 ≈ 6.66 mmol/l
+        val mmol120 = GlucoseUnit.MMOL_L.fromMgDl(120.0)
+        assertEquals(6.66, mmol120, 0.01)
+
+        // String parsing
+        assertEquals(GlucoseUnit.MMOL_L, GlucoseUnit.fromString("mmol/l"))
+        assertEquals(GlucoseUnit.MMOL_L, GlucoseUnit.fromString("MMOL/L"))
+        assertEquals(GlucoseUnit.MMOL_L, GlucoseUnit.fromString("mmol"))
+        assertEquals(GlucoseUnit.MG_DL, GlucoseUnit.fromString("mg/dl"))
+        assertEquals(GlucoseUnit.MG_DL, GlucoseUnit.fromString("mgdl"))
+        assertEquals(GlucoseUnit.MG_DL, GlucoseUnit.fromString(null))
     }
 
     @Test
@@ -57,8 +69,8 @@ class InsulinUnitConversionTest {
         assertEquals(1.00, settings.noonFactor, 0.001)
         assertEquals(1.20, settings.eveningFactor, 0.001)
         assertEquals(0.80, settings.nightFactor, 0.001)
-        assertEquals(100.0, settings.targetGlucoseMgDl, 0.001)
-        assertEquals(40.0, settings.correctionFactorMgDl, 0.001)
+        assertEquals(120.0, settings.targetGlucoseMgDl, 0.001)
+        assertEquals(50.0, settings.correctionFactorMgDl, 0.001)
         assertEquals(0.5, settings.roundingStep, 0.001)
     }
 }

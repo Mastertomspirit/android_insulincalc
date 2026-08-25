@@ -321,8 +321,9 @@ private fun LogbookItemCard(
                 )
 
                 if (log.bloodGlucose != null) {
+                    val bzDisplay = if (log.bloodGlucose % 1.0 == 0.0) log.bloodGlucose.toInt().toString() else String.format(Locale.US, "%.1f", log.bloodGlucose)
                     Text(
-                        text = "BZ: ${log.bloodGlucose.toInt()} mg/dl (Korrektur: ${if ((log.correctionInsulin ?: 0.0) > 0) "+" else ""}${log.correctionInsulin} IE)",
+                        text = "BZ: $bzDisplay (Korrektur: ${if ((log.correctionInsulin ?: 0.0) > 0) "+" else ""}${log.correctionInsulin} IE)",
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         color = MaterialTheme.colorScheme.primary
                     )
