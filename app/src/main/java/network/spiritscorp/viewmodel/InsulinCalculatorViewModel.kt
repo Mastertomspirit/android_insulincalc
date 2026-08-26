@@ -20,15 +20,6 @@ package network.spiritscorp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import network.spiritscorp.ai.GeminiMealService
-import network.spiritscorp.ai.MealEstimateResult
-import network.spiritscorp.data.AppDatabase
-import network.spiritscorp.data.InsulinRepository
-import network.spiritscorp.model.CalculationLog
-import network.spiritscorp.model.CalculationSummary
-import network.spiritscorp.model.CarbUnit
-import network.spiritscorp.model.TimeOfDay
-import network.spiritscorp.model.UserSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,10 +27,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import network.spiritscorp.ai.GeminiMealService
+import network.spiritscorp.ai.MealEstimateResult
+import network.spiritscorp.data.AppDatabase
+import network.spiritscorp.data.InsulinRepository
+import network.spiritscorp.data.ThemePreferences
+import network.spiritscorp.model.CalculationLog
+import network.spiritscorp.model.CalculationSummary
+import network.spiritscorp.model.CarbUnit
+import network.spiritscorp.model.GlucoseUnit
+import network.spiritscorp.model.TimeOfDay
+import network.spiritscorp.model.UserSettings
+import network.spiritscorp.util.InsulinMathEngine
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
-fun createInitialUiState(): CalculatorUiState {
+internal fun createInitialUiState(): CalculatorUiState {
     val currentTime = TimeOfDay.current()
     val initialFactor = currentTime.defaultFactor
     return CalculatorUiState(
@@ -68,7 +72,7 @@ data class CalculatorUiState(
     val selectedTimeOfDay: TimeOfDay = TimeOfDay.current(),
     val factorOverride: Double? = null,
     val isAutoTimeDetection: Boolean = true,
-    val glucoseUnit: network.spiritscorp.model.GlucoseUnit = network.spiritscorp.model.GlucoseUnit.MG_DL,
+    val glucoseUnit: GlucoseUnit = GlucoseUnit.MG_DL,
     val currentGlucoseInput: String = "",
     val targetGlucoseInput: String = "120",
     val correctionFactorInput: String = "50",
@@ -129,27 +133,27 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
                 val settings = settingsNullable ?: UserSettings()
                 cachedSettings = settings
                 // Sync to ThemePreferences
-                network.spiritscorp.data.ThemePreferences.saveThemePreferences(
+                ThemePreferences.saveThemePreferences(
                     getApplication(),
                     settings.selectedTheme,
                     settings.themeMode
                 )
-                val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
+                val gUnit = GlucoseUnit.fromString(settings.glucoseUnit)
                 val initialTime = if (_uiState.value.isAutoTimeDetection) TimeOfDay.current() else _uiState.value.selectedTimeOfDay
                 val unit = when (settings.defaultCarbUnit) {
                     "BE" -> CarbUnit.BE
                     "KE" -> CarbUnit.KE
                     else -> CarbUnit.GRAMS
                 }
-                val targetStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
-                    val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
-                    if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+                val targetStr = if (gUnit == GlucoseUnit.MMOL_L) {
+                    val mmol = GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
+                    if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(Locale.getDefault(), mmol)
                 } else {
                     settings.targetGlucoseMgDl.toString().replace(".0", "")
                 }
-                val corrStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
-                    val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
-                    if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+                val corrStr = if (gUnit == GlucoseUnit.MMOL_L) {
+                    val mmol = GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
+                    if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(Locale.getDefault(), mmol)
                 } else {
                     settings.correctionFactorMgDl.toString().replace(".0", "")
                 }
@@ -186,7 +190,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         val current = _uiState.value.carbInput.toDoubleOrNull() ?: 0.0
         val updated = (current + amount).coerceAtLeast(0.0)
         _uiState.update {
-            it.copy(carbInput = if (updated % 1.0 == 0.0) updated.toInt().toString() else "%.1f".format(java.util.Locale.US, updated))
+            it.copy(carbInput = if (updated % 1.0 == 0.0) updated.toInt().toString() else "%.1f".format(Locale.getDefault(), updated))
         }
         recalculate()
     }
@@ -297,18 +301,16 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             CarbUnit.BE -> rawInput * beDivisor
         }
 
-        val ke = grams / 10.0
-        val be = grams / 12.0
+        val ke = InsulinMathEngine.calculateKe(grams)
+        val be = InsulinMathEngine.calculateBe(grams)
 
         val factor = getEffectiveFactor(settings)
-        // Wenn BE gewählt ist, wird mit dem eingestellten Divisor (z.B. 12 oder 10) gerechnet.
-        // Wenn Gramm gewählt ist, rechnen wir standardmäßig mit / 12 (oder BE Äquivalent).
-        val unitsCount = when (state.selectedUnit) {
-            CarbUnit.BE -> rawInput
-            CarbUnit.KE -> rawInput
-            CarbUnit.GRAMS -> grams / 12.0
-        }
-        val mealInsulin = unitsCount * factor
+        val mealInsulin = InsulinMathEngine.calculateMealInsulin(
+            rawInput,
+            state.selectedUnit.shortName,
+            grams,
+            factor
+        )
 
         var correctionInsulin = 0.0
         val currentBg = state.currentGlucoseInput.toDoubleOrNull()
@@ -318,15 +320,14 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         var isHypoRisk = false
         var advisory = "Standard-Dosis für die Mahlzeit"
         val gUnit = state.glucoseUnit
-        val hypoThreshold = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) 3.9 else 70.0
+        val isMmol = (gUnit == GlucoseUnit.MMOL_L)
 
         if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null && corrFactor > 0) {
-            if (currentBg < hypoThreshold) {
+            if (InsulinMathEngine.isHypoglycemia(currentBg, isMmol)) {
                 isHypoRisk = true
-                advisory = "Achtung: Niedriger Blutzucker (< ${if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "3.9 mmol/l" else "70 mg/dl"})! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
+                advisory = "Achtung: Niedriger Blutzucker (< ${if (isMmol) "3.9 mmol/l" else "70 mg/dl"})! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
             } else if (currentBg < targetBg) {
                 val diff = targetBg - currentBg
-                // Negative correction
                 correctionInsulin = - (diff / corrFactor)
                 advisory = "Blutzucker unter Zielbereich: Korrektur reduziert Gesamtdosis."
             } else if (currentBg > targetBg) {
@@ -338,21 +339,20 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
         val rawTotal = (mealInsulin + correctionInsulin).coerceAtLeast(0.0)
         val roundingStep = settings.roundingStep
-
-        val roundedTotal = roundToStep(rawTotal, roundingStep)
+        val roundedTotal = InsulinMathEngine.roundToStep(rawTotal, roundingStep)
 
         _uiState.update {
             it.copy(
                 calculationSummary = CalculationSummary(
-                    carbGrams = roundToDecimals(grams, 1),
-                    keValue = roundToDecimals(ke, 2),
-                    beValue = roundToDecimals(be, 2),
+                    carbGrams = InsulinMathEngine.roundToDecimals(grams, 1),
+                    keValue = InsulinMathEngine.roundToDecimals(ke, 2),
+                    beValue = InsulinMathEngine.roundToDecimals(be, 2),
                     factorUsed = factor,
-                    mealInsulin = roundToDecimals(mealInsulin, 2),
+                    mealInsulin = InsulinMathEngine.roundToDecimals(mealInsulin, 2),
                     bloodGlucoseInput = currentBg,
                     targetGlucose = targetBg,
-                    correctionInsulin = roundToDecimals(correctionInsulin, 2),
-                    rawTotalInsulin = roundToDecimals(rawTotal, 2),
+                    correctionInsulin = InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
+                    rawTotalInsulin = InsulinMathEngine.roundToDecimals(rawTotal, 2),
                     roundedTotalInsulin = roundedTotal,
                     roundingStep = roundingStep,
                     isHypoRisk = isHypoRisk,
@@ -360,18 +360,6 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
                 )
             )
         }
-    }
-
-    private fun roundToStep(value: Double, step: Double): Double {
-        if (step <= 0.0) return roundToDecimals(value, 2)
-        val factor = 1.0 / step
-        return BigDecimal(Math.round(value * factor) / factor)
-            .setScale(if (step == 0.1) 1 else if (step == 0.5) 1 else 0, RoundingMode.HALF_UP)
-            .toDouble()
-    }
-
-    private fun roundToDecimals(value: Double, decimals: Int): Double {
-        return BigDecimal(value).setScale(decimals, RoundingMode.HALF_UP).toDouble()
     }
 
     fun saveCalculationToLog(notes: String = "") {
@@ -433,21 +421,21 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             cachedSettings = settings
             repository.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
-            network.spiritscorp.data.ThemePreferences.saveThemePreferences(
+            ThemePreferences.saveThemePreferences(
                 getApplication(),
                 settings.selectedTheme,
                 settings.themeMode
             )
-            val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
-            val targetStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
-                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
-                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            val gUnit = GlucoseUnit.fromString(settings.glucoseUnit)
+            val targetStr = if (gUnit == GlucoseUnit.MMOL_L) {
+                val mmol = GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(Locale.getDefault(), mmol)
             } else {
                 settings.targetGlucoseMgDl.toString().replace(".0", "")
             }
-            val corrStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
-                val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
-                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(java.util.Locale.US, mmol)
+            val corrStr = if (gUnit == GlucoseUnit.MMOL_L) {
+                val mmol = GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl)
+                if (mmol % 1.0 == 0.0) mmol.toInt().toString() else "%.1f".format(Locale.getDefault(), mmol)
             } else {
                 settings.correctionFactorMgDl.toString().replace(".0", "")
             }
@@ -484,7 +472,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         val formatted = if (currentUnit == CarbUnit.GRAMS) {
             converted.toInt().toString()
         } else {
-            "%.1f".format(java.util.Locale.US, converted)
+            "%.1f".format(Locale.getDefault(), converted)
         }
         _uiState.update {
             it.copy(

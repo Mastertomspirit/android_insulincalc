@@ -348,7 +348,7 @@ private fun MealResultCard(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "ca. ${String.format(java.util.Locale.US, "%.1f", result.totalCarbsGrams / 10.0)} KE",
+                            text = "ca. ${String.format(java.util.Locale.getDefault(), "%.1f", result.totalCarbsGrams / 10.0)} KE",
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )

@@ -49,7 +49,7 @@ data class ImportResult(
 object DatabaseBackupManager {
 
     private const val BACKUP_VERSION = 1
-    private val isoDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.GERMANY)
+    private val isoDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
     /**
      * Exports all database contents (UserSettings and all CalculationLogs) to a formatted JSON string.

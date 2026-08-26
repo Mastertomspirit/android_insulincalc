@@ -159,7 +159,7 @@ fun TimeOfDaySelector(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Faktor: ${String.format(java.util.Locale.GERMAN, "%.2f", effectiveFactor)} IE/KE • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
+                            text = "Faktor: ${String.format(java.util.Locale.getDefault(), "%.2f", effectiveFactor)} IE/KE • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -271,7 +271,7 @@ fun TimeOfDaySelector(
                                 )
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        text = String.format(java.util.Locale.GERMAN, "%.2f", effectiveFactor),
+                                        text = String.format(java.util.Locale.getDefault(), "%.2f", effectiveFactor),
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = selectedTimeOfDay.accentColor

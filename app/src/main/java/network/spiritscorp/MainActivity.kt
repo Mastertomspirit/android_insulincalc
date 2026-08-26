@@ -61,7 +61,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import network.spiritscorp.data.ThemePreferences
 import network.spiritscorp.ui.screens.AiMealEstimatorScreen
 import network.spiritscorp.ui.screens.CalculatorScreen
 import network.spiritscorp.ui.screens.LogbookScreen
@@ -77,8 +79,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val initialSavedTheme = network.spiritscorp.data.ThemePreferences.getSelectedTheme(this)
-        val initialSavedMode = network.spiritscorp.data.ThemePreferences.getThemeMode(this)
+        val initialSavedTheme = ThemePreferences.getSelectedTheme(this)
+        val initialSavedMode = ThemePreferences.getThemeMode(this)
 
         setContent {
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
@@ -93,7 +95,7 @@ class MainActivity : ComponentActivity() {
             val isDark = when (modeString) {
                 "LIGHT" -> false
                 "DARK" -> true
-                else -> androidx.compose.foundation.isSystemInDarkTheme()
+                else -> isSystemInDarkTheme()
             }
 
             MyApplicationTheme(

@@ -74,12 +74,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.model.CarbUnit
+import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.ui.components.MedicalDisclaimerBanner
 import network.spiritscorp.ui.components.TimeOfDaySelector
 import network.spiritscorp.ui.components.UnitSelectorRow
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.viewmodel.CalculatorUiState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -347,7 +349,7 @@ fun CalculatorScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = String.format(java.util.Locale.US, "%.1f", uiState.calculationSummary.roundedTotalInsulin),
+                        text = String.format(Locale.getDefault(), "%.1f", uiState.calculationSummary.roundedTotalInsulin),
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 58.sp
@@ -563,7 +565,7 @@ fun CalculatorScreen(
                                 label = { Text("Aktueller BZ (${uiState.glucoseUnit.shortName})") },
                                 placeholder = {
                                     Text(
-                                        if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
+                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
                                     )
                                 },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -581,7 +583,7 @@ fun CalculatorScreen(
                                 label = { Text("Zielwert (${uiState.glucoseUnit.shortName})") },
                                 placeholder = {
                                     Text(
-                                        if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
+                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
                                     )
                                 },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -600,7 +602,7 @@ fun CalculatorScreen(
                             label = { Text("Korrekturfaktor (${uiState.glucoseUnit.shortName} pro 1 IE)") },
                             placeholder = {
                                 Text(
-                                    if (uiState.glucoseUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
+                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
                                 )
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
