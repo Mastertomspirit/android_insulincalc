@@ -17,6 +17,7 @@ package network.spiritscorp.ui.screens
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Brightness5
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.HealthAndSafety
@@ -52,10 +54,13 @@ import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -63,10 +68,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -110,6 +117,7 @@ fun SettingsScreen(
     settings: UserSettings?,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val currentSettings = settings ?: UserSettings()
 
@@ -153,6 +161,9 @@ fun SettingsScreen(
     var selectedThemeName by remember(currentSettings) { mutableStateOf(currentSettings.selectedTheme) }
     var themeMode by remember(currentSettings) { mutableStateOf(currentSettings.themeMode) }
     var roundingStep by remember(currentSettings) { mutableDoubleStateOf(currentSettings.roundingStep) }
+
+    // Dialog state for resetting database in settings
+    var showResetDbDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -669,8 +680,6 @@ fun SettingsScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                val context = LocalContext.current
-
                 val jsonExportLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.CreateDocument("application/json")
                 ) { uri ->
@@ -760,6 +769,64 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.viewModelScope.launch {
+                                val json = DatabaseBackupManager.exportToJson(context)
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, json)
+                                    putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
+                                    type = "application/json"
+                                }
+                                context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
+                            }
+                        },
+                        modifier = Modifier.weight(1f).testTag("share_json_backup_button"),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("JSON teilen")
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.viewModelScope.launch {
+                                val allLogs = viewModel.getAllLogsDirect()
+                                val csv = DatabaseBackupManager.exportToCsv(allLogs)
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, csv)
+                                    putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export (${allLogs.size} Einträge)")
+                                    type = "text/csv"
+                                }
+                                context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
+                            }
+                        },
+                        modifier = Modifier.weight(1f).testTag("share_csv_backup_button"),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("CSV teilen")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Button(
                     onClick = {
                         fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
@@ -775,6 +842,25 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Backup-Datei importieren (.json / .csv)")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { showResetDbDialog = true },
+                    modifier = Modifier.fillMaxWidth().testTag("reset_all_data_button"),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteOutline,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Alle Daten & Tagebuch unwiderruflich löschen")
                 }
             }
         }
@@ -874,6 +960,44 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showResetDbDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDbDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = { Text("Komplette Datenbank löschen?") },
+            text = {
+                Text("Bist du sicher? Dies löscht alle gespeicherten Tagebucheinträge und setzt die Einstellungen zurück. Es wird empfohlen, vorher ein JSON- oder CSV-Backup zu erstellen.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearAllLogs()
+                        showResetDbDialog = false
+                        Toast.makeText(context, "Tagebuch & Daten wurden gelöscht", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.testTag("confirm_reset_all_data_button")
+                ) {
+                    Text("Unwiderruflich löschen", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showResetDbDialog = false },
+                    modifier = Modifier.testTag("cancel_reset_all_data_button")
+                ) {
+                    Text("Abbrechen")
+                }
+            }
+        )
     }
 }
 

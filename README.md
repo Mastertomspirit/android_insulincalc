@@ -1,6 +1,6 @@
-# 💉 Insulin-Rechner & Mahlzeiten-Assistent
+# 💉 Insulin-Rechner & Mahlzeiten-Assistent (v1.1.3)
 
-Eine moderne, übersichtliche und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 3). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
+Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 3). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)**, robuster Offline-Speicherung via **Room** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
 
 ---
 
@@ -19,54 +19,64 @@ Eine moderne, übersichtliche und intuitive Android-App zur schnellen und präzi
 ### 3. 🤖 KI-Mahlzeitenschätzer (Gemini AI)
 * Mahlzeiten und Zutaten in natürlicher Sprache beschreiben (z. B. *"2 Scheiben Vollkornbrot mit Käse und ein kleiner Apfel"*).
 * Die integrierte KI schätzt die Kohlenhydrate, Broteinheiten und Portionsgrößen zuverlässig und überträgt die Werte mit einem Klick direkt in den Rechner.
+* **Offline-Fallback**: Robuste Notfall-Schätzung und klare Fehlerbehandlung bei fehlender Internetverbindung.
 
 ### 4. 📖 Digitales Tagebuch & Verlauf
 * Protokollierung aller Berechnungen mit Zeitstempel, Mahlzeit, BE/KE, Blutzucker und berechneten Insulineinheiten.
 * Filterung nach Zeiträumen (Alle, Heute, 7 Tage, 30 Tage).
 * Export- und Teilen-Funktion für Arztbesuche oder Diabetesschulungen.
 
-### 5. 🎨 Design & Barrierefreiheit
-* **6 moderne Farbschemata**:
+### 5. 🎨 Modernes Material 3 Design
+* **6 harmonische Farbschemata**:
   * 🩺 *Medizinisch Türkis* (Standard)
   * 🌊 *Ozean Blau*
   * 🍃 *Smaragd Grün*
   * 🌅 *Sonnenuntergang Bernstein*
   * 🍇 *Beere & Violett*
-  * 🌌 *Mitternacht AMOLED* (Tiefschwarz & akkuschonend)
+  * 🌌 *Mitternacht AMOLED* (Tiefschwarz & stromsparend)
 * **Darstellungsmodi**: System, Hell und Dunkel (Dark Mode).
 
 ---
 
-## 🛠️ Technische Details
+## 🛠️ Technische Details & Architektur
 
-* **Programmiersprache**: 100% Kotlin
+* **Version**: `1.1.2` (VersionCode: `2`)
+* **Programmiersprache**: 100% Kotlin (mit Kotlin Coroutines & Flow)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
-* **Architektur**: MVVM (Model-View-ViewModel) mit StateFlow & Coroutines
-* **Lokale Datenbank**: Android Room Database (SQLite) für offlinefähige und sichere Datenspeicherung
-* **KI-Integration**: Google Generative AI / Gemini API
-* **Mindestanforderung**: Android 8.0 (API Level 26) oder höher
+* **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
+* **Lokale Persistenz**: Android Room Database (SQLite) für sichere Offline-Speicherung
+* **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
+* **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
+* **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)
+* **Kompatibilität**:
+  * `minSdk = 30` (Android 11+)
+  * `targetSdk = 37` & `compileSdk = 37`
 
 ---
 
-## 📱 APK erstellen und auf dem Smartphone installieren
+## 📱 Installation & Bauen
 
-### Weg 1: Mit Android Studio (Empfohlen)
-1. Lade das Projekt herunter (Export als `.zip`) und entpacke das Archiv.
-2. Öffne **Android Studio** und wähle **Open** ➔ Wähle den entpackten Projektordner aus.
-3. Klicke in der oberen Menüleiste auf:
-   ```
-   Build ➔ Build Bundle(s) / APK(s) ➔ Build APK(s)
-   ```
-4. Nach Abschluss des Builds erscheint unten rechts eine Meldung mit dem Link **`locate`**.
-5. Die generierte Datei `app-debug.apk` kannst du direkt auf dein Smartphone kopieren (z. B. via Google Drive, WhatsApp Web oder E-Mail) und installieren.
+Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstellen eines **Keystores** sowie Informationen zur Veröffentlichung auf **F-Droid** findest du in der separaten Datei:
 
-### Weg 2: Über die Befehlszeile (Gradle)
-Führe im Projektverzeichnis folgenden Befehl im Terminal aus:
+👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
+
+### Schnellstart per Terminal (Gradle CLI):
 ```bash
+# Debug-APK kompilieren:
 ./gradlew assembleDebug
+
+# Release-APK kompilieren (für R8/ProGuard optimiert):
+./gradlew assembleRelease
 ```
-Die fertige APK befindet sich im Verzeichnis:
-`app/build/outputs/apk/debug/app-debug.apk`
+
+---
+
+## 🧪 Tests & Qualitätssicherung
+
+Das Projekt enthält automatisierte Unit- und Szenario-Tests zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz und Tagebuch-DAOs:
+```bash
+./gradlew testDebugUnitTest
+```
 
 ---
 
