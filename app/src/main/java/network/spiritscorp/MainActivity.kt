@@ -77,14 +77,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val initialSavedTheme = network.spiritscorp.data.ThemePreferences.getSelectedTheme(this)
+        val initialSavedMode = network.spiritscorp.data.ThemePreferences.getThemeMode(this)
+
         setContent {
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+            val themeString = userSettings?.selectedTheme ?: initialSavedTheme
+            val modeString = userSettings?.themeMode ?: initialSavedMode
+
             val themeEnum = try {
-                AppTheme.valueOf(userSettings?.selectedTheme ?: "MEDICAL_TEAL")
+                AppTheme.valueOf(themeString)
             } catch (_: Exception) {
                 AppTheme.MEDICAL_TEAL
             }
-            val isDark = when (userSettings?.themeMode) {
+            val isDark = when (modeString) {
                 "LIGHT" -> false
                 "DARK" -> true
                 else -> androidx.compose.foundation.isSystemInDarkTheme()

@@ -128,6 +128,12 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             repository.settingsFlow.collect { settingsNullable ->
                 val settings = settingsNullable ?: UserSettings()
                 cachedSettings = settings
+                // Sync to ThemePreferences
+                network.spiritscorp.data.ThemePreferences.saveThemePreferences(
+                    getApplication(),
+                    settings.selectedTheme,
+                    settings.themeMode
+                )
                 val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
                 val initialTime = if (_uiState.value.isAutoTimeDetection) TimeOfDay.current() else _uiState.value.selectedTimeOfDay
                 val unit = when (settings.defaultCarbUnit) {
@@ -426,6 +432,12 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         viewModelScope.launch {
             cachedSettings = settings
             repository.saveSettings(settings)
+            // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
+            network.spiritscorp.data.ThemePreferences.saveThemePreferences(
+                getApplication(),
+                settings.selectedTheme,
+                settings.themeMode
+            )
             val gUnit = network.spiritscorp.model.GlucoseUnit.fromString(settings.glucoseUnit)
             val targetStr = if (gUnit == network.spiritscorp.model.GlucoseUnit.MMOL_L) {
                 val mmol = network.spiritscorp.model.GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl)
