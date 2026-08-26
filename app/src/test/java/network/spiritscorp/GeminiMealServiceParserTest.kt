@@ -26,7 +26,7 @@ import org.junit.Test
 
 /**
  * Unit tests verifying Gemini AI nutrition parser logic, JSON parsing resilience,
- * markdown cleaning, portion extractions, and offline estimation fallbacks.
+ * Markdown cleaning, portion extractions, and offline estimation fallbacks.
  */
 class GeminiMealServiceParserTest {
 
@@ -73,7 +73,7 @@ class GeminiMealServiceParserTest {
         assertEquals("Haferflocken mit Beeren und Mandeln", title)
         assertEquals(55.0, totalCarbs, 0.001)
         assertNotNull(itemsArray)
-        assertEquals(3, itemsArray.length())
+        assertEquals(3, itemsArray!!.length())
 
         val item1 = itemsArray.getJSONObject(0)
         assertEquals("Haferflocken", item1.getString("name"))

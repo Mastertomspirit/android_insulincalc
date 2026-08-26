@@ -254,9 +254,9 @@ class InsulinCalculatorSystemScenarioTest {
             return assignedId
         }
 
-        override suspend fun insertLogs(logsToInsert: List<CalculationLog>): List<Long> {
+        override suspend fun insertLogs(logs: List<CalculationLog>): List<Long> {
             val ids = mutableListOf<Long>()
-            for (l in logsToInsert) {
+            for (l in logs) {
                 ids.add(insertLog(l))
             }
             return ids
