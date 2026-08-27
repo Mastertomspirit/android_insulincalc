@@ -109,6 +109,25 @@ public class DatabaseSecurityTest {
         assertTrue("Non-existent database should return true as it will be created fresh encrypted", result);
     }
 
+    @Test
+    public void testEnsureDatabaseEncryptedAutoRecoversCorruptedFile() throws IOException {
+        Context context = ApplicationProvider.getApplicationContext();
+        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
+        String testDbName = "corrupted_test_db_" + System.currentTimeMillis() + ".db";
+        File dbFile = context.getDatabasePath(testDbName);
+        dbFile.getParentFile().mkdirs();
+
+        // Write corrupt/invalid non-SQLite, non-decryptable data
+        try (FileOutputStream out = new FileOutputStream(dbFile)) {
+            out.write(new byte[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10});
+        }
+
+        assertTrue("File should exist before check", dbFile.exists());
+        boolean recovered = DatabaseSecurityManager.INSTANCE.ensureDatabaseEncrypted(context, testDbName, passphrase);
+        assertTrue("Auto-recovery should return true so the app startup succeeds", recovered);
+        assertFalse("Corrupted file should be safely moved aside", dbFile.exists());
+    }
+
     private void deleteRecursively(File fileOrDir) {
         if (fileOrDir.isDirectory()) {
             File[] children = fileOrDir.listFiles();

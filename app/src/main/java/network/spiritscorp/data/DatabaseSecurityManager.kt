@@ -89,6 +89,8 @@ object DatabaseSecurityManager {
     /**
      * Inspects the database file on disk and automatically migrates it to an AES-256 encrypted
      * SQLCipher database if it was previously created in unencrypted plaintext format.
+     * Also verifies that existing encrypted databases can be cleanly decrypted with the current key;
+     * if an unrecoverable HMAC mismatch is detected, it safely recovers to prevent fatal startup crashes.
      *
      * @param context Application context to locate the database files.
      * @param dbName Name of the database (e.g. "insulin_calculator.db").
@@ -103,14 +105,57 @@ object DatabaseSecurityManager {
             return true
         }
 
-        // Check if existing file is an unencrypted standard SQLite database
-        if (!isDatabasePlaintext(dbFile)) {
-            // Database is already encrypted with SQLCipher
+        // Step A: Check if existing file is an unencrypted standard SQLite database
+        if (isDatabasePlaintext(dbFile)) {
+            Log.w(TAG, "Detected legacy unencrypted SQLite database at ${dbFile.absolutePath}. Initiating SQLCipher migration...")
+            return migratePlaintextDatabaseToEncrypted(context, dbFile, dbName, passphrase)
+        }
+
+        // Step B: Verify that the existing encrypted database can be decrypted with the current passphrase
+        if (!isDatabaseDecryptionValid(dbFile, passphrase)) {
+            Log.e(TAG, "Existing database at ${dbFile.absolutePath} cannot be decrypted with the current KeyStore key (HMAC mismatch or corrupted). Recreating clean database to recover from crash loop...")
+            val parentDir = dbFile.parentFile ?: context.filesDir
+            val corruptedBackup = File(parentDir, "${dbName}.corrupted_${System.currentTimeMillis()}.bak")
+            dbFile.renameTo(corruptedBackup)
+            
+            val walFile = File(parentDir, "$dbName-wal")
+            val shmFile = File(parentDir, "$dbName-shm")
+            if (walFile.exists()) walFile.delete()
+            if (shmFile.exists()) shmFile.delete()
             return true
         }
 
-        Log.w(TAG, "Detected legacy unencrypted SQLite database at ${dbFile.absolutePath}. Initiating SQLCipher migration...")
-        return migratePlaintextDatabaseToEncrypted(context, dbFile, dbName, passphrase)
+        return true
+    }
+
+    /**
+     * Validates whether an existing database file can be successfully decrypted and read with the provided passphrase.
+     */
+    fun isDatabaseDecryptionValid(dbFile: File, passphrase: ByteArray): Boolean {
+        if (!dbFile.exists() || dbFile.length() == 0L) return true
+        var db: SQLiteDatabase? = null
+        return try {
+            try {
+                System.loadLibrary("sqlcipher")
+            } catch (_: Throwable) {}
+
+            db = SQLiteDatabase.openDatabase(
+                dbFile.absolutePath,
+                passphrase,
+                null,
+                SQLiteDatabase.OPEN_READWRITE
+            )
+            val cursor = db.rawQuery("SELECT count(*) FROM sqlite_schema;", null)
+            cursor.close()
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "Database decryption validation failed: ${e.message}")
+            false
+        } finally {
+            try {
+                db?.close()
+            } catch (_: Exception) {}
+        }
     }
 
     /**
@@ -166,16 +211,25 @@ object DatabaseSecurityManager {
             unencryptedTempFile.delete()
         }
 
-        // Clean up or rename WAL/SHM files
+        // Rename WAL & SHM if present to correspond to temp file name
         val walFile = File(parentDir, "$dbName-wal")
         val shmFile = File(parentDir, "$dbName-shm")
-        if (walFile.exists()) walFile.delete()
-        if (shmFile.exists()) shmFile.delete()
+        val tempWalFile = File(parentDir, "${dbName}.unencrypted.bak-wal")
+        val tempShmFile = File(parentDir, "${dbName}.unencrypted.bak-shm")
+        if (walFile.exists()) {
+            walFile.renameTo(tempWalFile)
+        }
+        if (shmFile.exists()) {
+            shmFile.renameTo(tempShmFile)
+        }
 
         // Step 1: Move plaintext file to temporary location
         val renamed = originalDbFile.renameTo(unencryptedTempFile)
         if (!renamed) {
             Log.e(TAG, "Failed to rename unencrypted database file for migration!")
+            // Roll back WAL/SHM renames
+            if (tempWalFile.exists()) tempWalFile.renameTo(walFile)
+            if (tempShmFile.exists()) tempShmFile.renameTo(shmFile)
             return false
         }
 
@@ -200,20 +254,27 @@ object DatabaseSecurityManager {
             val attachSql = "ATTACH DATABASE '${targetEncryptedFile.absolutePath}' AS encrypted KEY \"x'$hexKey'\";"
             unencryptedDb.execSQL(attachSql)
 
-            // Step 5: Export all schema, triggers, and records into encrypted database
-            unencryptedDb.execSQL("SELECT sqlcipher_export('encrypted');")
+            // Step 5: Export all schema, triggers, and records into encrypted database.
+            // Note: In SQLite, SELECT function calls require executing/advancing the cursor to actually evaluate.
+            val cursor = unencryptedDb.rawQuery("SELECT sqlcipher_export('encrypted');", null)
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    // Cursor iteration triggers the actual export in SQLite engine
+                }
+                cursor.close()
+            }
 
             // Step 6: Detach the encrypted database
             unencryptedDb.execSQL("DETACH DATABASE encrypted;")
 
             Log.i(TAG, "SQLCipher database migration completed successfully for $dbName.")
 
-            // Step 7: Safely delete plaintext database backup
+            // Step 7: Safely delete plaintext database backup and temp WAL/SHM files
             unencryptedDb.close()
             unencryptedDb = null
-            if (unencryptedTempFile.exists()) {
-                unencryptedTempFile.delete()
-            }
+            if (unencryptedTempFile.exists()) unencryptedTempFile.delete()
+            if (tempWalFile.exists()) tempWalFile.delete()
+            if (tempShmFile.exists()) tempShmFile.delete()
 
             return true
         } catch (e: Exception) {
@@ -225,6 +286,8 @@ object DatabaseSecurityManager {
             // Rollback: restore plaintext file if encrypted creation failed
             if (unencryptedTempFile.exists() && !targetEncryptedFile.exists()) {
                 unencryptedTempFile.renameTo(targetEncryptedFile)
+                if (tempWalFile.exists()) tempWalFile.renameTo(walFile)
+                if (tempShmFile.exists()) tempShmFile.renameTo(shmFile)
             }
             return false
         }
