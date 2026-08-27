@@ -27,7 +27,7 @@ Herzlich willkommen! In dieser Anleitung erfährst du Schritt für Schritt und a
 
 Bevor es losgeht, stelle sicher, dass Folgendes vorhanden ist:
 
-* **Java Development Kit (JDK):** Mindestens JDK 21 (oder passend zur Projektkonfiguration).
+* **Java Development Kit (JDK):** Mindestens JDK 21 (empfohlen: JDK 21 oder JDK 25 passend zur Projektkonfiguration).
 * **Android SDK:** Installiert über Android Studio oder Command Line Tools.
 * **USB- / WLAN-Debugging am Smartphone:**
   * Öffne auf deinem Android-Gerät die **Einstellungen** → **Telefoninfo**.

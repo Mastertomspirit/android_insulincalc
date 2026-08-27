@@ -29,16 +29,32 @@ object ThemePreferences {
     private const val KEY_SELECTED_THEME = "selected_theme"
     private const val KEY_THEME_MODE = "theme_mode"
 
+    /**
+     * Reads the cached color theme identifier synchronously.
+     * @param context Android context.
+     * @return Stored theme enum name or "MEDICAL_TEAL" default.
+     */
     fun getSelectedTheme(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString(KEY_SELECTED_THEME, "MEDICAL_TEAL") ?: "MEDICAL_TEAL"
     }
 
+    /**
+     * Reads the cached theme mode (LIGHT, DARK, or SYSTEM) synchronously.
+     * @param context Android context.
+     * @return Stored mode string or "SYSTEM" default.
+     */
     fun getThemeMode(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString(KEY_THEME_MODE, "SYSTEM") ?: "SYSTEM"
     }
 
+    /**
+     * Persists the active theme preferences synchronously to SharedPreferences.
+     * @param context Android context.
+     * @param selectedTheme Selected color theme identifier.
+     * @param themeMode Selected mode (LIGHT, DARK, or SYSTEM).
+     */
     fun saveThemePreferences(context: Context, selectedTheme: String, themeMode: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
