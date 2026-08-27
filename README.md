@@ -51,7 +51,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 * **Android Gradle Plugin (AGP)**: `9.1.0` (optimiert für Gradle 9.3.1)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
-* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:android-database-sqlcipher:4.5.4`) und AndroidX Security Crypto (`1.1.0-alpha06`)
+* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und AndroidX Security Crypto (`1.1.0`)
 * **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
 * **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
 * **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)

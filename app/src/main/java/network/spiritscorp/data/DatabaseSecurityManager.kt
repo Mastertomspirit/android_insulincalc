@@ -23,7 +23,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import net.sqlcipher.database.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
 import java.io.FileInputStream
 import java.security.SecureRandom
@@ -182,12 +182,15 @@ object DatabaseSecurityManager {
         var unencryptedDb: SQLiteDatabase? = null
         try {
             // Step 2: Open unencrypted database with SQLCipher (empty passphrase)
-            SQLiteDatabase.loadLibs(context)
-            unencryptedDb = SQLiteDatabase.openDatabase(
+            try {
+                System.loadLibrary("sqlcipher")
+            } catch (_: Throwable) {}
+
+            unencryptedDb = SQLiteDatabase.openOrCreateDatabase(
                 unencryptedTempFile.absolutePath,
-                "", // Empty passphrase opens standard plaintext SQLite
+                ByteArray(0), // Empty byte array opens unencrypted plaintext SQLite
                 null,
-                SQLiteDatabase.OPEN_READWRITE
+                null
             )
 
             // Step 3: Format the hex passphrase for raw SQL ATTACH command
@@ -195,13 +198,13 @@ object DatabaseSecurityManager {
 
             // Step 4: Attach the new target database with encryption key
             val attachSql = "ATTACH DATABASE '${targetEncryptedFile.absolutePath}' AS encrypted KEY \"x'$hexKey'\";"
-            unencryptedDb.rawExecSQL(attachSql)
+            unencryptedDb.execSQL(attachSql)
 
             // Step 5: Export all schema, triggers, and records into encrypted database
-            unencryptedDb.rawExecSQL("SELECT sqlcipher_export('encrypted');")
+            unencryptedDb.execSQL("SELECT sqlcipher_export('encrypted');")
 
             // Step 6: Detach the encrypted database
-            unencryptedDb.rawExecSQL("DETACH DATABASE encrypted;")
+            unencryptedDb.execSQL("DETACH DATABASE encrypted;")
 
             Log.i(TAG, "SQLCipher database migration completed successfully for $dbName.")
 

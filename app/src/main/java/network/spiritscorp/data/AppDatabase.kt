@@ -23,8 +23,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import net.sqlcipher.database.SQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.model.UserSettings
 
@@ -99,8 +98,8 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // Step 1: Initialize SQLCipher native binaries
                 try {
-                    SQLiteDatabase.loadLibs(appContext)
-                } catch (_: UnsatisfiedLinkError) {
+                    System.loadLibrary("sqlcipher")
+                } catch (_: Throwable) {
                     // Handled gracefully in JVM test environments
                 }
 
@@ -114,8 +113,8 @@ abstract class AppDatabase : RoomDatabase() {
                     android.util.Log.e("AppDatabase", "Error ensuring database encryption: ${e.message}", e)
                 }
 
-                // Step 4: Configure Room with SQLCipher SupportFactory
-                val supportFactory = SupportFactory(passphrase)
+                // Step 4: Configure Room with SQLCipher SupportOpenHelperFactory
+                val supportFactory = SupportOpenHelperFactory(passphrase)
 
                 val instance = Room.databaseBuilder(
                     appContext,
