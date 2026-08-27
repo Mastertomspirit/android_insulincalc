@@ -56,8 +56,7 @@ public class LogbookExportHelperTest {
                         0.75,
                         6.75,
                         7.0,
-                        "Haferflocken",
-                        null
+                        "Haferflocken"
                 ),
                 new CalculationLog(
                         2L,
@@ -77,8 +76,7 @@ public class LogbookExportHelperTest {
                         0.25,
                         5.25,
                         5.5,
-                        "Salat mit Brot",
-                        null
+                        "Salat mit Brot"
                 ),
                 new CalculationLog(
                         3L,
@@ -98,8 +96,7 @@ public class LogbookExportHelperTest {
                         null,
                         3.6,
                         3.5,
-                        "Suppe",
-                        null
+                        "Suppe"
                 )
         );
     }
@@ -144,7 +141,7 @@ public class LogbookExportHelperTest {
         }
 
         assertEquals(4, validLines.size()); // Header + 3 entries
-        assertTrue(validLines.get(0).startsWith("ID,Datum_Uhrzeit,Mahlzeit"));
+        assertTrue(validLines.get(0).startsWith("ID;Datum_Uhrzeit;Tageszeit"));
         assertTrue(validLines.get(1).contains("Frühstück"));
         assertTrue(validLines.get(2).contains("Mittagessen"));
         assertTrue(validLines.get(3).contains("Abendessen"));
@@ -171,8 +168,7 @@ public class LogbookExportHelperTest {
                         null,
                         6.0,
                         6.0,
-                        "Notiz: \"Lecker, aber fettig\"",
-                        null
+                        "Notiz: \"Lecker, aber fettig\""
                 )
         );
 
@@ -186,11 +182,11 @@ public class LogbookExportHelperTest {
         List<CalculationLog> logs = createSampleLogs();
         LogbookExportHelper.LogbookMetrics metrics = LogbookExportHelper.calculateMetrics(logs);
 
-        assertEquals(3, metrics.getTotalEntries());
-        assertEquals(120.0, metrics.getTotalCarbsGrams(), DELTA);
-        assertEquals(16.0, metrics.getTotalInsulinUnits(), DELTA);
+        assertEquals(3, metrics.totalEntries());
+        assertEquals(120.0, metrics.totalCarbsGrams(), DELTA);
+        assertEquals(16.0, metrics.totalInsulinUnits(), DELTA);
         // Average BG of (130 + 110) / 2 = 120.0 (3rd log has null BG)
-        assertNotNull(metrics.getAverageBloodGlucose());
-        assertEquals(120.0, metrics.getAverageBloodGlucose(), DELTA);
+        assertNotNull(metrics.averageBloodGlucose());
+        assertEquals(120.0, metrics.averageBloodGlucose(), DELTA);
     }
 }

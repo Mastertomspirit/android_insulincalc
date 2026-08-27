@@ -41,6 +41,7 @@ enum class GlucoseUnit(val label: String, val shortName: String) {
     }
 
     companion object {
+        @JvmStatic
         fun fromString(str: String?): GlucoseUnit {
             return when (str?.trim()?.lowercase()) {
                 "mmol/l", "mmol", "mmol_l" -> MMOL_L

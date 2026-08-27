@@ -59,8 +59,7 @@ public class DatabaseBackupManagerTest {
                         1.0,
                         7.75,
                         8.0,
-                        "Haferflocken mit Apfel",
-                        null
+                        "Haferflocken mit Apfel"
                 ),
                 new CalculationLog(
                         2L,
@@ -80,8 +79,7 @@ public class DatabaseBackupManagerTest {
                         0.25,
                         6.25,
                         6.5,
-                        "Vollkornnudeln",
-                        null
+                        "Vollkornnudeln"
                 ),
                 new CalculationLog(
                         3L,
@@ -101,8 +99,7 @@ public class DatabaseBackupManagerTest {
                         0.0,
                         4.2,
                         4.0,
-                        "Roggenbrot",
-                        null
+                        "Roggenbrot"
                 ),
                 new CalculationLog(
                         4L,
@@ -122,8 +119,7 @@ public class DatabaseBackupManagerTest {
                         null,
                         1.2,
                         1.0,
-                        "Joghurt",
-                        null
+                        "Joghurt"
                 )
         );
     }
@@ -139,13 +135,13 @@ public class DatabaseBackupManagerTest {
                 0.90,
                 "BE",
                 12,
-                110.0,
-                45.0,
+                "mg/dl",
+                110,
+                45,
                 0.5,
                 true,
                 "LAVENDER_PURPLE",
-                "SYSTEM",
-                "mg/dl"
+                "SYSTEM"
         );
 
         // 1. Export to JSON
@@ -220,7 +216,7 @@ public class DatabaseBackupManagerTest {
 
     @Test
     public void testCsvEscapingWithQuotesAndCommas() {
-        List<CalculationLog> logsWithCommas = Arrays.asList(
+        List<CalculationLog> logsWithCommas = List.of(
                 new CalculationLog(
                         10L,
                         0L,
@@ -239,8 +235,7 @@ public class DatabaseBackupManagerTest {
                         null,
                         9.6,
                         9.5,
-                        "Mit Salami, Pilzen, und \"Knoblauch-Öl\"",
-                        null
+                        "Mit Salami, Pilzen, und \"Knoblauch-Öl\""
                 )
         );
 
@@ -248,8 +243,8 @@ public class DatabaseBackupManagerTest {
         List<CalculationLog> parsed = DatabaseBackupManager.INSTANCE.parseCsv(csv);
 
         assertEquals(1, parsed.size());
-        assertEquals("Pizza \"Speciale\", extra Käse", parsed.get(0).getMealTitle());
-        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.get(0).getNotes());
+        assertEquals("Pizza \"Speciale\", extra Käse", parsed.getFirst().getMealTitle());
+        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.getFirst().getNotes());
     }
 
     @Test
@@ -285,10 +280,11 @@ public class DatabaseBackupManagerTest {
         assertTrue(garbageResult.isEmpty());
 
         // Partially broken rows mixed with valid rows
-        String mixedCsv = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes\n" +
-                "1,1700000000000,\"2023-11-14 20:00:00\",\"Salat\",10.0,\"g KH\",10.0,0.83,1.0,\"Abends\",1.0,1.0,,,0.0,1.0,1.0,\"Leicht\"\n" +
-                "BrokenRowWithoutEnoughColumns\n" +
-                "2,1700000001000,\"2023-11-14 21:00:00\",\"Suppe\",20.0,\"g KH\",20.0,1.67,2.0,\"Abends\",1.0,2.0,,,0.0,2.0,2.0,\"Warm\"";
+        String mixedCsv = """
+                ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes
+                1,1700000000000,"2023-11-14 20:00:00","Salat",10.0,"g KH",10.0,0.83,1.0,"Abends",1.0,1.0,,,0.0,1.0,1.0,"Leicht"
+                BrokenRowWithoutEnoughColumns
+                2,1700000001000,"2023-11-14 21:00:00","Suppe",20.0,"g KH",20.0,1.67,2.0,"Abends",1.0,2.0,,,0.0,2.0,2.0,"Warm\"""";
 
         List<CalculationLog> parsedMixed = DatabaseBackupManager.INSTANCE.parseCsv(mixedCsv);
         // Should safely parse the 2 valid rows while gracefully skipping the broken row
@@ -299,20 +295,21 @@ public class DatabaseBackupManagerTest {
 
     @Test
     public void testJsonImportWithDirectArrayOfLogs() {
-        String arrayJson = "[\n" +
-                "  {\n" +
-                "    \"id\": 5,\n" +
-                "    \"mealTitle\": \"Frühstücks-Smoothie\",\n" +
-                "    \"carbGrams\": 30.0,\n" +
-                "    \"rawCarbInput\": 30.0,\n" +
-                "    \"carbUnit\": \"g KH\",\n" +
-                "    \"timeOfDay\": \"Morgens\",\n" +
-                "    \"insulinFactor\": 1.5,\n" +
-                "    \"mealInsulin\": 4.5,\n" +
-                "    \"totalInsulin\": 4.5,\n" +
-                "    \"roundedInsulin\": 4.5\n" +
-                "  }\n" +
-                "]";
+        String arrayJson = """
+                [
+                  {
+                    "id": 5,
+                    "mealTitle": "Frühstücks-Smoothie",
+                    "carbGrams": 30.0,
+                    "rawCarbInput": 30.0,
+                    "carbUnit": "g KH",
+                    "timeOfDay": "Morgens",
+                    "insulinFactor": 1.5,
+                    "mealInsulin": 4.5,
+                    "totalInsulin": 4.5,
+                    "roundedInsulin": 4.5
+                  }
+                ]""";
 
         Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(arrayJson);
         assertNotNull(parsed);
@@ -320,8 +317,8 @@ public class DatabaseBackupManagerTest {
         List<CalculationLog> logs = parsed.getSecond();
         assertNull(settings); // Settings was not provided
         assertEquals(1, logs.size());
-        assertEquals("Frühstücks-Smoothie", logs.get(0).getMealTitle());
-        assertEquals(30.0, logs.get(0).getCarbGrams(), DELTA);
+        assertEquals("Frühstücks-Smoothie", logs.getFirst().getMealTitle());
+        assertEquals(30.0, logs.getFirst().getCarbGrams(), DELTA);
     }
 
     @Test

@@ -61,6 +61,7 @@ import network.spiritscorp.ui.screens.settings.CarbUnitSection
 import network.spiritscorp.ui.screens.settings.GlucoseCorrectionSection
 import network.spiritscorp.ui.screens.settings.TherapyFactorsSection
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import java.util.Locale
 
 @Composable
 fun SettingsScreen(
@@ -85,7 +86,7 @@ fun SettingsScreen(
 
     var targetGlucose by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(java.util.Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.targetGlucoseMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.targetGlucoseMgDl))
         } else {
             currentSettings.targetGlucoseMgDl.toInt().toString()
         }
@@ -94,7 +95,7 @@ fun SettingsScreen(
 
     var correctionFactor by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(java.util.Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.correctionFactorMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.correctionFactorMgDl))
         } else {
             currentSettings.correctionFactorMgDl.toInt().toString()
         }
@@ -136,8 +137,8 @@ fun SettingsScreen(
                     val currentTarget = targetGlucose.toDoubleOrNull() ?: 120.0
                     val currentCorr = correctionFactor.toDoubleOrNull() ?: 50.0
                     if (newUnit == GlucoseUnit.MMOL_L) {
-                        targetGlucose = String.format(java.util.Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentTarget))
-                        correctionFactor = String.format(java.util.Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentCorr))
+                        targetGlucose = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentTarget))
+                        correctionFactor = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentCorr))
                     } else {
                         targetGlucose = GlucoseUnit.MMOL_L.toMgDl(currentTarget).toInt().toString()
                         correctionFactor = GlucoseUnit.MMOL_L.toMgDl(currentCorr).toInt().toString()

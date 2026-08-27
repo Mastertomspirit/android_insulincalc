@@ -37,6 +37,7 @@ enum class TimeOfDay(
     val startHour: Int,
     val endHour: Int,
     val icon: ImageVector,
+    @get:JvmName("getAccentColor")
     val accentColor: Color
 ) {
     MORNING("Morgens", "Frühstück (06:00 - 11:00)", 1.50, 6, 11, Icons.Default.Brightness5, MorningColor),
@@ -45,6 +46,7 @@ enum class TimeOfDay(
     NIGHT("Nachts", "Spätmahlzeit (22:00 - 06:00)", 0.80, 22, 6, Icons.Default.Bedtime, NightColor);
 
     companion object {
+        @JvmStatic
         fun fromHour(hour: Int): TimeOfDay {
             return when (hour) {
                 in 6..10 -> MORNING
@@ -59,4 +61,6 @@ enum class TimeOfDay(
             return fromHour(hour)
         }
     }
+
+
 }

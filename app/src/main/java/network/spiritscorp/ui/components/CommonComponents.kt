@@ -64,7 +64,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.model.TimeOfDay
+import androidx.compose.ui.platform.LocalLocale
 
+/**
+ * A professional Jetpack Compose UI component that displays a medical disclaimer banner.
+ * It reminds users that calculations are intended as decision support and therapy factors
+ * should always be validated with a qualified medical professional.
+ *
+ * @param modifier Optional [Modifier] for configuring outer layout constraints or padding.
+ * @param onDismiss Optional callback invoked when the user clicks the close icon to dismiss the banner.
+ */
 @Composable
 fun MedicalDisclaimerBanner(
     modifier: Modifier = Modifier,
@@ -112,6 +121,19 @@ fun MedicalDisclaimerBanner(
     }
 }
 
+/**
+ * An interactive Jetpack Compose widget allowing users to inspect and adjust the current time-of-day category
+ * and fine-tune active insulin factors (e.g. increments/decrements of 0.05 IE/KE).
+ * Supports both automated context detection and manual user overrides.
+ *
+ * @param selectedTimeOfDay The currently active [TimeOfDay] category.
+ * @param effectiveFactor The current effective insulin factor (IE per KE) currently applied.
+ * @param isAutoDetected Flag indicating whether the time of day is currently set automatically.
+ * @param onSelect Callback invoked when the user taps on a specific time slot chip.
+ * @param onAdjustFactor Callback invoked when the user adjusts the factor up or down by a delta.
+ * @param onResetAuto Callback invoked to reset the automatic time-of-day detection mode.
+ * @param modifier Optional [Modifier] for layout configuration.
+ */
 @Composable
 fun TimeOfDaySelector(
     selectedTimeOfDay: TimeOfDay,
@@ -159,7 +181,7 @@ fun TimeOfDaySelector(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Faktor: ${String.format(java.util.Locale.getDefault(), "%.2f", effectiveFactor)} IE/KE • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
+                            text = "Faktor: ${String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor)} IE/KE • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -271,7 +293,7 @@ fun TimeOfDaySelector(
                                 )
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        text = String.format(java.util.Locale.getDefault(), "%.2f", effectiveFactor),
+                                        text = String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor),
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = selectedTimeOfDay.accentColor
@@ -340,6 +362,14 @@ fun TimeOfDaySelector(
     }
 }
 
+/**
+ * A segmented selection component allowing users to easily toggle between different
+ * carbohydrate input units (e.g. Grams, BE, KE).
+ *
+ * @param selectedUnit The currently active [CarbUnit].
+ * @param onUnitSelect Callback invoked when a new carbohydrate unit is chosen.
+ * @param modifier Optional [Modifier] for layout positioning.
+ */
 @Composable
 fun UnitSelectorRow(
     selectedUnit: CarbUnit,

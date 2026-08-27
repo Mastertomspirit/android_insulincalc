@@ -51,7 +51,7 @@ public final class LogbookExportHelper {
         int bgCount = 0;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("📋 Insulin-Tagebuch Export\n");
+        sb.append("📋 Insulin-Rechner Tagebuch-Export\n");
         sb.append("Zeitraum: ").append(filterDescription).append("\n");
         sb.append("Erstellt am: ").append(DATE_FORMAT.format(new Date())).append("\n");
         sb.append("----------------------------------------\n\n");
@@ -89,7 +89,8 @@ public final class LogbookExportHelper {
             }
             sb.append("\n");
 
-            if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
+            log.getNotes();
+            if (!log.getNotes().trim().isEmpty()) {
                 sb.append("📝 Notiz: ").append(log.getNotes()).append("\n");
             }
             sb.append("\n");
@@ -97,8 +98,8 @@ public final class LogbookExportHelper {
 
         sb.append("----------------------------------------\n");
         sb.append("📊 Zusammenfassung:\n");
-        sb.append("• Anzahl Einträge: ").append(logs.size()).append("\n");
-        sb.append("• Gesamte KH: ").append(Math.round(totalCarbs * 10.0) / 10.0).append(" g\n");
+        sb.append("• Einträge: ").append(logs.size()).append("\n");
+        sb.append("• Gesamt-KH: ").append(Math.round(totalCarbs)).append(" g\n");
         sb.append("• Gesamtes Insulin: ").append(Math.round(totalInsulin * 10.0) / 10.0).append(" IE\n");
         if (bgCount > 0) {
             double avgBg = Math.round((bgSum / bgCount) * 10.0) / 10.0;
@@ -120,7 +121,8 @@ public final class LogbookExportHelper {
             sb.append("🩸 BZ: ").append(log.getBloodGlucose()).append("\n");
         }
         sb.append("💉 Dosis: ").append(log.getRoundedInsulin()).append(" IE");
-        if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
+        log.getNotes();
+        if (!log.getNotes().trim().isEmpty()) {
             sb.append("\n📝 Notiz: ").append(log.getNotes());
         }
         return sb.toString();
@@ -129,7 +131,7 @@ public final class LogbookExportHelper {
     /**
      * Builds standard CSV file content for medical or spreadsheet export.
      */
-    public static String buildCsvContent(List<CalculationLog> logs) {
+    public static String generateCsvExport(List<CalculationLog> logs) {
         StringBuilder sb = new StringBuilder();
         sb.append("ID;Datum_Uhrzeit;Tageszeit;Mahlzeit;KH_Gramm;BE;KE;Faktor;Mahlzeiten_Insulin;Blutzucker;Ziel_BZ;Korrektur_Faktor;Korrektur_Insulin;Gesamt_Insulin_IE;Notizen\n");
 
@@ -152,6 +154,31 @@ public final class LogbookExportHelper {
         }
 
         return sb.toString();
+    }
+
+    public record LogbookMetrics(int totalEntries, double totalCarbsGrams, double totalInsulinUnits,
+                                 Double averageBloodGlucose) {
+    }
+
+    public static LogbookMetrics calculateMetrics(List<CalculationLog> logs) {
+        if (logs == null || logs.isEmpty()) {
+            return new LogbookMetrics(0, 0.0, 0.0, null);
+        }
+        double totalCarbs = 0;
+        double totalInsulin = 0;
+        double bgSum = 0;
+        int bgCount = 0;
+
+        for (CalculationLog log : logs) {
+            totalCarbs += log.getCarbGrams();
+            totalInsulin += log.getRoundedInsulin();
+            if (log.getBloodGlucose() != null) {
+                bgSum += log.getBloodGlucose();
+                bgCount++;
+            }
+        }
+        Double avgBg = bgCount > 0 ? (bgSum / bgCount) : null;
+        return new LogbookMetrics(logs.size(), totalCarbs, totalInsulin, avgBg);
     }
 
     private static String escapeCsv(String text) {

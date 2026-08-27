@@ -72,32 +72,51 @@ import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
+/**
+ * The primary entry point Activity for the application.
+ * Responsible for initializing Edge-to-Edge window displays, managing global Theme preferences,
+ * and hosting the root Jetpack Compose UI hierarchy via [MainApp].
+ */
 class MainActivity : ComponentActivity() {
 
+    // Shared ViewModel instance scoped to this Activity lifecycle
     private val viewModel: InsulinCalculatorViewModel by viewModels()
 
+    /**
+     * Called when the activity is starting. Sets up edge-to-edge layout, reads saved theme preferences,
+     * and mounts the Compose UI tree with dynamic theme support.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable edge-to-edge system bar rendering
         enableEdgeToEdge()
+        
+        // Load initial theme settings from SharedPreferences as fallback before Room loads
         val initialSavedTheme = ThemePreferences.getSelectedTheme(this)
         val initialSavedMode = ThemePreferences.getThemeMode(this)
 
         setContent {
+            // Collect user settings reactively from ViewModel
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
             val themeString = userSettings?.selectedTheme ?: initialSavedTheme
             val modeString = userSettings?.themeMode ?: initialSavedMode
 
+            // Resolve color theme enum from stored string value
             val themeEnum = try {
                 AppTheme.valueOf(themeString)
             } catch (_: Exception) {
                 AppTheme.MEDICAL_TEAL
             }
+            
+            // Resolve light/dark mode preference
             val isDark = when (modeString) {
                 "LIGHT" -> false
                 "DARK" -> true
                 else -> isSystemInDarkTheme()
             }
 
+            // Apply custom application theme to entire Compose tree
             MyApplicationTheme(
                 selectedTheme = themeEnum,
                 darkTheme = isDark
@@ -108,6 +127,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Root composable hosting the primary layout structure, including the top app bar,
+ * bottom navigation bar, snackbar host, and tab content switching with slide/fade animations.
+ *
+ * @param viewModel The shared [InsulinCalculatorViewModel] supplying UI state and event handlers.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(viewModel: InsulinCalculatorViewModel) {

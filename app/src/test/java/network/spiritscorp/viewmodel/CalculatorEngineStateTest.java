@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,55 +54,27 @@ public class CalculatorEngineStateTest {
         double rawInput = parseDoubleOrZero(carbInput);
         double beDivisor = settings.getBeGramsDivisor() > 0 ? settings.getBeGramsDivisor() : 12.0;
 
-        double grams;
-        switch (selectedUnit) {
-            case GRAMS:
-                grams = rawInput;
-                break;
-            case KE:
-                grams = rawInput * 10.0;
-                break;
-            case BE:
-            default:
-                grams = rawInput * beDivisor;
-                break;
-        }
+        double grams = switch (selectedUnit) {
+            case GRAMS -> rawInput;
+            case KE -> rawInput * 10.0;
+            default -> rawInput * beDivisor;
+        };
 
         double ke = grams / 10.0;
         double be = grams / 12.0;
 
         double factor;
-        if (factorOverride != null) {
-            factor = factorOverride;
-        } else {
-            switch (selectedTimeOfDay) {
-                case MORNING:
-                    factor = settings.getMorningFactor();
-                    break;
-                case NOON:
-                    factor = settings.getNoonFactor();
-                    break;
-                case EVENING:
-                    factor = settings.getEveningFactor();
-                    break;
-                case NIGHT:
-                default:
-                    factor = settings.getNightFactor();
-                    break;
-            }
-        }
+        factor = Objects.requireNonNullElseGet(factorOverride, () -> switch (selectedTimeOfDay) {
+            case MORNING -> settings.getMorningFactor();
+            case NOON -> settings.getNoonFactor();
+            case EVENING -> settings.getEveningFactor();
+            default -> settings.getNightFactor();
+        });
 
-        double unitsCount;
-        switch (selectedUnit) {
-            case BE:
-            case KE:
-                unitsCount = rawInput;
-                break;
-            case GRAMS:
-            default:
-                unitsCount = grams / 12.0;
-                break;
-        }
+        double unitsCount = switch (selectedUnit) {
+            case BE, KE -> rawInput;
+            default -> grams / 12.0;
+        };
         double mealInsulin = unitsCount * factor;
 
         double correctionInsulin = 0.0;
@@ -111,7 +84,8 @@ public class CalculatorEngineStateTest {
 
         boolean isHypoRisk = false;
         String advisory = "Standard-Dosis für die Mahlzeit";
-        boolean isMmol = settings.getGlucoseUnit() != null && settings.getGlucoseUnit().toLowerCase().contains("mmol");
+        settings.getGlucoseUnit();
+        boolean isMmol = settings.getGlucoseUnit().toLowerCase().contains("mmol");
         double hypoThreshold = isMmol ? 3.9 : 70.0;
 
         if (showCorrection && currentBg != null && targetBg != null && corrFactor != null && corrFactor > 0) {
@@ -180,9 +154,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testMorningCalculationWithGrams() {
-        UserSettings settings = new UserSettings();
-        settings.setMorningFactor(1.50);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         CalculationSummary summary = calculateSummary(
                 "60",
@@ -208,9 +182,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testNoonCalculationWithBEAndFactorOverride() {
-        UserSettings settings = new UserSettings();
-        settings.setNoonFactor(1.00);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         // User overrides factor from 1.0 to 1.3
         CalculationSummary summary = calculateSummary(
@@ -235,9 +209,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testEveningCalculationWithHighGlucoseCorrection() {
-        UserSettings settings = new UserSettings();
-        settings.setEveningFactor(1.20);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         // 3.0 BE (36g KH) -> 3.0 * 1.2 = 3.6 IE
         // Current BG 220, Target 100, CorrFactor 40 -> (220-100)/40 = +3.0 IE correction
@@ -264,9 +238,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testLowBloodGlucoseWarningAndDoseReduction() {
-        UserSettings settings = new UserSettings();
-        settings.setMorningFactor(1.50);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         // Current BG = 65 (Hypo risk < 70)
         CalculationSummary summary = calculateSummary(
@@ -287,9 +261,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testNegativeCorrectionDoseReduction() {
-        UserSettings settings = new UserSettings();
-        settings.setNoonFactor(1.0);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         // 2 BE = 2.0 IE meal insulin. BG = 80, Target = 100, Corr = 40
         // Correction = -(20 / 40) = -0.5 IE
@@ -316,12 +290,9 @@ public class CalculatorEngineStateTest {
 
     @Test
     public void testMmolLCorrectionCalculation() {
-        UserSettings settings = new UserSettings();
-        settings.setEveningFactor(1.00);
-        settings.setGlucoseUnit("mmol/l");
-        settings.setTargetGlucoseMgDl(120.0);
-        settings.setCorrectionFactorMgDl(50.0);
-        settings.setRoundingStep(0.5);
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.00, 0.80, "GRAMS", 12, "mmol/l", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
 
         // 3 KE = 3.0 IE meal insulin
         // Target: 6.7 mmol/l, Current BG: 12.3 mmol/l, CorrFactor: 2.8 mmol/l pro IE
