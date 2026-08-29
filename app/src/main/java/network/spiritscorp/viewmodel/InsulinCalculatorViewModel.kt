@@ -78,6 +78,7 @@ data class CalculatorUiState(
     val correctionFactorInput: String = "50",
     val showCorrection: Boolean = false,
     val mealTitle: String = "",
+    val notes: String = "",
     val calculationSummary: CalculationSummary = CalculationSummary(
         carbGrams = 0.0,
         keValue = 0.0,
@@ -271,6 +272,10 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         _uiState.update { it.copy(mealTitle = title) }
     }
 
+    fun onNotesChange(notes: String) {
+        _uiState.update { it.copy(notes = notes) }
+    }
+
     private fun getEffectiveFactor(settings: UserSettings = cachedSettings): Double {
         val state = _uiState.value
         if (state.factorOverride != null) {
@@ -362,7 +367,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         }
     }
 
-    fun saveCalculationToLog(notes: String = "") {
+    fun saveCalculationToLog(notesOverride: String? = null) {
         viewModelScope.launch {
             val state = _uiState.value
             val summary = state.calculationSummary
@@ -371,6 +376,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             } else {
                 "${state.selectedTimeOfDay.title} (${summary.carbGrams}g KH)"
             }
+            val finalNotes = notesOverride ?: state.notes
 
             val log = CalculationLog(
                 mealTitle = autoMealTitle,
@@ -388,7 +394,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
                 correctionInsulin = summary.correctionInsulin,
                 totalInsulin = summary.rawTotalInsulin,
                 roundedInsulin = summary.roundedTotalInsulin,
-                notes = notes
+                notes = finalNotes
             )
             repository.saveCalculation(log)
             _uiState.update { it.copy(snackbarMessage = "Berechnung erfolgreich im Tagebuch gespeichert!") }

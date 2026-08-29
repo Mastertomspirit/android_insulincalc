@@ -21,8 +21,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.model.UserSettings
@@ -32,13 +30,12 @@ import network.spiritscorp.model.UserSettings
  *
  * Security & Architecture Highlights:
  * - Backed by SQLCipher 256-bit AES database encryption.
- * - Passphrase is automatically generated and secured via Android KeyStore / Jetpack Security.
- * - Automatically detects and migrates legacy unencrypted database files upon first launch.
+ * - Hardware-backed passphrase generated and secured via Android KeyStore.
  * - Stores all patient calculation logs and user therapy configurations locally on device.
  */
 @Database(
     entities = [CalculationLog::class, UserSettings::class],
-    version = 3,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -60,34 +57,9 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         /**
-         * Migration from database version 1 to version 2.
-         */
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                // Version 1 to 2 schema adjustments
-            }
-        }
-
-        /**
-         * Migration from database version 2 to version 3:
-         * Adds BE / KE carbohydrate columns to calculation logs and customizable divisor settings.
-         */
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                // Add BE and KE values to historical logs table
-                db.execSQL("ALTER TABLE calculation_logs ADD COLUMN beValue REAL NOT NULL DEFAULT 0.0")
-                db.execSQL("ALTER TABLE calculation_logs ADD COLUMN keValue REAL NOT NULL DEFAULT 0.0")
-                
-                // Add custom BE divisor and medical disclaimer preference to user settings table
-                db.execSQL("ALTER TABLE user_settings ADD COLUMN beGramsDivisor INTEGER NOT NULL DEFAULT 12")
-                db.execSQL("ALTER TABLE user_settings ADD COLUMN showDisclaimer INTEGER NOT NULL DEFAULT 1")
-            }
-        }
-
-        /**
          * Retrieves the thread-safe singleton instance of [AppDatabase].
          * Initializes SQLCipher native libraries, obtains or generates the 256-bit AES encryption key,
-         * transparently encrypts any legacy plaintext database files, and configures the encrypted Room instance.
+         * and configures the encrypted Room instance directly at version 1.
          *
          * @param context Application context.
          * @return Initialized, secure [AppDatabase] instance.
@@ -106,14 +78,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // Step 2: Retrieve or generate hardware-secured 256-bit encryption key
                 val passphrase = DatabaseSecurityManager.getOrCreateDatabasePassphrase(appContext)
 
-                // Step 3: Transparently migrate any existing unencrypted database to encrypted SQLCipher
-                try {
-                    DatabaseSecurityManager.ensureDatabaseEncrypted(appContext, DATABASE_NAME, passphrase)
-                } catch (e: Exception) {
-                    android.util.Log.e("AppDatabase", "Error ensuring database encryption: ${e.message}", e)
-                }
-
-                // Step 4: Configure Room with SQLCipher SupportOpenHelperFactory
+                // Step 3: Configure Room directly with SQLCipher SupportOpenHelperFactory
                 val supportFactory = SupportOpenHelperFactory(passphrase)
 
                 val instance = Room.databaseBuilder(
@@ -122,7 +87,7 @@ abstract class AppDatabase : RoomDatabase() {
                     DATABASE_NAME
                 )
                     .openHelperFactory(supportFactory)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .fallbackToDestructiveMigration()
                     .build()
 
                 INSTANCE = instance

@@ -24,22 +24,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit and component tests for the database encryption layer, AES-256 key management,
- * plaintext SQLite signature detection, and migration helpers.
+ * Unit and component tests for the database encryption layer, AES-256 KeyStore key management,
+ * and byte formatting helpers.
  */
 @RunWith(AndroidJUnit4.class)
-@Config(sdk = 34, manifest = Config.NONE)
+@Config(sdk = 34)
 public class DatabaseSecurityTest {
 
     @Test
@@ -65,82 +59,17 @@ public class DatabaseSecurityTest {
     }
 
     @Test
-    public void testDetectPlaintextSqliteHeader() throws IOException {
-        File tempDir = new File(System.getProperty("java.io.tmpdir", "."), "db_test_" + System.currentTimeMillis());
-        tempDir.mkdirs();
-
-        try {
-            File plaintextFile = new File(tempDir, "sample_plain.db");
-            try (FileOutputStream out = new FileOutputStream(plaintextFile)) {
-                // Write standard SQLite 3 header: "SQLite format 3\000" + zeroes
-                byte[] header = "SQLite format 3\0".getBytes(StandardCharsets.US_ASCII);
-                out.write(header);
-                out.write(new byte[100]);
-            }
-
-            boolean isPlain = DatabaseSecurityManager.INSTANCE.isDatabasePlaintext(plaintextFile);
-            assertTrue("Should detect standard SQLite 3 header as plaintext", isPlain);
-
-            File encryptedFile = new File(tempDir, "sample_encrypted.db");
-            try (FileOutputStream out = new FileOutputStream(encryptedFile)) {
-                // Write random non-SQLite bytes (simulating SQLCipher ciphertext)
-                out.write(new byte[]{
-                        0x4A, 0x12, (byte) 0x88, 0x7E, (byte) 0x99, 0x01, 0x33, 0x22,
-                        0x11, 0x00, 0x55, 0x66, 0x77, (byte) 0x88, (byte) 0x99, (byte) 0xAA
-                });
-            }
-
-            boolean isEncryptedPlain = DatabaseSecurityManager.INSTANCE.isDatabasePlaintext(encryptedFile);
-            assertFalse("Encrypted file must NOT be detected as plaintext SQLite", isEncryptedPlain);
-        } finally {
-            deleteRecursively(tempDir);
-        }
+    public void testPassphraseHexRepresentationIs64Chars() {
+        Context context = ApplicationProvider.getApplicationContext();
+        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
+        String hex = DatabaseSecurityManager.INSTANCE.bytesToHex(passphrase);
+        assertNotNull(hex);
+        assertEquals(64, hex.length()); // 32 bytes * 2 hex chars = 64 hex chars
     }
 
     @Test
-    public void testEnsureDatabaseEncryptedOnNonExistentFile() {
-        Context context = ApplicationProvider.getApplicationContext();
-        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
-        boolean result = DatabaseSecurityManager.INSTANCE.ensureDatabaseEncrypted(
-                context,
-                "non_existent_test_db_" + System.currentTimeMillis() + ".db",
-                passphrase
-        );
-        assertTrue("Non-existent database should return true as it will be created fresh encrypted", result);
-    }
-
-    @Test
-    public void testEnsureDatabaseEncryptedAutoRecoversCorruptedFile() throws IOException {
-        Context context = ApplicationProvider.getApplicationContext();
-        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
-        String testDbName = "corrupted_test_db_" + System.currentTimeMillis() + ".db";
-        File dbFile = context.getDatabasePath(testDbName);
-        dbFile.getParentFile().mkdirs();
-
-        // Write corrupt/invalid non-SQLite, non-decryptable data
-        try (FileOutputStream out = new FileOutputStream(dbFile)) {
-            out.write(new byte[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10});
-        }
-
-        assertTrue("File should exist before check", dbFile.exists());
-        boolean recovered = DatabaseSecurityManager.INSTANCE.ensureDatabaseEncrypted(context, testDbName, passphrase);
-        assertTrue("ensureDatabaseEncrypted should complete cleanly without throwing", recovered);
-        
-        // Clean up test file if still present
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
-    }
-
-    private void deleteRecursively(File fileOrDir) {
-        if (fileOrDir.isDirectory()) {
-            File[] children = fileOrDir.listFiles();
-            if (children != null) {
-                for (File child : children) {
-                    deleteRecursively(child);
-                }
-            }
-        }
-        fileOrDir.delete();
+    public void testEmptyByteArrayToHex() {
+        String hex = DatabaseSecurityManager.INSTANCE.bytesToHex(new byte[0]);
+        assertEquals("", hex);
     }
 }

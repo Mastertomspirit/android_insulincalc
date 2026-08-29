@@ -42,8 +42,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Warning
@@ -315,7 +318,260 @@ fun CalculatorScreen(
             }
         }
 
-        // RESULT CARD (Big Hero Result Display)
+        // Expandable Correction Bolus (Blutzucker-Korrektur) Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("glucose_correction_card"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { viewModel.toggleCorrection() }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Speed,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "Blutzucker-Korrektur (Optional)",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (uiState.showCorrection) "Korrektur-Bolus aktiviert" else "Tippe zum Hinzufügen von BZ-Korrektur",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Icon(
+                        imageVector = if (uiState.showCorrection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = uiState.showCorrection,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(top = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            // Current Glucose
+                            OutlinedTextField(
+                                value = uiState.currentGlucoseInput,
+                                onValueChange = { viewModel.onGlucoseInputChange(it) },
+                                label = { Text("Aktueller BZ (${uiState.glucoseUnit.shortName})") },
+                                placeholder = {
+                                    Text(
+                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("current_glucose_field"),
+                                shape = RoundedCornerShape(12.dp),
+                                singleLine = true
+                            )
+
+                            // Target Glucose
+                            OutlinedTextField(
+                                value = uiState.targetGlucoseInput,
+                                onValueChange = { viewModel.onTargetGlucoseChange(it) },
+                                label = { Text("Zielwert (${uiState.glucoseUnit.shortName})") },
+                                placeholder = {
+                                    Text(
+                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("target_glucose_field"),
+                                shape = RoundedCornerShape(12.dp),
+                                singleLine = true
+                            )
+                        }
+
+                        // Correction Factor Input
+                        OutlinedTextField(
+                            value = uiState.correctionFactorInput,
+                            onValueChange = { viewModel.onCorrectionFactorChange(it) },
+                            label = { Text("Korrekturfaktor (${uiState.glucoseUnit.shortName} pro 1 IE)") },
+                            placeholder = {
+                                Text(
+                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("correction_factor_field"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        if (uiState.calculationSummary.correctionInsulin != 0.0) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (uiState.calculationSummary.correctionInsulin > 0) Icons.Default.Add else Icons.Default.Warning,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Korrektur-Dosis: ${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
+                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Meal Title & Notes Card (Mahlzeit & Notizen)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("meal_notes_card"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Description,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Mahlzeit & Notizen (Optional)",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                // Meal Title Input Field
+                OutlinedTextField(
+                    value = uiState.mealTitle,
+                    onValueChange = { viewModel.onMealTitleChange(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("meal_title_input_field"),
+                    label = { Text("Mahlzeit / Bezeichnung") },
+                    placeholder = { Text("z.B. Frühstück, Spaghetti Bolognese, Snack...") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Restaurant,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    trailingIcon = {
+                        if (uiState.mealTitle.isNotEmpty()) {
+                            IconButton(
+                                onClick = { viewModel.onMealTitleChange("") },
+                                modifier = Modifier.testTag("clear_meal_title_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Löschen",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                // Notes Input Field
+                OutlinedTextField(
+                    value = uiState.notes,
+                    onValueChange = { viewModel.onNotesChange(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("meal_notes_input_field"),
+                    label = { Text("Notizen / Bemerkungen") },
+                    placeholder = { Text("z.B. Sport vor Mahlzeit, Restaurant, Sensorwert...") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Notes,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    trailingIcon = {
+                        if (uiState.notes.isNotEmpty()) {
+                            IconButton(
+                                onClick = { viewModel.onNotesChange("") },
+                                modifier = Modifier.testTag("clear_notes_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Löschen",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    maxLines = 3,
+                    singleLine = false
+                )
+            }
+        }
+
+        // RESULT CARD (Big Hero Result Display & Save to Logbook)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -491,155 +747,6 @@ fun CalculatorScreen(
                         text = "Im Tagebuch speichern",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
-                }
-            }
-        }
-
-        // Expandable Correction Bolus (Blutzucker-Korrektur) Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("glucose_correction_card"),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { viewModel.toggleCorrection() }
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Speed,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                text = "Blutzucker-Korrektur (Optional)",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = if (uiState.showCorrection) "Korrektur-Bolus aktiviert" else "Tippe zum Hinzufügen von BZ-Korrektur",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Icon(
-                        imageVector = if (uiState.showCorrection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = uiState.showCorrection,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(top = 14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            // Current Glucose
-                            OutlinedTextField(
-                                value = uiState.currentGlucoseInput,
-                                onValueChange = { viewModel.onGlucoseInputChange(it) },
-                                label = { Text("Aktueller BZ (${uiState.glucoseUnit.shortName})") },
-                                placeholder = {
-                                    Text(
-                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("current_glucose_field"),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-
-                            // Target Glucose
-                            OutlinedTextField(
-                                value = uiState.targetGlucoseInput,
-                                onValueChange = { viewModel.onTargetGlucoseChange(it) },
-                                label = { Text("Zielwert (${uiState.glucoseUnit.shortName})") },
-                                placeholder = {
-                                    Text(
-                                        if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("target_glucose_field"),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-                        }
-
-                        // Correction Factor Input
-                        OutlinedTextField(
-                            value = uiState.correctionFactorInput,
-                            onValueChange = { viewModel.onCorrectionFactorChange(it) },
-                            label = { Text("Korrekturfaktor (${uiState.glucoseUnit.shortName} pro 1 IE)") },
-                            placeholder = {
-                                Text(
-                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("correction_factor_field"),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
-
-                        if (uiState.calculationSummary.correctionInsulin != 0.0) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = if (uiState.calculationSummary.correctionInsulin > 0) Icons.Default.Add else Icons.Default.Warning,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                        tint = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = "Korrektur-Dosis: ${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
-                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
