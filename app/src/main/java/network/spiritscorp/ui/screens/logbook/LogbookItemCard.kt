@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material3.Card
@@ -50,6 +51,7 @@ import network.spiritscorp.model.CalculationLog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun LogbookItemCard(
@@ -105,7 +107,7 @@ fun LogbookItemCard(
                 )
 
                 if (log.bloodGlucose != null) {
-                    val bzDisplay = if (log.bloodGlucose % 1.0 == 0.0) log.bloodGlucose.toInt().toString() else String.format(Locale.getDefault(), "%.1f", log.bloodGlucose)
+                    val bzDisplay = if (log.bloodGlucose % 1.0 == 0.0) log.bloodGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", log.bloodGlucose)
                     val corr = log.correctionInsulin ?: 0.0
                     Text(
                         text = "BZ: $bzDisplay (Korrektur: ${if (corr > 0) "+" else ""}$corr IE)",
@@ -114,14 +116,14 @@ fun LogbookItemCard(
                     )
                 }
 
-                if (!log.notes.isNullOrBlank()) {
+                if (log.notes.isNotBlank()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(vertical = 1.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Notes,
+                            imageVector = Icons.AutoMirrored.Filled.Notes,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(12.dp)

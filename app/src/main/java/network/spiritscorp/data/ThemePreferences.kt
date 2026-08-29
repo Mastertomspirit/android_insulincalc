@@ -19,6 +19,7 @@ package network.spiritscorp.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 /**
  * Synchronous theme preferences cache to prevent theme flashing/flickering on app startup
@@ -57,9 +58,9 @@ object ThemePreferences {
      */
     fun saveThemePreferences(context: Context, selectedTheme: String, themeMode: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .putString(KEY_SELECTED_THEME, selectedTheme)
-            .putString(KEY_THEME_MODE, themeMode)
-            .apply()
+        prefs.edit {
+            putString(KEY_SELECTED_THEME, selectedTheme)
+                .putString(KEY_THEME_MODE, themeMode)
+        }
     }
 }

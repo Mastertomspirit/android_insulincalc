@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -69,6 +70,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -85,6 +87,7 @@ import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.viewmodel.CalculatorUiState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +107,7 @@ fun CalculatorScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Medical Disclaimer (persistent über UserSettings in der Datenbank gespeichert)
+        // Medical Disclaimer
         if (settings?.showDisclaimer == true) {
             MedicalDisclaimerBanner(
                 onDismiss = { viewModel.dismissDisclaimer() }
@@ -220,7 +223,7 @@ fun CalculatorScreen(
                         },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
+                            imeAction = ImeAction.Done,
                         ),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -544,7 +547,7 @@ fun CalculatorScreen(
                     placeholder = { Text("z.B. Sport vor Mahlzeit, Restaurant, Sensorwert...") },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Notes,
+                            imageVector = Icons.AutoMirrored.Filled.Notes,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
@@ -605,7 +608,7 @@ fun CalculatorScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f", uiState.calculationSummary.roundedTotalInsulin),
+                        text = String.format(LocalLocale.current.platformLocale, "%.1f", uiState.calculationSummary.roundedTotalInsulin),
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 58.sp

@@ -120,7 +120,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val userSettings: StateFlow<UserSettings?> = repository.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _uiState = MutableStateFlow(createInitialUiState())
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
