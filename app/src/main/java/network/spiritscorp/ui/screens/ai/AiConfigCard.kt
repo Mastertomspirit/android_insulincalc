@@ -99,7 +99,7 @@ fun AiConfigCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH.modelId
+    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE.modelId
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
     var selectedModel by remember { mutableStateOf(GeminiAiModel.fromModelId(savedModelId)) }
@@ -117,8 +117,7 @@ fun AiConfigCard(
     val hasCustomKey = apiKeyInput.isNotBlank()
     val isDevKeyPresent = try {
         BuildConfig.GEMINI_API_KEY.isNotBlank() && 
-        BuildConfig.GEMINI_API_KEY != "MY_GEMINI_API_KEY" && 
-        !BuildConfig.GEMINI_API_KEY.startsWith("TODO")
+        BuildConfig.GEMINI_API_KEY != "MY_GEMINI_API_KEY"
     } catch (_: Throwable) {
         false
     }

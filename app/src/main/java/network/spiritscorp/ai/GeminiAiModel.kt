@@ -26,18 +26,18 @@ enum class GeminiAiModel(
     val description: String
 ) {
     GEMINI_3_5_FLASH_LITE(
-        modelId = "gemini-2.5-flash-lite",
-        displayName = "Gemini 3.5 Flash-Lite",
+        modelId = "gemini-3.5-flash-lite",
+        displayName = "Gemini 3.5 Flash-Lite (Standard)",
         description = "Superschnell & extrem sparsam im Tokenverbrauch"
     ),
     GEMINI_3_5_FLASH(
-        modelId = "gemini-2.5-flash",
-        displayName = "Gemini 3.5 Flash (Standard)",
+        modelId = "gemini-3.5-flash",
+        displayName = "Gemini 3.5 Flash",
         description = "Optimale Balance aus Schnelligkeit und Präzision"
     ),
     GEMINI_3_5_PRO(
-        modelId = "gemini-2.5-pro",
-        displayName = "Gemini 3.5 Pro",
+        modelId = "gemini-3.6-flash",
+        displayName = "Gemini 3.6 Flash",
         description = "Erweiterte Analyse für komplexe Gerichte & Rezepte"
     ),
     GEMINI_3_7_FLASH(
@@ -48,7 +48,7 @@ enum class GeminiAiModel(
 
     companion object {
         fun fromModelId(id: String?): GeminiAiModel {
-            return entries.find { it.modelId.equals(id, ignoreCase = true) } ?: GEMINI_3_5_FLASH
+            return entries.find { it.modelId.equals(id, ignoreCase = true) } ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE
         }
     }
 }

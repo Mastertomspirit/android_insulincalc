@@ -79,7 +79,7 @@ class GeminiMealService {
             return@withContext Result.success(createOfflineEstimation(foodDescription))
         }
 
-        val effectiveModel = if (!modelId.isNullOrBlank()) modelId.trim() else GeminiAiModel.GEMINI_3_5_FLASH.modelId
+        val effectiveModel = if (!modelId.isNullOrBlank()) modelId.trim() else GeminiAiModel.GEMINI_3_5_FLASH_LITE.modelId
 
         try {
             val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent?key=$apiKey"
