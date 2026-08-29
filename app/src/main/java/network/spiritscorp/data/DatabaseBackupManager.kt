@@ -87,6 +87,8 @@ object DatabaseBackupManager {
             put("showDisclaimer", settings.showDisclaimer)
             put("selectedTheme", settings.selectedTheme)
             put("themeMode", settings.themeMode)
+            put("geminiApiKey", settings.geminiApiKey)
+            put("selectedAiModel", settings.selectedAiModel)
         }
         root.put("settings", settingsObj)
 
@@ -247,7 +249,9 @@ object DatabaseBackupManager {
                             roundingStep = s.optDouble("roundingStep", defaultSettings.roundingStep),
                             showDisclaimer = s.optBoolean("showDisclaimer", defaultSettings.showDisclaimer),
                             selectedTheme = s.optString("selectedTheme", defaultSettings.selectedTheme),
-                            themeMode = s.optString("themeMode", defaultSettings.themeMode)
+                            themeMode = s.optString("themeMode", defaultSettings.themeMode),
+                            geminiApiKey = s.optString("geminiApiKey", defaultSettings.geminiApiKey),
+                            selectedAiModel = s.optString("selectedAiModel", defaultSettings.selectedAiModel)
                         )
                     }
                 }

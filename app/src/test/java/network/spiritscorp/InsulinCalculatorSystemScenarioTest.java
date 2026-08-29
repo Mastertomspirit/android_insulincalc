@@ -304,6 +304,46 @@ public class InsulinCalculatorSystemScenarioTest {
         assertEquals(6.5, retrieved.getRoundedInsulin(), DELTA);
     }
 
+    @Test
+    public void testAiConfigurationAndModelSelectionScenario() {
+        UserSettings customAiSettings = new UserSettings(
+                1,
+                1.5,
+                1.0,
+                1.2,
+                0.8,
+                "GRAMS",
+                12,
+                "mg/dl",
+                120.0,
+                50.0,
+                0.5,
+                true,
+                "MEDICAL_TEAL",
+                "SYSTEM",
+                "AIzaSyTestCustomKey12345",
+                "gemini-3.7-flash"
+        );
+
+        runBlocking((scope, cont) -> repository.saveSettings(customAiSettings, cont));
+
+        UserSettings retrieved = runBlocking((scope, cont) -> repository.getSettings(cont));
+        assertNotNull(retrieved);
+        assertEquals("AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
+        assertEquals("gemini-3.7-flash", retrieved.getSelectedAiModel());
+
+        // Test export & restore of AI settings
+        String json = DatabaseBackupManager.INSTANCE.exportToJson(retrieved, java.util.Collections.emptyList());
+        assertTrue(json.contains("AIzaSyTestCustomKey12345"));
+        assertTrue(json.contains("gemini-3.7-flash"));
+
+        Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(json);
+        assertNotNull(parsed);
+        assertNotNull(parsed.getFirst());
+        assertEquals("AIzaSyTestCustomKey12345", parsed.getFirst().getGeminiApiKey());
+        assertEquals("gemini-3.7-flash", parsed.getFirst().getSelectedAiModel());
+    }
+
     // --- Coroutine Helper Methods for Java ---
 
     @SuppressWarnings("unchecked")

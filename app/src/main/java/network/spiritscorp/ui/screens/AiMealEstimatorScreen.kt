@@ -66,9 +66,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.ai.MealEstimateResult
+import network.spiritscorp.ui.screens.ai.AiConfigCard
 import network.spiritscorp.viewmodel.AiEstimateState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -78,6 +85,8 @@ fun AiMealEstimatorScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
     var inputQuery by remember { mutableStateOf("") }
 
     val quickExamples = listOf(
@@ -92,6 +101,11 @@ fun AiMealEstimatorScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
             .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -132,13 +146,21 @@ fun AiMealEstimatorScreen(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "Gemini 3.1 Pro (Deep Thinking) schätzt Kohlenhydrate & berechnet Begründungen.",
+                        text = "Gemini analysiert deine Mahlzeit, schätzt Kohlenhydrate (g KH / KE / BE) und gibt praktische Tipps.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                 }
             }
         }
+
+        // AI Configuration (API Key & Model Selection)
+        AiConfigCard(
+            userSettings = userSettings,
+            onSaveConfig = { apiKey, modelId ->
+                viewModel.saveAiConfiguration(apiKey, modelId)
+            }
+        )
 
         // Input Card
         Card(
@@ -188,7 +210,8 @@ fun AiMealEstimatorScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Analysiere mit Gemini 3.1 Pro...")
+                        val activeModel = GeminiAiModel.fromModelId(userSettings?.selectedAiModel)
+                        Text("Analysiere mit ${activeModel.displayName}...")
                     } else {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
@@ -307,6 +330,8 @@ private fun MealResultCard(
     result: MealEstimateResult,
     onApply: (Double, String) -> Unit
 ) {
+    var customCarbs by remember(result) { mutableStateOf(result.totalCarbsGrams) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -327,11 +352,22 @@ private fun MealResultCard(
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = "Ergebnis der KI-Schätzung",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = if (result.isOfflineEstimate) "Offline-Datenbank" else "Live KI: ${result.modelUsed}",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                 }
 
                 Surface(
@@ -343,12 +379,12 @@ private fun MealResultCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "${result.totalCarbsGrams.toInt()} g KH",
+                            text = "${customCarbs.toInt()} g KH",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "ca. ${String.format(java.util.Locale.getDefault(), "%.1f", result.totalCarbsGrams / 10.0)} KE",
+                            text = "ca. ${String.format(java.util.Locale.getDefault(), "%.1f", customCarbs / 10.0)} KE",
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -356,7 +392,80 @@ private fun MealResultCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Quick adjustment controls for fine-tuning portions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Menge feinanpassen:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { if (customCarbs >= 5.0) customCarbs -= 5.0 },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Text(
+                            text = "-5g",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { if (customCarbs >= 10.0) customCarbs -= 10.0 },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Text(
+                            text = "-10g",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { customCarbs += 5.0 },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Text(
+                            text = "+5g",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { customCarbs += 10.0 },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Text(
+                            text = "+10g",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -440,7 +549,7 @@ private fun MealResultCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { onApply(result.totalCarbsGrams, result.mealTitle) },
+                onClick = { onApply(customCarbs, result.mealTitle) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("apply_ai_carbs_button"),
@@ -454,7 +563,7 @@ private fun MealResultCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${result.totalCarbsGrams.toInt()}g KH in den Rechner übernehmen",
+                    text = "${customCarbs.toInt()}g KH in den Rechner übernehmen",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

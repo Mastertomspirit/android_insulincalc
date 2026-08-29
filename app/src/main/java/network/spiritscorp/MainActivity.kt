@@ -22,17 +22,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
@@ -57,12 +53,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 import network.spiritscorp.data.ThemePreferences
 import network.spiritscorp.ui.screens.AiMealEstimatorScreen
 import network.spiritscorp.ui.screens.CalculatorScreen
@@ -142,6 +143,9 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -150,7 +154,38 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
         }
     }
 
-    val topBarTitle = when (uiState.activeTab) {
+    // Sync ViewModel with settled pager changes from swipe gestures
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { settledPage ->
+            if (uiState.activeTab != settledPage) {
+                viewModel.setTab(settledPage)
+            }
+        }
+    }
+
+    // Dismiss keyboard when page scrolling begins
+    LaunchedEffect(pagerState.isScrollInProgress) {
+        if (pagerState.isScrollInProgress) {
+            focusManager.clearFocus()
+        }
+    }
+
+    val navigateToTab: (Int) -> Unit = { targetIndex ->
+        focusManager.clearFocus()
+        viewModel.setTab(targetIndex)
+        coroutineScope.launch {
+            val distance = abs(pagerState.currentPage - targetIndex)
+            if (distance <= 1) {
+                pagerState.animateScrollToPage(targetIndex)
+            } else {
+                pagerState.scrollToPage(targetIndex)
+            }
+        }
+    }
+
+    val activeDisplayPage = pagerState.targetPage
+
+    val topBarTitle = when (activeDisplayPage) {
         0 -> "Insulin-Rechner"
         1 -> "KI Mahlzeiten-Schätzer"
         2 -> "Insulin-Tagebuch"
@@ -159,7 +194,13 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -181,11 +222,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                 modifier = Modifier.testTag("bottom_navigation_bar")
             ) {
                 NavigationBarItem(
-                    selected = uiState.activeTab == 0,
-                    onClick = { viewModel.setTab(0) },
+                    selected = activeDisplayPage == 0,
+                    onClick = { navigateToTab(0) },
                     icon = {
                         Icon(
-                            imageVector = if (uiState.activeTab == 0) Icons.Filled.Calculate else Icons.Outlined.Calculate,
+                            imageVector = if (activeDisplayPage == 0) Icons.Filled.Calculate else Icons.Outlined.Calculate,
                             contentDescription = "Rechner"
                         )
                     },
@@ -194,11 +235,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                 )
 
                 NavigationBarItem(
-                    selected = uiState.activeTab == 1,
-                    onClick = { viewModel.setTab(1) },
+                    selected = activeDisplayPage == 1,
+                    onClick = { navigateToTab(1) },
                     icon = {
                         Icon(
-                            imageVector = if (uiState.activeTab == 1) Icons.Filled.AutoAwesome else Icons.Outlined.AutoAwesome,
+                            imageVector = if (activeDisplayPage == 1) Icons.Filled.AutoAwesome else Icons.Outlined.AutoAwesome,
                             contentDescription = "KI-Schätzer"
                         )
                     },
@@ -207,11 +248,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                 )
 
                 NavigationBarItem(
-                    selected = uiState.activeTab == 2,
-                    onClick = { viewModel.setTab(2) },
+                    selected = activeDisplayPage == 2,
+                    onClick = { navigateToTab(2) },
                     icon = {
                         Icon(
-                            imageVector = if (uiState.activeTab == 2) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                            imageVector = if (activeDisplayPage == 2) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
                             contentDescription = "Tagebuch"
                         )
                     },
@@ -220,11 +261,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                 )
 
                 NavigationBarItem(
-                    selected = uiState.activeTab == 3,
-                    onClick = { viewModel.setTab(3) },
+                    selected = activeDisplayPage == 3,
+                    onClick = { navigateToTab(3) },
                     icon = {
                         Icon(
-                            imageVector = if (uiState.activeTab == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
+                            imageVector = if (activeDisplayPage == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
                             contentDescription = "Einstellungen"
                         )
                     },
@@ -240,30 +281,16 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            AnimatedContent(
-                targetState = uiState.activeTab,
-                transitionSpec = {
-                    val isForward = targetState > initialState
-                    val slideDistance = 300
-                    (slideInHorizontally(
-                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-                        initialOffsetX = { if (isForward) slideDistance else -slideDistance }
-                    ) + fadeIn(
-                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                    )) togetherWith (slideOutHorizontally(
-                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-                        targetOffsetX = { if (isForward) -slideDistance else slideDistance }
-                    ) + fadeOut(
-                        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
-                    ))
-                },
-                label = "tab_animation"
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 1
             ) { tabIndex ->
                 when (tabIndex) {
                     0 -> CalculatorScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        onNavigateToAiEstimator = { viewModel.setTab(1) }
+                        onNavigateToAiEstimator = { navigateToTab(1) }
                     )
                     1 -> AiMealEstimatorScreen(
                         viewModel = viewModel,

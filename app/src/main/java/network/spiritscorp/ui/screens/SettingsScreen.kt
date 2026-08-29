@@ -18,8 +18,10 @@ package network.spiritscorp.ui.screens
  */
 
 import android.widget.Toast
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +34,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -47,8 +51,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,6 +77,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val currentSettings = settings ?: UserSettings()
 
     var morningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.morningFactor) }
@@ -106,15 +114,56 @@ fun SettingsScreen(
     var selectedThemeName by remember(settings) { mutableStateOf(currentSettings.selectedTheme) }
     var themeMode by remember(settings) { mutableStateOf(currentSettings.themeMode) }
 
+    var isFactorsExpanded by remember { mutableStateOf(true) }
+    var isGlucoseExpanded by remember { mutableStateOf(false) }
+    var isCarbUnitExpanded by remember { mutableStateOf(false) }
+    var isAppearanceExpanded by remember { mutableStateOf(false) }
+    var isBackupExpanded by remember { mutableStateOf(false) }
+
     var showResetDbDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // Quick Toggle Row (Alle aufklappen / einklappen für Abschnitte 1-5)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = {
+                    val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded)
+                    isFactorsExpanded = expandAll
+                    isGlucoseExpanded = expandAll
+                    isCarbUnitExpanded = expandAll
+                    isAppearanceExpanded = expandAll
+                    isBackupExpanded = expandAll
+                }
+            ) {
+                val allExpanded = isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded
+                Icon(
+                    imageVector = if (allExpanded) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if (allExpanded) "Alle einklappen" else "Alle ausklappen",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+
         // SECTION 1: Mahlzeiten-Faktoren & Rundung
         TherapyFactorsSection(
             morningFactor = morningFactor,
@@ -126,7 +175,9 @@ fun SettingsScreen(
             nightFactor = nightFactor,
             onNightFactorChange = { nightFactor = it },
             roundingStep = roundingStep,
-            onRoundingStepChange = { roundingStep = it }
+            onRoundingStepChange = { roundingStep = it },
+            isExpanded = isFactorsExpanded,
+            onToggleExpand = { isFactorsExpanded = !isFactorsExpanded }
         )
 
         // SECTION 2: Blutzucker & Korrektur
@@ -149,7 +200,9 @@ fun SettingsScreen(
             targetGlucose = targetGlucose,
             onTargetGlucoseChange = { targetGlucose = it },
             correctionFactor = correctionFactor,
-            onCorrectionFactorChange = { correctionFactor = it }
+            onCorrectionFactorChange = { correctionFactor = it },
+            isExpanded = isGlucoseExpanded,
+            onToggleExpand = { isGlucoseExpanded = !isGlucoseExpanded }
         )
 
         // SECTION 3: Kohlenhydrat-Einheit
@@ -157,7 +210,9 @@ fun SettingsScreen(
             defaultCarbUnit = defaultCarbUnit,
             onDefaultCarbUnitChange = { defaultCarbUnit = it },
             beDivisor = beDivisor,
-            onBeDivisorChange = { beDivisor = it }
+            onBeDivisorChange = { beDivisor = it },
+            isExpanded = isCarbUnitExpanded,
+            onToggleExpand = { isCarbUnitExpanded = !isCarbUnitExpanded }
         )
 
         // SECTION 4: Farbdesign & Erscheinungsbild
@@ -165,13 +220,17 @@ fun SettingsScreen(
             selectedThemeName = selectedThemeName,
             onThemeSelected = { selectedThemeName = it },
             themeMode = themeMode,
-            onThemeModeSelected = { themeMode = it }
+            onThemeModeSelected = { themeMode = it },
+            isExpanded = isAppearanceExpanded,
+            onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
         )
 
         // SECTION 5: Datensicherung & Backup
         BackupRestoreSection(
             viewModel = viewModel,
-            onShowResetDbDialog = { showResetDbDialog = true }
+            onShowResetDbDialog = { showResetDbDialog = true },
+            isExpanded = isBackupExpanded,
+            onToggleExpand = { isBackupExpanded = !isBackupExpanded }
         )
 
         // SAVE ACTION BUTTON
@@ -199,6 +258,7 @@ fun SettingsScreen(
                 )
                 viewModel.updateUserSettings(updated)
                 Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()
+                focusManager.clearFocus()
             },
             modifier = Modifier
                 .fillMaxWidth()

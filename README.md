@@ -1,4 +1,4 @@
-# 💉 Insulin-Rechner & Mahlzeiten-Assistent (v1.2.1)
+# 💉 Insulin-Rechner & Mahlzeiten-Assistent (v1.3.0)
 
 Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 3). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)**, militärischer **SQLCipher AES-256 Datenbankverschlüsselung**, robuster Offline-Speicherung via **Room** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
 

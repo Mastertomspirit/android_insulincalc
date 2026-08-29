@@ -44,7 +44,7 @@ data class CalculationLog(
 )
 
 @Entity(tableName = "user_settings")
-data class UserSettings(
+data class UserSettings @JvmOverloads constructor(
     @PrimaryKey
     val id: Int = 1,
     val morningFactor: Double = 1.50,
@@ -59,7 +59,9 @@ data class UserSettings(
     val roundingStep: Double = 0.5, // 0.1, 0.5, or 1.0
     val showDisclaimer: Boolean = true,
     val selectedTheme: String = "MEDICAL_TEAL",
-    val themeMode: String = "SYSTEM" // "SYSTEM", "LIGHT", "DARK"
+    val themeMode: String = "SYSTEM", // "SYSTEM", "LIGHT", "DARK"
+    val geminiApiKey: String = "",
+    val selectedAiModel: String = "gemini-2.5-flash"
 )
 
 data class CalculationSummary(

@@ -17,6 +17,11 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,6 +68,8 @@ fun TherapyFactorsSection(
     onNightFactorChange: (Double) -> Unit,
     roundingStep: Double,
     onRoundingStepChange: (Double) -> Unit,
+    isExpanded: Boolean = true,
+    onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -77,97 +84,107 @@ fun TherapyFactorsSection(
             SettingsSectionHeader(
                 icon = Icons.Default.Tune,
                 title = "1. Mahlzeiten-Faktoren (ICR)",
-                subtitle = "Insulin-zu-Kohlenhydrat-Faktoren je Tageszeit"
+                subtitle = "Insulin-zu-Kohlenhydrat-Faktoren je Tageszeit",
+                isExpanded = isExpanded,
+                onToggle = onToggleExpand
             )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-            Spacer(modifier = Modifier.height(12.dp))
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            FactorRow(
-                title = "Morgens (06:00 - 11:00)",
-                subtitle = "Höherer Insulinbedarf wegen Dawn-Phänomen",
-                icon = Icons.Default.WbTwilight,
-                iconColor = MorningColor,
-                factor = morningFactor,
-                onFactorChange = onMorningFactorChange,
-                tagPrefix = "morning"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            FactorRow(
-                title = "Mittags (11:00 - 17:00)",
-                subtitle = "Typischerweise geringster Faktor des Tages",
-                icon = Icons.Default.WbSunny,
-                iconColor = NoonColor,
-                factor = noonFactor,
-                onFactorChange = onNoonFactorChange,
-                tagPrefix = "noon"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            FactorRow(
-                title = "Abends (17:00 - 22:00)",
-                subtitle = "Mittlerer bis leicht erhöhter Bedarf",
-                icon = Icons.Default.Brightness5,
-                iconColor = EveningColor,
-                factor = eveningFactor,
-                onFactorChange = onEveningFactorChange,
-                tagPrefix = "evening"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            FactorRow(
-                title = "Nachts / Spät (22:00 - 06:00)",
-                subtitle = "Vorsichtige Dosierung bei Spätmahlzeiten",
-                icon = Icons.Default.Bedtime,
-                iconColor = NightColor,
-                factor = nightFactor,
-                onFactorChange = onNightFactorChange,
-                tagPrefix = "night"
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Rundung der Insulindosis:",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            val roundingOptions = listOf(
-                0.5 to "Halbe Einheiten (0.5 IE) – Standard für Pen",
-                0.1 to "Zehntel Einheiten (0.1 IE) – für Insulinpumpe",
-                1.0 to "Ganze Einheiten (1.0 IE)"
-            )
-
-            roundingOptions.forEach { (step, label) ->
-                val isStepSelected = roundingStep == step
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onRoundingStepChange(step) }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = isStepSelected,
-                        onClick = { onRoundingStepChange(step) }
+                    FactorRow(
+                        title = "Morgens (06:00 - 11:00)",
+                        subtitle = "Höherer Insulinbedarf wegen Dawn-Phänomen",
+                        icon = Icons.Default.WbTwilight,
+                        iconColor = MorningColor,
+                        factor = morningFactor,
+                        onFactorChange = onMorningFactorChange,
+                        tagPrefix = "morning"
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    FactorRow(
+                        title = "Mittags (11:00 - 17:00)",
+                        subtitle = "Typischerweise geringster Faktor des Tages",
+                        icon = Icons.Default.WbSunny,
+                        iconColor = NoonColor,
+                        factor = noonFactor,
+                        onFactorChange = onNoonFactorChange,
+                        tagPrefix = "noon"
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    FactorRow(
+                        title = "Abends (17:00 - 22:00)",
+                        subtitle = "Mittlerer bis leicht erhöhter Bedarf",
+                        icon = Icons.Default.Brightness5,
+                        iconColor = EveningColor,
+                        factor = eveningFactor,
+                        onFactorChange = onEveningFactorChange,
+                        tagPrefix = "evening"
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    FactorRow(
+                        title = "Nachts / Spät (22:00 - 06:00)",
+                        subtitle = "Vorsichtige Dosierung bei Spätmahlzeiten",
+                        icon = Icons.Default.Bedtime,
+                        iconColor = NightColor,
+                        factor = nightFactor,
+                        onFactorChange = onNightFactorChange,
+                        tagPrefix = "night"
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (isStepSelected) FontWeight.SemiBold else FontWeight.Normal
-                        ),
+                        text = "Rundung der Insulindosis:",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    val roundingOptions = listOf(
+                        0.5 to "Halbe Einheiten (0.5 IE) – Standard für Pen",
+                        0.1 to "Zehntel Einheiten (0.1 IE) – für Insulinpumpe",
+                        1.0 to "Ganze Einheiten (1.0 IE)"
+                    )
+
+                    roundingOptions.forEach { (step, label) ->
+                        val isStepSelected = roundingStep == step
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onRoundingStepChange(step) }
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = isStepSelected,
+                                onClick = { onRoundingStepChange(step) }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isStepSelected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                 }
             }
         }

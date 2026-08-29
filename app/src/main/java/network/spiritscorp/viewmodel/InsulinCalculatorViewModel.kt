@@ -463,12 +463,28 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         if (description.isBlank()) return
         _aiState.value = AiEstimateState.Loading
         viewModelScope.launch {
-            val result = geminiService.estimateCarbsFromDescription(description)
+            val settings = userSettings.value ?: cachedSettings
+            val result = geminiService.estimateCarbsFromDescription(
+                foodDescription = description,
+                customApiKey = settings.geminiApiKey,
+                modelId = settings.selectedAiModel
+            )
             result.onSuccess { data ->
                 _aiState.value = AiEstimateState.Success(data)
             }.onFailure { err ->
                 _aiState.value = AiEstimateState.Error(err.message ?: "Fehler bei der KI-Analyse")
             }
+        }
+    }
+
+    fun saveAiConfiguration(apiKey: String, modelId: String) {
+        viewModelScope.launch {
+            val current = userSettings.value ?: cachedSettings
+            val updated = current.copy(
+                geminiApiKey = apiKey.trim(),
+                selectedAiModel = modelId
+            )
+            updateUserSettings(updated)
         }
     }
 

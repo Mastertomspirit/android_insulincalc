@@ -67,6 +67,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,6 +92,10 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
@@ -98,11 +105,17 @@ fun CalculatorScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
     val settings by viewModel.userSettings.collectAsState(initial = null)
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
             .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -114,17 +127,187 @@ fun CalculatorScreen(
             )
         }
 
-        // Time of Day Selector & Active Factor
-        TimeOfDaySelector(
-            selectedTimeOfDay = uiState.selectedTimeOfDay,
-            effectiveFactor = uiState.calculationSummary.factorUsed,
-            isAutoDetected = uiState.isAutoTimeDetection,
-            onSelect = { viewModel.selectTimeOfDay(it) },
-            onAdjustFactor = { viewModel.adjustFactor(it) },
-            onResetAuto = { viewModel.resetToAutoTime() }
-        )
+        // 1. RESULT CARD (Big Hero Result Display & Save to Logbook)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("insulin_result_card"),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "EMPFOHLENE INSULINDOSIS",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = 1.2.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+                )
 
-        // Carbohydrate Input Card
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Big rounded insulin units
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = String.format(LocalLocale.current.platformLocale, "%.1f", uiState.calculationSummary.roundedTotalInsulin),
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 58.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "IE",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                if (uiState.calculationSummary.roundingStep > 0.0) {
+                    Text(
+                        text = "Gerundet auf ${uiState.calculationSummary.roundingStep} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin} IE)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Detailed breakdown
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Mahlzeit",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                        )
+                        Text(
+                            text = "${uiState.calculationSummary.mealInsulin} IE",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "${uiState.calculationSummary.carbGrams}g × ${uiState.calculationSummary.factorUsed}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
+                        )
+                    }
+
+                    if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin != 0.0) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Korrektur",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                            )
+                            Text(
+                                text = "${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Text(
+                                text = "BZ ${uiState.currentGlucoseInput} mg/dl",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Tageszeit",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                        )
+                        Text(
+                            text = uiState.selectedTimeOfDay.title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "Faktor: ${uiState.calculationSummary.factorUsed}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
+                        )
+                    }
+                }
+
+                if (uiState.calculationSummary.isHypoRisk) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.errorContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Hypoglykämie-Gefahr",
+                                tint = AlertRed,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = uiState.calculationSummary.advisoryNote,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Action: Save to logbook button
+                Button(
+                    onClick = { viewModel.saveCalculationToLog() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("save_to_logbook_button"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.BookmarkBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Im Tagebuch speichern",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            }
+        }
+
+        // 2. Carbohydrate Input Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -321,7 +504,17 @@ fun CalculatorScreen(
             }
         }
 
-        // Expandable Correction Bolus (Blutzucker-Korrektur) Card
+        // 3. Time of Day Selector & Active Factor (Tageszeit)
+        TimeOfDaySelector(
+            selectedTimeOfDay = uiState.selectedTimeOfDay,
+            effectiveFactor = uiState.calculationSummary.factorUsed,
+            isAutoDetected = uiState.isAutoTimeDetection,
+            onSelect = { viewModel.selectTimeOfDay(it) },
+            onAdjustFactor = { viewModel.adjustFactor(it) },
+            onResetAuto = { viewModel.resetToAutoTime() }
+        )
+
+        // 4. Expandable Correction Bolus (Blutzucker-Korrektur) Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -470,7 +663,9 @@ fun CalculatorScreen(
             }
         }
 
-        // Meal Title & Notes Card (Mahlzeit & Notizen)
+        // 5. Expandable Meal Title & Notes Card (Mahlzeit & Notizen Dropdown)
+        var isMealNotesExpanded by remember { mutableStateOf(uiState.mealTitle.isNotBlank() || uiState.notes.isNotBlank()) }
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -479,277 +674,127 @@ fun CalculatorScreen(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { isMealNotesExpanded = !isMealNotesExpanded }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Mahlzeit & Notizen (Optional)",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // Meal Title Input Field
-                OutlinedTextField(
-                    value = uiState.mealTitle,
-                    onValueChange = { viewModel.onMealTitleChange(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("meal_title_input_field"),
-                    label = { Text("Mahlzeit / Bezeichnung") },
-                    placeholder = { Text("z.B. Frühstück, Spaghetti Bolognese, Snack...") },
-                    leadingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Restaurant,
+                            imageVector = Icons.Default.Description,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
-                    },
-                    trailingIcon = {
-                        if (uiState.mealTitle.isNotEmpty()) {
-                            IconButton(
-                                onClick = { viewModel.onMealTitleChange("") },
-                                modifier = Modifier.testTag("clear_meal_title_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Löschen",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                // Notes Input Field
-                OutlinedTextField(
-                    value = uiState.notes,
-                    onValueChange = { viewModel.onNotesChange(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("meal_notes_input_field"),
-                    label = { Text("Notizen / Bemerkungen") },
-                    placeholder = { Text("z.B. Sport vor Mahlzeit, Restaurant, Sensorwert...") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Notes,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    trailingIcon = {
-                        if (uiState.notes.isNotEmpty()) {
-                            IconButton(
-                                onClick = { viewModel.onNotesChange("") },
-                                modifier = Modifier.testTag("clear_notes_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Löschen",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    maxLines = 3,
-                    singleLine = false
-                )
-            }
-        }
-
-        // RESULT CARD (Big Hero Result Display & Save to Logbook)
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("insulin_result_card"),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "EMPFOHLENE INSULINDOSIS",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        letterSpacing = 1.2.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Big rounded insulin units
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = String.format(LocalLocale.current.platformLocale, "%.1f", uiState.calculationSummary.roundedTotalInsulin),
-                        style = MaterialTheme.typography.displayLarge.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 58.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "IE",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-
-                if (uiState.calculationSummary.roundingStep > 0.0) {
-                    Text(
-                        text = "Gerundet auf ${uiState.calculationSummary.roundingStep} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin} IE)",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Detailed breakdown
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Mahlzeit",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                        )
-                        Text(
-                            text = "${uiState.calculationSummary.mealInsulin} IE",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Text(
-                            text = "${uiState.calculationSummary.carbGrams}g × ${uiState.calculationSummary.factorUsed}",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
-                        )
-                    }
-
-                    if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin != 0.0) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
                             Text(
-                                text = "Korrektur",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                            )
-                            Text(
-                                text = "${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
+                                text = "Mahlzeit & Notizen (Optional)",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "BZ ${uiState.currentGlucoseInput} mg/dl",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
+                                text = if (uiState.mealTitle.isNotBlank()) uiState.mealTitle else if (isMealNotesExpanded) "Details eingeblendet" else "Tippe für Bezeichnung & Notizen",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Tageszeit",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                        )
-                        Text(
-                            text = uiState.selectedTimeOfDay.title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Text(
-                            text = "Faktor: ${uiState.calculationSummary.factorUsed}",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
-                        )
-                    }
-                }
-
-                if (uiState.calculationSummary.isHypoRisk) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.errorContainer
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Hypoglykämie-Gefahr",
-                                tint = AlertRed,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = uiState.calculationSummary.advisoryNote,
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Action: Save to logbook button
-                Button(
-                    onClick = { viewModel.saveCalculationToLog() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("save_to_logbook_button"),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onPrimary,
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
                     Icon(
-                        imageVector = Icons.Default.BookmarkBorder,
+                        imageVector = if (isMealNotesExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Im Tagebuch speichern",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                    )
+                }
+
+                AnimatedVisibility(
+                    visible = isMealNotesExpanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(top = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // Meal Title Input Field
+                        OutlinedTextField(
+                            value = uiState.mealTitle,
+                            onValueChange = { viewModel.onMealTitleChange(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("meal_title_input_field"),
+                            label = { Text("Mahlzeit / Bezeichnung") },
+                            placeholder = { Text("z.B. Frühstück, Spaghetti Bolognese, Snack...") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Restaurant,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                if (uiState.mealTitle.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.onMealTitleChange("") },
+                                        modifier = Modifier.testTag("clear_meal_title_button")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Löschen",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // Notes Input Field
+                        OutlinedTextField(
+                            value = uiState.notes,
+                            onValueChange = { viewModel.onNotesChange(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("meal_notes_input_field"),
+                            label = { Text("Notizen / Bemerkungen") },
+                            placeholder = { Text("z.B. Sport vor Mahlzeit, Restaurant, Sensorwert...") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Notes,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                if (uiState.notes.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.onNotesChange("") },
+                                        modifier = Modifier.testTag("clear_notes_button")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Löschen",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            maxLines = 3,
+                            singleLine = false
+                        )
+                    }
                 }
             }
         }

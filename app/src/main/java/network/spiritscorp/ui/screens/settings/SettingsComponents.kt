@@ -29,6 +29,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,14 +51,32 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.Locale
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.ui.draw.clip
+
 @Composable
 fun SettingsSectionHeader(
     icon: ImageVector,
     title: String,
-    subtitle: String
+    subtitle: String,
+    isExpanded: Boolean? = null,
+    onToggle: (() -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onToggle != null) {
+                    Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onToggle() }
+                        .padding(vertical = 4.dp)
+                } else {
+                    Modifier.padding(bottom = 10.dp)
+                }
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
@@ -73,7 +94,7 @@ fun SettingsSectionHeader(
             }
         }
         Spacer(modifier = Modifier.width(10.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -83,6 +104,14 @@ fun SettingsSectionHeader(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (isExpanded != null) {
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (isExpanded) "Einklappen" else "Ausklappen",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
             )
         }
     }

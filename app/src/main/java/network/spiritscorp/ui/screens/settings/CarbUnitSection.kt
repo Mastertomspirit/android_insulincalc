@@ -17,6 +17,11 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +58,8 @@ fun CarbUnitSection(
     onDefaultCarbUnitChange: (String) -> Unit,
     beDivisor: Int,
     onBeDivisorChange: (Int) -> Unit,
+    isExpanded: Boolean = false,
+    onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -67,85 +74,95 @@ fun CarbUnitSection(
             SettingsSectionHeader(
                 icon = Icons.Default.Scale,
                 title = "3. Kohlenhydrat-Einheit",
-                subtitle = "Standard-Eingabe und BE/KE Definition"
+                subtitle = "Standard-Eingabe und BE/KE Definition",
+                isExpanded = isExpanded,
+                onToggle = onToggleExpand
             )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Standard-Einheit beim Start:",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                CarbUnit.entries.forEach { unit ->
-                    val isSelected = defaultCarbUnit == unit.shortName
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onDefaultCarbUnitChange(unit.shortName) }
-                            .testTag("unit_setting_${unit.name.lowercase()}"),
-                        shape = RoundedCornerShape(10.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                        border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
-                    ) {
-                        Text(
-                            text = "${unit.label} (${unit.shortName})",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            ),
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(vertical = 10.dp)
-                        )
-                    }
-                }
-            }
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Definition Broteinheit (BE):",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            val beOptions = listOf(
-                12 to "1 BE = 12g Kohlenhydrate (Deutschland Standard)",
-                10 to "1 BE = 10g Kohlenhydrate (Österreich / Schweiz / KE)"
-            )
-
-            beOptions.forEach { (divisor, label) ->
-                val isSelected = beDivisor == divisor
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onBeDivisorChange(divisor) }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = isSelected,
-                        onClick = { onBeDivisorChange(divisor) }
-                    )
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                        ),
+                        text = "Standard-Einheit beim Start:",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CarbUnit.entries.forEach { unit ->
+                            val isSelected = defaultCarbUnit == unit.shortName
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { onDefaultCarbUnitChange(unit.shortName) }
+                                    .testTag("unit_setting_${unit.name.lowercase()}"),
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+                            ) {
+                                Text(
+                                    text = "${unit.label} (${unit.shortName})",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    ),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(vertical = 10.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Definition Broteinheit (BE):",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    val beOptions = listOf(
+                        12 to "1 BE = 12g Kohlenhydrate (Deutschland Standard)",
+                        10 to "1 BE = 10g Kohlenhydrate (Österreich / Schweiz / KE)"
+                    )
+
+                    beOptions.forEach { (divisor, label) ->
+                        val isSelected = beDivisor == divisor
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onBeDivisorChange(divisor) }
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = { onBeDivisorChange(divisor) }
+                            )
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                 }
             }
         }

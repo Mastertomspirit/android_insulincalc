@@ -62,10 +62,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+
 @Composable
 fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
     onShowResetDbDialog: () -> Unit,
+    isExpanded: Boolean = false,
+    onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -128,145 +136,155 @@ fun BackupRestoreSection(
             SettingsSectionHeader(
                 icon = Icons.Default.Save,
                 title = "5. Datensicherung & Backup",
-                subtitle = "Sichere deine Daten lokal oder importiere Backups"
+                subtitle = "Sichere deine Daten lokal oder importiere Backups",
+                isExpanded = isExpanded,
+                onToggle = onToggleExpand
             )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                Button(
-                    onClick = {
-                        val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
-                        jsonExportLauncher.launch("insulin_backup_$dateTag.json")
-                    },
-                    modifier = Modifier.weight(1f).testTag("export_json_file_button"),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FileDownload,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("JSON Export")
-                }
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = {
-                        val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
-                        csvExportLauncher.launch("insulin_tagebuch_$dateTag.csv")
-                    },
-                    modifier = Modifier.weight(1f).testTag("export_csv_file_button"),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.TableChart,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("CSV Export")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        viewModel.viewModelScope.launch {
-                            val json = DatabaseBackupManager.exportToJson(context)
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, json)
-                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
-                                type = "application/json"
-                            }
-                            context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                jsonExportLauncher.launch("insulin_backup_$dateTag.json")
+                            },
+                            modifier = Modifier.weight(1f).testTag("export_json_file_button"),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("JSON Export")
                         }
-                    },
-                    modifier = Modifier.weight(1f).testTag("share_json_backup_button"),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("JSON teilen")
-                }
 
-                OutlinedButton(
-                    onClick = {
-                        viewModel.viewModelScope.launch {
-                            val allLogs = viewModel.getAllLogsDirect()
-                            val csv = DatabaseBackupManager.exportToCsv(allLogs)
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, csv)
-                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export (${allLogs.size} Einträge)")
-                                type = "text/csv"
-                            }
-                            context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
+                        Button(
+                            onClick = {
+                                val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                csvExportLauncher.launch("insulin_tagebuch_$dateTag.csv")
+                            },
+                            modifier = Modifier.weight(1f).testTag("export_csv_file_button"),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.TableChart,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("CSV Export")
                         }
-                    },
-                    modifier = Modifier.weight(1f).testTag("share_csv_backup_button"),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("CSV teilen")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    val json = DatabaseBackupManager.exportToJson(context)
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, json)
+                                        putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
+                                        type = "application/json"
+                                    }
+                                    context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
+                                }
+                            },
+                            modifier = Modifier.weight(1f).testTag("share_json_backup_button"),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("JSON teilen")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    val allLogs = viewModel.getAllLogsDirect()
+                                    val csv = DatabaseBackupManager.exportToCsv(allLogs)
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, csv)
+                                        putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export (${allLogs.size} Einträge)")
+                                        type = "text/csv"
+                                    }
+                                    context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
+                                }
+                            },
+                            modifier = Modifier.weight(1f).testTag("share_csv_backup_button"),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("CSV teilen")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("import_file_button"),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileUpload,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Backup-Datei importieren (.json / .csv)")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = onShowResetDbDialog,
+                        modifier = Modifier.fillMaxWidth().testTag("reset_all_data_button"),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Alle Daten & Tagebuch unwiderruflich löschen")
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
-                },
-                modifier = Modifier.fillMaxWidth().testTag("import_file_button"),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FileUpload,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Backup-Datei importieren (.json / .csv)")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = onShowResetDbDialog,
-                modifier = Modifier.fillMaxWidth().testTag("reset_all_data_button"),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DeleteOutline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Alle Daten & Tagebuch unwiderruflich löschen")
             }
         }
     }

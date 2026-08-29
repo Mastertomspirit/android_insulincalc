@@ -43,7 +43,9 @@ data class MealEstimateResult(
     val items: List<MealItemDetail>,
     val explanation: String,
     val insulinTip: String,
-    val rawThinking: String = ""
+    val rawThinking: String = "",
+    val isOfflineEstimate: Boolean = false,
+    val modelUsed: String = ""
 )
 
 class GeminiMealService {
@@ -54,20 +56,33 @@ class GeminiMealService {
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    suspend fun estimateCarbsFromDescription(foodDescription: String): Result<MealEstimateResult> = withContext(Dispatchers.IO) {
-        val apiKey = try {
+    suspend fun estimateCarbsFromDescription(
+        foodDescription: String,
+        customApiKey: String? = null,
+        modelId: String? = null
+    ): Result<MealEstimateResult> = withContext(Dispatchers.IO) {
+        val devKey = try {
             BuildConfig.GEMINI_API_KEY
         } catch (_: Throwable) {
             ""
         }
 
-        if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
+        // Prioritize custom user key over BuildConfig dev key
+        val apiKey = when {
+            !customApiKey.isNullOrBlank() -> customApiKey.trim()
+            devKey.isNotBlank() && devKey != "MY_GEMINI_API_KEY" -> devKey.trim()
+            else -> ""
+        }
+
+        if (apiKey.isBlank()) {
             // Provide offline intelligent fallback estimation if no API key is provided
             return@withContext Result.success(createOfflineEstimation(foodDescription))
         }
 
+        val effectiveModel = if (!modelId.isNullOrBlank()) modelId.trim() else GeminiAiModel.GEMINI_3_5_FLASH.modelId
+
         try {
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent?key=$apiKey"
 
             val prompt = """
                 Du bist ein erfahrener diabetologischer Ernährungsberater und Experte für Kohlenhydratschätzung (KE/BE und Gramm KH).
@@ -172,7 +187,9 @@ class GeminiMealService {
                     totalCarbsGrams = totalCarbs,
                     items = itemsList,
                     explanation = explanation,
-                    insulinTip = insulinTip
+                    insulinTip = insulinTip,
+                    isOfflineEstimate = false,
+                    modelUsed = effectiveModel
                 )
             )
         } catch (e: Exception) {
@@ -182,63 +199,45 @@ class GeminiMealService {
     }
 
     private fun createOfflineEstimation(foodDescription: String): MealEstimateResult {
-        val lower = foodDescription.lowercase()
+        val matches = StandardFoodDatabase.findMatches(foodDescription)
         val items = mutableListOf<MealItemDetail>()
         var total = 0.0
 
-        if (lower.contains("pizza")) {
-            items.add(MealItemDetail("Pizza (mittelgroß)", "1 Pizza ca. 350g", 90.0, 750, "Hoher Fettanteil verzögert den BZ-Anstieg (FPE)"))
-            total += 90.0
-        }
-        if (lower.contains("döner") || lower.contains("doener") || lower.contains("kebab")) {
-            items.add(MealItemDetail("Döner Kebab (Fladenbrot)", "1 Portion", 65.0, 680, "Fladenbrot liefert den Hauptteil der KH"))
-            total += 65.0
-        }
-        if (lower.contains("apfel") || lower.contains("äpfel")) {
-            items.add(MealItemDetail("Apfel (mittelgroß)", "1 Stück ca. 150g", 18.0, 75, "Fruchtzucker führt zu stetigem Anstieg"))
-            total += 18.0
-        }
-        if (lower.contains("banane")) {
-            items.add(MealItemDetail("Banane (reif)", "1 Stück ca. 120g", 24.0, 105, "Schnell wirkende Kohlenhydrate"))
-            total += 24.0
-        }
-        if (lower.contains("brot") || lower.contains("brötchen") || lower.contains("semmel")) {
-            items.add(MealItemDetail("Brot / Brötchen", "2 Scheiben / 1 Brötchen", 35.0, 180, "Ca. 15-20g KH pro Scheibe Brot"))
-            total += 35.0
-        }
-        if (lower.contains("pasta") || lower.contains("nudel") || lower.contains("spaghetti")) {
-            items.add(MealItemDetail("Nudeln (gekocht)", "1 Teller ca. 200g", 55.0, 320, "Komplexe Kohlenhydrate mit moderatem GI"))
-            total += 55.0
-        }
-        if (lower.contains("reis")) {
-            items.add(MealItemDetail("Reis (gekocht)", "1 Portion ca. 180g", 50.0, 240, "Hoher glykämischer Index"))
-            total += 50.0
-        }
-        if (lower.contains("pommes") || lower.contains("fritten")) {
-            items.add(MealItemDetail("Pommes Frites", "1 Portion ca. 150g", 48.0, 420, "Fett verzögert Resorption"))
-            total += 48.0
-        }
-        if (lower.contains("cola") && !lower.contains("zero") && !lower.contains("light")) {
-            items.add(MealItemDetail("Cola / Softdrink", "1 Glas (250ml)", 27.0, 110, "Flüssiger Zucker, sehr schneller BZ-Anstieg!"))
-            total += 27.0
-        }
-        if (lower.contains("schokolade") || lower.contains("riegel")) {
-            items.add(MealItemDetail("Schokolade", "50g Riegel", 28.0, 260, "Fettreich mit schnellen KH"))
-            total += 28.0
-        }
-
-        if (items.isEmpty()) {
-            // General fallback approximation based on word length / heuristic
-            items.add(MealItemDetail(foodDescription, "Geschätzte Standardportion", 40.0, 350, "Schätzung basierend auf durchschnittlichen Mahlzeiten"))
+        if (matches.isNotEmpty()) {
+            for (food in matches) {
+                items.add(
+                    MealItemDetail(
+                        name = food.germanName,
+                        portion = food.standardPortionText,
+                        carbsGrams = food.carbsPerPortion,
+                        calories = food.caloriesPerPortion,
+                        notes = food.glycemicIndexNote
+                    )
+                )
+                total += food.carbsPerPortion
+            }
+        } else {
+            // General fallback approximation based on standard meal portion
+            items.add(
+                MealItemDetail(
+                    name = foodDescription.take(30),
+                    portion = "Geschätzte Standardportion (ca. 250g)",
+                    carbsGrams = 40.0,
+                    calories = 350,
+                    notes = "Durchschnittliche Mischkost-Mahlzeit"
+                )
+            )
             total = 40.0
         }
 
         return MealEstimateResult(
-            mealTitle = foodDescription.take(30),
+            mealTitle = foodDescription.take(35),
             totalCarbsGrams = total,
             items = items,
-            explanation = "Schätzung basierend auf diabetologischen Nährwerttabellen und Lebensmitteldaten.",
-            insulinTip = "Empfehlung: Bei fett- und eiweißreichen Mahlzeiten kann der Blutzuckeranstieg verzögert auftreten. Spritz-Ess-Abstand beachten."
+            explanation = "Offline-Schätzung basierend auf integrierter Nährwertdatenbank (${items.size} Lebensmittel abgeglichen).",
+            insulinTip = "Empfehlung: Bei fett- und eiweißreichen Mahlzeiten kann der Blutzuckeranstieg verzögert auftreten. Spritz-Ess-Abstand beachten.",
+            isOfflineEstimate = true,
+            modelUsed = "Offline-Datenbank"
         )
     }
 }
