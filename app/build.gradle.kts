@@ -79,6 +79,14 @@ secrets {
   ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
+configurations.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "io.netty") {
+      useVersion("4.1.118.Final")
+    }
+  }
+}
+
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.activity.compose)
