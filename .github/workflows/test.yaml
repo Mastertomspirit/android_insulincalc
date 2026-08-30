@@ -71,4 +71,5 @@ jobs:
         arch: x86_64
         disk-size: 2048M
         disable-animations: true
+        disable-linux-hw-accel: false
         script: ./gradlew connectedCheck --no-daemon
