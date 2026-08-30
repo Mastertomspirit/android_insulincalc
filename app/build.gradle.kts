@@ -79,23 +79,6 @@ secrets {
   ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
-configurations.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "io.netty") {
-      useVersion("4.1.137.Final")
-    }
-    if (requested.group == "org.bouncycastle") {
-      useVersion("1.84")
-    }
-    if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
-      useVersion("4.5.14")
-    }
-    if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
-      useVersion("3.18.0")
-    }
-  }
-}
-
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.activity.compose)
