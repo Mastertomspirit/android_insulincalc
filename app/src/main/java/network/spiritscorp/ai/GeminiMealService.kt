@@ -76,7 +76,12 @@ class GeminiMealService {
 
         if (apiKey.isBlank()) {
             // Provide offline intelligent fallback estimation if no API key is provided
-            return@withContext Result.success(createOfflineEstimation(foodDescription))
+            val offline = createOfflineEstimation(foodDescription)
+            return@withContext if (offline != null) {
+                Result.success(offline)
+            } else {
+                Result.failure(Exception("In der Offline-Datenbank wurde zu \"$foodDescription\" kein passendes Lebensmittel gefunden. Bitte trage einen Gemini API-Key ein, um beliebige Freitext-Mahlzeiten per KI zu analysieren."))
+            }
         }
 
         val effectiveModel = if (!modelId.isNullOrBlank()) modelId.trim() else GeminiAiModel.GEMINI_3_5_FLASH_LITE.modelId
@@ -133,7 +138,12 @@ class GeminiMealService {
 
             if (!response.isSuccessful) {
                 Log.e("GeminiMealService", "API call failed with code ${response.code}: $responseBody")
-                return@withContext Result.success(createOfflineEstimation(foodDescription))
+                val offline = createOfflineEstimation(foodDescription)
+                return@withContext if (offline != null) {
+                    Result.success(offline)
+                } else {
+                    Result.failure(Exception("KI-Anfrage fehlgeschlagen (${response.code}) und in der Offline-Datenbank wurde kein Eintrag für \"$foodDescription\" gefunden."))
+                }
             }
 
             val rootJson = JSONObject(responseBody)
@@ -194,47 +204,41 @@ class GeminiMealService {
             )
         } catch (e: Exception) {
             Log.e("GeminiMealService", "Error during Gemini estimation", e)
-            Result.success(createOfflineEstimation(foodDescription))
+            val offline = createOfflineEstimation(foodDescription)
+            if (offline != null) {
+                Result.success(offline)
+            } else {
+                Result.failure(Exception("Anfrage fehlgeschlagen und in der Offline-Datenbank wurde kein passender Eintrag für \"$foodDescription\" gefunden."))
+            }
         }
     }
 
-    private fun createOfflineEstimation(foodDescription: String): MealEstimateResult {
+    private fun createOfflineEstimation(foodDescription: String): MealEstimateResult? {
         val matches = StandardFoodDatabase.findMatches(foodDescription)
+        if (matches.isEmpty()) {
+            return null
+        }
         val items = mutableListOf<MealItemDetail>()
         var total = 0.0
 
-        if (matches.isNotEmpty()) {
-            for (food in matches) {
-                items.add(
-                    MealItemDetail(
-                        name = food.germanName,
-                        portion = food.standardPortionText,
-                        carbsGrams = food.carbsPerPortion,
-                        calories = food.caloriesPerPortion,
-                        notes = food.glycemicIndexNote
-                    )
-                )
-                total += food.carbsPerPortion
-            }
-        } else {
-            // General fallback approximation based on standard meal portion
+        for (food in matches) {
             items.add(
                 MealItemDetail(
-                    name = foodDescription.take(30),
-                    portion = "Geschätzte Standardportion (ca. 250g)",
-                    carbsGrams = 40.0,
-                    calories = 350,
-                    notes = "Durchschnittliche Mischkost-Mahlzeit"
+                    name = food.germanName,
+                    portion = food.standardPortionText,
+                    carbsGrams = food.carbsPerPortion,
+                    calories = food.caloriesPerPortion,
+                    notes = food.glycemicIndexNote
                 )
             )
-            total = 40.0
+            total += food.carbsPerPortion
         }
 
         return MealEstimateResult(
             mealTitle = foodDescription.take(35),
             totalCarbsGrams = total,
             items = items,
-            explanation = "Offline-Schätzung basierend auf integrierter Nährwertdatenbank (${items.size} Lebensmittel abgeglichen).",
+            explanation = "Offline-Ergebnis aus integrierter Nährwerttabelle (${items.size} Treffer gefunden).",
             insulinTip = "Empfehlung: Bei fett- und eiweißreichen Mahlzeiten kann der Blutzuckeranstieg verzögert auftreten. Spritz-Ess-Abstand beachten.",
             isOfflineEstimate = true,
             modelUsed = "Offline-Datenbank"

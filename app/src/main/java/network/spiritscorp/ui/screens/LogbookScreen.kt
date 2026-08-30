@@ -294,6 +294,16 @@ fun LogbookScreen(
             items(items = filteredLogs, key = { it.id }) { log ->
                 LogbookItemCard(
                     log = log,
+                    onShareRequest = {
+                        val shareText = LogbookExportHelper.formatSingleLogShare(log)
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, "Eintrag teilen (${log.mealTitle})")
+                        context.startActivity(shareIntent)
+                    },
                     onDeleteRequest = { logToDelete = log }
                 )
             }

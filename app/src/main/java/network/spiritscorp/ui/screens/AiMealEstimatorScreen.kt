@@ -40,6 +40,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.Button
@@ -78,6 +79,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -88,8 +90,14 @@ fun AiMealEstimatorScreen(
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
     var inputQuery by remember { mutableStateOf("") }
+
+    val closeKeyboard = {
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    }
 
     val quickExamples = listOf(
         "2 Scheiben Vollkornbrot mit Käse & 1 Apfel",
@@ -105,7 +113,7 @@ fun AiMealEstimatorScreen(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
-                    focusManager.clearFocus()
+                    closeKeyboard()
                 })
             }
             .verticalScroll(scrollState)
@@ -189,7 +197,10 @@ fun AiMealEstimatorScreen(
                     shape = RoundedCornerShape(14.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(
-                        onSearch = { viewModel.estimateMealCarbs(inputQuery) }
+                        onSearch = {
+                            closeKeyboard()
+                            viewModel.estimateMealCarbs(inputQuery)
+                        }
                     ),
                     maxLines = 3
                 )
@@ -197,7 +208,10 @@ fun AiMealEstimatorScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { viewModel.estimateMealCarbs(inputQuery) },
+                    onClick = {
+                        closeKeyboard()
+                        viewModel.estimateMealCarbs(inputQuery)
+                    },
                     enabled = inputQuery.isNotBlank() && aiState !is AiEstimateState.Loading,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -246,6 +260,7 @@ fun AiMealEstimatorScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
+                                    closeKeyboard()
                                     inputQuery = example
                                     viewModel.estimateMealCarbs(example)
                                 }
@@ -307,16 +322,29 @@ fun AiMealEstimatorScreen(
 
             is AiEstimateState.Error -> {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("ai_estimate_error_card"),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text(
-                        text = aiState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    Row(
                         modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Hinweis",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = aiState.message,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
 

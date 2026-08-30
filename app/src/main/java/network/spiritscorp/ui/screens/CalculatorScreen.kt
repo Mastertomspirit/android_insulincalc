@@ -89,8 +89,10 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import androidx.compose.ui.platform.LocalLocale
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,14 +104,20 @@ fun CalculatorScreen(
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val settings by viewModel.userSettings.collectAsState(initial = null)
+
+    val closeKeyboard = {
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
-                    focusManager.clearFocus()
+                    closeKeyboard()
                 })
             }
             .verticalScroll(scrollState)
@@ -119,7 +127,10 @@ fun CalculatorScreen(
         // Medical Disclaimer
         if (settings?.showDisclaimer == true) {
             MedicalDisclaimerBanner(
-                onDismiss = { viewModel.dismissDisclaimer() }
+                onDismiss = {
+                    closeKeyboard()
+                    viewModel.dismissDisclaimer()
+                }
             )
         }
 
@@ -279,7 +290,10 @@ fun CalculatorScreen(
 
                 // Action: Save to logbook button
                 Button(
-                    onClick = { viewModel.saveCalculationToLog() },
+                    onClick = {
+                        closeKeyboard()
+                        viewModel.saveCalculationToLog()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("save_to_logbook_button"),
@@ -337,7 +351,10 @@ fun CalculatorScreen(
                     Surface(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .clickable { onNavigateToAiEstimator() }
+                            .clickable {
+                                closeKeyboard()
+                                onNavigateToAiEstimator()
+                            }
                             .testTag("open_ai_estimator_button"),
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
@@ -389,7 +406,10 @@ fun CalculatorScreen(
                         trailingIcon = {
                             if (uiState.carbInput.isNotEmpty() && uiState.carbInput != "0") {
                                 IconButton(
-                                    onClick = { viewModel.clearCarbs() },
+                                    onClick = {
+                                        closeKeyboard()
+                                        viewModel.clearCarbs()
+                                    },
                                     modifier = Modifier.testTag("clear_carb_button")
                                 ) {
                                     Icon(
@@ -403,6 +423,9 @@ fun CalculatorScreen(
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal,
                             imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { closeKeyboard() }
                         ),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -420,7 +443,10 @@ fun CalculatorScreen(
                 // Unit selection (g KH, KE, BE) below input
                 UnitSelectorRow(
                     selectedUnit = uiState.selectedUnit,
-                    onUnitSelect = { viewModel.setUnit(it) }
+                    onUnitSelect = {
+                        closeKeyboard()
+                        viewModel.setUnit(it)
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -441,7 +467,10 @@ fun CalculatorScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(10.dp))
-                                .clickable { viewModel.addCarbs(step) }
+                                .clickable {
+                                    closeKeyboard()
+                                    viewModel.addCarbs(step)
+                                }
                                 .testTag("quick_add_${step}"),
                             shape = RoundedCornerShape(10.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -505,9 +534,18 @@ fun CalculatorScreen(
             selectedTimeOfDay = uiState.selectedTimeOfDay,
             effectiveFactor = uiState.calculationSummary.factorUsed,
             isAutoDetected = uiState.isAutoTimeDetection,
-            onSelect = { viewModel.selectTimeOfDay(it) },
-            onAdjustFactor = { viewModel.adjustFactor(it) },
-            onResetAuto = { viewModel.resetToAutoTime() }
+            onSelect = {
+                closeKeyboard()
+                viewModel.selectTimeOfDay(it)
+            },
+            onAdjustFactor = {
+                closeKeyboard()
+                viewModel.adjustFactor(it)
+            },
+            onResetAuto = {
+                closeKeyboard()
+                viewModel.resetToAutoTime()
+            }
         )
 
         // 4. Expandable Correction Bolus (Blutzucker-Korrektur) Card
@@ -524,7 +562,10 @@ fun CalculatorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .clickable { viewModel.toggleCorrection() }
+                        .clickable {
+                            closeKeyboard()
+                            viewModel.toggleCorrection()
+                        }
                         .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -583,7 +624,10 @@ fun CalculatorScreen(
                                         if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
                                     )
                                 },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
                                 modifier = Modifier
                                     .weight(1f)
                                     .testTag("current_glucose_field"),
@@ -601,7 +645,10 @@ fun CalculatorScreen(
                                         if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
                                     )
                                 },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
                                 modifier = Modifier
                                     .weight(1f)
                                     .testTag("target_glucose_field"),
@@ -620,7 +667,13 @@ fun CalculatorScreen(
                                     if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
                                 )
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { closeKeyboard() }
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("correction_factor_field"),
@@ -675,7 +728,10 @@ fun CalculatorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .clickable { isMealNotesExpanded = !isMealNotesExpanded }
+                        .clickable {
+                            closeKeyboard()
+                            isMealNotesExpanded = !isMealNotesExpanded
+                        }
                         .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -740,7 +796,10 @@ fun CalculatorScreen(
                             trailingIcon = {
                                 if (uiState.mealTitle.isNotEmpty()) {
                                     IconButton(
-                                        onClick = { viewModel.onMealTitleChange("") },
+                                        onClick = {
+                                            closeKeyboard()
+                                            viewModel.onMealTitleChange("")
+                                        },
                                         modifier = Modifier.testTag("clear_meal_title_button")
                                     ) {
                                         Icon(
@@ -751,6 +810,7 @@ fun CalculatorScreen(
                                     }
                                 }
                             },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
                         )
@@ -775,7 +835,10 @@ fun CalculatorScreen(
                             trailingIcon = {
                                 if (uiState.notes.isNotEmpty()) {
                                     IconButton(
-                                        onClick = { viewModel.onNotesChange("") },
+                                        onClick = {
+                                            closeKeyboard()
+                                            viewModel.onNotesChange("")
+                                        },
                                         modifier = Modifier.testTag("clear_notes_button")
                                     ) {
                                         Icon(
@@ -786,6 +849,8 @@ fun CalculatorScreen(
                                     }
                                 }
                             },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { closeKeyboard() }),
                             shape = RoundedCornerShape(12.dp),
                             maxLines = 3,
                             singleLine = false

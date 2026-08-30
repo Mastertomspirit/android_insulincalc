@@ -110,21 +110,58 @@ public final class LogbookExportHelper {
     }
 
     /**
-     * Formats a single log entry for sharing.
+     * Formats a single log entry with full details, breakdown, correction bolus and symbols for sharing.
      */
     public static String formatSingleLogShare(CalculationLog log) {
         StringBuilder sb = new StringBuilder();
-        sb.append("💉 Insulin-Eintrag: ").append(log.getMealTitle()).append("\n");
+        sb.append("📋 Insulin-Berechnung: ").append(log.getMealTitle()).append("\n");
         sb.append("📅 ").append(DATE_FORMAT.format(new Date(log.getTimestamp()))).append(" (").append(log.getTimeOfDay()).append(")\n");
-        sb.append("🍞 KH: ").append(log.getCarbGrams()).append(" g (").append(log.getBeValue()).append(" BE)\n");
+        sb.append("----------------------------------------\n");
+
+        // Kohlenhydrate & Mahlzeitenbolus
+        sb.append("🍞 Kohlenhydrate: ").append(log.getCarbGrams()).append(" g");
+        if (log.getBeValue() > 0 || log.getKeValue() > 0) {
+            sb.append(" (").append(log.getBeValue()).append(" BE / ").append(log.getKeValue()).append(" KE)");
+        }
+        sb.append("\n");
+        sb.append("⏱️ Faktor (").append(log.getTimeOfDay()).append("): ").append(log.getInsulinFactor()).append(" IE/KE\n");
+        sb.append("🍽️ Mahlzeiten-Bolus: ").append(log.getMealInsulin()).append(" IE\n");
+
+        // Blutzucker & Korrektur
         if (log.getBloodGlucose() != null) {
-            sb.append("🩸 BZ: ").append(log.getBloodGlucose()).append("\n");
+            sb.append("🩸 Gemessener BZ: ").append(log.getBloodGlucose());
+            if (log.getTargetGlucose() != null) {
+                sb.append(" (Ziel: ").append(log.getTargetGlucose()).append(")");
+            }
+            sb.append("\n");
+
+            if (log.getCorrectionFactor() != null && log.getCorrectionFactor() > 0) {
+                sb.append("🎯 Korrekturfaktor: 1 IE / ").append(log.getCorrectionFactor()).append("\n");
+            }
+
+            Double corr = log.getCorrectionInsulin();
+            if (corr != null && corr != 0.0) {
+                sb.append("⚡ Korrektur-Bolus: ")
+                        .append(corr > 0 ? "+" : "")
+                        .append(corr).append(" IE\n");
+            }
         }
-        sb.append("💉 Dosis: ").append(log.getRoundedInsulin()).append(" IE");
-        log.getNotes();
-        if (!log.getNotes().trim().isEmpty()) {
-            sb.append("\n📝 Notiz: ").append(log.getNotes());
+
+        // Gesamtdosis
+        sb.append("----------------------------------------\n");
+        sb.append("💉 Gesamtdosis: ").append(log.getRoundedInsulin()).append(" IE");
+        if (Math.abs(log.getTotalInsulin() - log.getRoundedInsulin()) > 0.01) {
+            sb.append(" (exakt: ").append(Math.round(log.getTotalInsulin() * 100.0) / 100.0).append(" IE)");
         }
+        sb.append("\n");
+
+        // Notiz
+        if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
+            sb.append("📝 Notiz: ").append(log.getNotes().trim()).append("\n");
+        }
+
+        sb.append("----------------------------------------\n");
+        sb.append("ℹ️ Erstellt mit InsulinRechner");
         return sb.toString();
     }
 

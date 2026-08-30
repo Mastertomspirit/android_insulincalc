@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -78,6 +79,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val currentSettings = settings ?: UserSettings()
 
     var morningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.morningFactor) }
@@ -128,6 +130,7 @@ fun SettingsScreen(
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
+                    keyboardController?.hide()
                 })
             }
             .verticalScroll(rememberScrollState())
@@ -259,6 +262,7 @@ fun SettingsScreen(
                 viewModel.updateUserSettings(updated)
                 Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()
                 focusManager.clearFocus()
+                keyboardController?.hide()
             },
             modifier = Modifier
                 .fillMaxWidth()

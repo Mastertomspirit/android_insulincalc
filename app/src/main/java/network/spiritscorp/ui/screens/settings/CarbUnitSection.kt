@@ -99,12 +99,14 @@ fun CarbUnitSection(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CarbUnit.entries.forEach { unit ->
-                            val isSelected = defaultCarbUnit == unit.shortName
+                            val isSelected = defaultCarbUnit.equals(unit.name, ignoreCase = true) ||
+                                    defaultCarbUnit.equals(unit.shortName, ignoreCase = true) ||
+                                    (unit == CarbUnit.GRAMS && (defaultCarbUnit.equals("GRAMS", ignoreCase = true) || defaultCarbUnit.startsWith("g", ignoreCase = true)))
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .clickable { onDefaultCarbUnitChange(unit.shortName) }
+                                    .clickable { onDefaultCarbUnitChange(unit.name) }
                                     .testTag("unit_setting_${unit.name.lowercase()}"),
                                 shape = RoundedCornerShape(10.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),

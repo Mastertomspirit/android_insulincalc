@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -56,7 +57,8 @@ import androidx.compose.ui.platform.LocalLocale
 fun LogbookItemCard(
     log: CalculationLog,
     onDeleteRequest: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onShareRequest: () -> Unit = {}
 ) {
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy • HH:mm", Locale.getDefault()) }
     val dateString = remember(log.timestamp) { dateFormat.format(Date(log.timestamp)) }
@@ -162,18 +164,37 @@ fun LogbookItemCard(
                     )
                 }
 
-                IconButton(
-                    onClick = onDeleteRequest,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .testTag("delete_single_log_${log.id}")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Eintrag löschen",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    IconButton(
+                        onClick = onShareRequest,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("share_single_log_${log.id}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Eintrag teilen",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onDeleteRequest,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("delete_single_log_${log.id}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Eintrag löschen",
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
