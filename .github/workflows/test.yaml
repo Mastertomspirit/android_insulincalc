@@ -55,11 +55,20 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        android: false # Android SDK behalten!
+        dotnet: true
+        haskell: true
+        tool-cache: true
+        
     - name: Run Instrumented Tests on Emulator
       uses: ReactiveCircus/android-emulator-runner@v2
       with:
         api-level: 34
         target: aosp_atd
         arch: x86_64
+        disk-size: 2048M
         disable-animations: true
         script: ./gradlew connectedCheck --no-daemon
