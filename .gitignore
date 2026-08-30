@@ -1,20 +1,39 @@
+# IDE & Android Studio
 *.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+**/*.iml
+
+
+# Build-Artefakte & Caches
+/app/build/
+/app/release/
+/captures/
+.cxx/
+.externalNativeBuild/
+.gradle/
+.kotlin/
+build/
+release/
+
+
+# Output-Dateien
+*.apk
+*.aab
+*.dex
+
+
+# Lokale Konfigurationen & Secrets
 local.properties
 .env
-debug.keystore
 .diff
-app/release
+
+
+# Keystores & Schlüssel
+keystore/
+debug.keystore
+*.jks
+*.keystore
+
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
