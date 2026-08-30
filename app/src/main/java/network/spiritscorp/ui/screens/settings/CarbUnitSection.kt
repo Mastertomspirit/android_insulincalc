@@ -49,7 +49,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import network.spiritscorp.model.CarbUnit
 
 @Composable
@@ -58,9 +57,9 @@ fun CarbUnitSection(
     onDefaultCarbUnitChange: (String) -> Unit,
     beDivisor: Int,
     onBeDivisorChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     onToggleExpand: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier

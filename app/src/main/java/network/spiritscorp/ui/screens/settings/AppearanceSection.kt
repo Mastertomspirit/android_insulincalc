@@ -66,9 +66,9 @@ fun AppearanceSection(
     onThemeSelected: (String) -> Unit,
     themeMode: String,
     onThemeModeSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     onToggleExpand: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier

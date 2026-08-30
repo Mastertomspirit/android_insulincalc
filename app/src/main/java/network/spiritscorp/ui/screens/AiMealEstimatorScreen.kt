@@ -74,8 +74,10 @@ import network.spiritscorp.viewmodel.AiEstimateState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -264,7 +266,7 @@ fun AiMealEstimatorScreen(
         }
 
         // Result presentation
-        when (val state = aiState) {
+        when (aiState) {
             is AiEstimateState.Loading -> {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -296,7 +298,7 @@ fun AiMealEstimatorScreen(
 
             is AiEstimateState.Success -> {
                 MealResultCard(
-                    result = state.result,
+                    result = aiState.result,
                     onApply = { carbs, name ->
                         viewModel.applyEstimatedCarbsToCalculator(carbs, name)
                     }
@@ -310,7 +312,7 @@ fun AiMealEstimatorScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
                     Text(
-                        text = state.message,
+                        text = aiState.message,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium
@@ -330,7 +332,7 @@ private fun MealResultCard(
     result: MealEstimateResult,
     onApply: (Double, String) -> Unit
 ) {
-    var customCarbs by remember(result) { mutableStateOf(result.totalCarbsGrams) }
+    var customCarbs by remember(result) { mutableDoubleStateOf(result.totalCarbsGrams) }
 
     Card(
         modifier = Modifier
@@ -384,7 +386,7 @@ private fun MealResultCard(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "ca. ${String.format(java.util.Locale.getDefault(), "%.1f", customCarbs / 10.0)} KE",
+                            text = "ca. ${String.format(LocalLocale.current.platformLocale, "%.1f", customCarbs / 10.0)} KE",
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )

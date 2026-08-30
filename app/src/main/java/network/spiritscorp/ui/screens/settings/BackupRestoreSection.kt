@@ -17,7 +17,6 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -72,9 +71,9 @@ import androidx.compose.animation.shrinkVertically
 fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
     onShowResetDbDialog: () -> Unit,
+    modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     onToggleExpand: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 

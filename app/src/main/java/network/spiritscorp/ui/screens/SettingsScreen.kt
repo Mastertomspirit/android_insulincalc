@@ -114,7 +114,7 @@ fun SettingsScreen(
     var selectedThemeName by remember(settings) { mutableStateOf(currentSettings.selectedTheme) }
     var themeMode by remember(settings) { mutableStateOf(currentSettings.themeMode) }
 
-    var isFactorsExpanded by remember { mutableStateOf(true) }
+    var isFactorsExpanded by remember { mutableStateOf(false) }
     var isGlucoseExpanded by remember { mutableStateOf(false) }
     var isCarbUnitExpanded by remember { mutableStateOf(false) }
     var isAppearanceExpanded by remember { mutableStateOf(false) }

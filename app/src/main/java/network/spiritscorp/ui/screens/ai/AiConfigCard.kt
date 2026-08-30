@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import network.spiritscorp.BuildConfig
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.model.UserSettings
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -288,7 +289,8 @@ fun AiConfigCard(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .clickable {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/app/apikey"))
+                                val intent = Intent(Intent.ACTION_VIEW,
+                                    "https://aistudio.google.com/app/apikey".toUri())
                                 context.startActivity(intent)
                             }
                             .testTag("open_aistudio_link"),

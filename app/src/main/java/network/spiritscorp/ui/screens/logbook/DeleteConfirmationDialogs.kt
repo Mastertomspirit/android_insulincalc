@@ -43,6 +43,7 @@ import network.spiritscorp.ui.theme.AlertRed
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun SingleLogDeleteDialog(
@@ -50,7 +51,7 @@ fun SingleLogDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val dateText = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(log.timestamp))
+    val dateText = SimpleDateFormat("dd.MM.yyyy HH:mm", LocalLocale.current.platformLocale).format(Date(log.timestamp))
 
     AlertDialog(
         onDismissRequest = onDismiss,

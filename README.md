@@ -1,6 +1,20 @@
-# 💉 Insulin-Rechner & Mahlzeiten-Assistent (v1.3.0)
+[![Latest Release](https://img.shields.io/github/v/release/mastertomspirit/android_insulincalc?color=blue&label=Release)](https://github.com/mastertomspirit/android_insulincalc)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/mastertomspirit/android_insulincalc/android.yml?branch=main&label=Build)](https://github.com/mastertomspirit/android_insulincalc/actions)
+[![Min SDK](https://img.shields.io/badge/Android-11%2B%20%28API%2030%2B%29-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Java Version](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
+[![UI Framework](https://img.shields.io/badge/UI-Jetpack%20Compose%20%28M3%29-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![License](https://img.shields.io/github/license/mastertomspirit/android_insulincalc?color=informational)](LICENSE)
+
+
+# 💉 Insulin-Rechner & Mahlzeiten-Assistent
 
 Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin für Menschen mit Diabetes (Typ 1 & Typ 3). Entwickelt mit **Kotlin**, **Jetpack Compose (Material 3)**, militärischer **SQLCipher AES-256 Datenbankverschlüsselung**, robuster Offline-Speicherung via **Room** und intelligenter Mahlzeitenerkennung via **Gemini AI**.
+
+---
+
+## ⚠️ Wichtiger medizinischer Hinweis
+
+> **Haftungsausschluss**: Diese App dient als digitaler Rechenhelfer und Orientierungshilfe. Sie ersetzt **nicht** die ärztliche Beratung, Diagnostik oder Therapieempfehlung durch Fachpersonal (Diabetologe/Diabetologin). Alle Insulindosierungen und Faktoren sollten stets in Absprache mit medizinischem Fachpersonal festgelegt und eigenverantwortlich überprüft werden.
 
 ---
 
@@ -18,7 +32,6 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ### 3. 🔒 Zero-Knowledge & SQLCipher AES-256 Verschlüsselung
 * **Hardware-gestützte Sicherheit**: Vollständige 256-Bit-Verschlüsselung aller lokalen Datenbankdaten (`SQLCipher`) mit Schlüsseln, die im hardware-gesicherten **Android KeyStore** (`MasterKey` & `EncryptedSharedPreferences`) verwaltet werden.
-* **Automatische Migration**: Vorherige unverschlüsselte SQLite-Datenbanken werden beim Start automatisch und verlustfrei in verschlüsselte SQLCipher-Datenbanken migriert.
 * **Vollständige Datensouveränität**: Keine Weitergabe von Patientendaten an Drittanbieter; alle Berechnungen und Tagebucheinträge bleiben geschützt auf dem Gerät.
 
 ### 4. 🤖 KI-Mahlzeitenschätzer (Gemini AI)
@@ -45,10 +58,10 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.1.3` (VersionCode: `3`)
-* **Programmiersprache**: 100% Kotlin (mit Kotlin Coroutines & Flow)
-* **Java-Laufzeit / Toolchain**: Java 21 (LTS)
-* **Android Gradle Plugin (AGP)**: `9.1.0` (optimiert für Gradle 9.3.1)
+* **Version**: `1.3.1` (VersionCode: `6`)
+* **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
+* **Java-Laufzeit / Toolchain**: Java 25 (LTS)
+* **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
 * **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und AndroidX Security Crypto (`1.1.0`)
@@ -84,9 +97,3 @@ Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Ver
 ```bash
 ./gradlew testDebugUnitTest
 ```
-
----
-
-## ⚠️ Wichtiger medizinischer Hinweis
-
-> **Haftungsausschluss**: Diese App dient als digitaler Rechenhelfer und Orientierungshilfe. Sie ersetzt **nicht** die ärztliche Beratung, Diagnostik oder Therapieempfehlung durch Fachpersonal (Diabetologe/Diabetologin). Alle Insulindosierungen und Faktoren sollten stets in Absprache mit medizinischem Fachpersonal festgelegt und eigenverantwortlich überprüft werden.

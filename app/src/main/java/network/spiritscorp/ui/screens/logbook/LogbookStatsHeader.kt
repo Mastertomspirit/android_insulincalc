@@ -33,7 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun LogbookStatsHeader(
@@ -77,7 +77,7 @@ fun LogbookStatsHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(Locale.getDefault(), "%.0f", totalCarbs)} g",
+                    text = "${String.format(LocalLocale.current.platformLocale, "%.0f", totalCarbs)} g",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -90,7 +90,7 @@ fun LogbookStatsHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(Locale.getDefault(), "%.1f", totalInsulin)} IE",
+                    text = "${String.format(LocalLocale.current.platformLocale, "%.1f", totalInsulin)} IE",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -104,7 +104,7 @@ fun LogbookStatsHeader(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f", avgBloodGlucose),
+                        text = String.format(LocalLocale.current.platformLocale, "%.1f", avgBloodGlucose),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )

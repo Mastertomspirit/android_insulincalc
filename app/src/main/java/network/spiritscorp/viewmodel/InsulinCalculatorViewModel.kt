@@ -371,9 +371,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         viewModelScope.launch {
             val state = _uiState.value
             val summary = state.calculationSummary
-            val autoMealTitle = if (state.mealTitle.isNotBlank()) {
-                state.mealTitle
-            } else {
+            val autoMealTitle = state.mealTitle.ifBlank {
                 "${state.selectedTimeOfDay.title} (${summary.carbGrams}g KH)"
             }
             val finalNotes = notesOverride ?: state.notes

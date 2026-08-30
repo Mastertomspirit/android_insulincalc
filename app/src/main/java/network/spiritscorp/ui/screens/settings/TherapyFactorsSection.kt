@@ -34,7 +34,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Brightness5
-import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
@@ -68,9 +67,9 @@ fun TherapyFactorsSection(
     onNightFactorChange: (Double) -> Unit,
     roundingStep: Double,
     onRoundingStepChange: (Double) -> Unit,
-    isExpanded: Boolean = true,
-    onToggleExpand: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isExpanded: Boolean = false,
+    onToggleExpand: () -> Unit = {}
 ) {
     Card(
         modifier = modifier

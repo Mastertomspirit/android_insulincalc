@@ -49,12 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.Locale
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun SettingsSectionHeader(
@@ -204,7 +202,7 @@ fun FactorRow(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = "${String.format(Locale.getDefault(), "%.2f", factor)} IE",
+                            text = "${String.format(LocalLocale.current.platformLocale, "%.2f", factor)} IE",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
