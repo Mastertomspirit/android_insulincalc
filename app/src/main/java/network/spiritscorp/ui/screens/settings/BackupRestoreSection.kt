@@ -54,7 +54,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.text.SimpleDateFormat
@@ -76,18 +78,21 @@ fun BackupRestoreSection(
     onToggleExpand: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val backupManager = DatabaseBackupManager(context)
 
     val jsonExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         if (uri != null) {
-            viewModel.viewModelScope.launch {
-                val json = DatabaseBackupManager.exportToJson(context)
-                val success = DatabaseBackupManager.writeTextToUri(context, uri, json)
-                if (success) {
-                    Toast.makeText(context, "JSON-Backupdatei erfolgreich gespeichert!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Fehler beim Speichern der JSON-Datei.", Toast.LENGTH_SHORT).show()
+            viewModel.viewModelScope.launch(Dispatchers.IO) {
+                val json = backupManager.exportToJson()
+                val success = backupManager.writeTextToUri(context, uri, json)
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(context, "JSON-Backupdatei erfolgreich gespeichert!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Fehler beim Speichern der JSON-Datei.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -97,14 +102,16 @@ fun BackupRestoreSection(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
         if (uri != null) {
-            viewModel.viewModelScope.launch {
+            viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val allLogs = viewModel.getAllLogsDirect()
-                val csv = DatabaseBackupManager.exportToCsv(allLogs)
-                val success = DatabaseBackupManager.writeTextToUri(context, uri, csv)
-                if (success) {
-                    Toast.makeText(context, "Tagebuch (${allLogs.size} Einträge) erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
+                val csv = backupManager.exportToCsv(allLogs)
+                val success = backupManager.writeTextToUri(context, uri, csv)
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(context, "Tagebuch (${allLogs.size} Einträge) erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -114,12 +121,14 @@ fun BackupRestoreSection(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            viewModel.viewModelScope.launch {
-                val result = DatabaseBackupManager.importFromUri(context, uri)
-                if (result.success) {
-                    Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(context, "Import fehlgeschlagen: ${result.message}", Toast.LENGTH_LONG).show()
+            viewModel.viewModelScope.launch(Dispatchers.IO) {
+                val result = backupManager.importFromUri(context, uri)
+                withContext(Dispatchers.Main) {
+                    if (result.success) {
+                        Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "Import fehlgeschlagen: ${result.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -197,7 +206,7 @@ fun BackupRestoreSection(
                         OutlinedButton(
                             onClick = {
                                 viewModel.viewModelScope.launch {
-                                    val json = DatabaseBackupManager.exportToJson(context)
+                                    val json = backupManager.exportToJson()
                                     val sendIntent = Intent().apply {
                                         action = Intent.ACTION_SEND
                                         putExtra(Intent.EXTRA_TEXT, json)
@@ -223,7 +232,7 @@ fun BackupRestoreSection(
                             onClick = {
                                 viewModel.viewModelScope.launch {
                                     val allLogs = viewModel.getAllLogsDirect()
-                                    val csv = DatabaseBackupManager.exportToCsv(allLogs)
+                                    val csv = backupManager.exportToCsv(allLogs)
                                     val sendIntent = Intent().apply {
                                         action = Intent.ACTION_SEND
                                         putExtra(Intent.EXTRA_TEXT, csv)

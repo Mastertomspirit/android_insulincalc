@@ -31,7 +31,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 * **Hypoglykämie-Schutz**: Sicherheitswarnungen bei niedrigen Blutzuckerwerten (< 70 mg/dl) mit Hinweisen zur Kohlenhydrataufnahme (z. B. Traubenzucker).
 
 ### 3. 🔒 Zero-Knowledge & SQLCipher AES-256 Verschlüsselung
-* **Hardware-gestützte Sicherheit**: Vollständige 256-Bit-Verschlüsselung aller lokalen Datenbankdaten (`SQLCipher`) mit Schlüsseln, die im hardware-gesicherten **Android KeyStore** (`MasterKey` & `EncryptedSharedPreferences`) verwaltet werden.
+* **Hardware-gestützte Sicherheit**: Vollständige 256-Bit-AES-Verschlüsselung aller lokalen Datenbankdaten (`SQLCipher`) mit Schlüsseln, die direkt im hardware-gesicherten **Android KeyStore** (AES-256 GCM Master-Key im Hardware-Sicherheitsmodul / TEE / StrongBox) verschlüsselt und verwaltet werden.
 * **Vollständige Datensouveränität**: Keine Weitergabe von Patientendaten an Drittanbieter; alle Berechnungen und Tagebucheinträge bleiben geschützt auf dem Gerät.
 
 ### 4. 🤖 KI-Mahlzeitenschätzer (Gemini AI)
@@ -58,13 +58,13 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.1` (VersionCode: `6`)
+* **Version**: `1.3.3` (VersionCode: `7`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
 * **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
-* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und AndroidX Security Crypto (`1.1.0`)
+* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und hardware-gesichertem Android KeyStore (AES-256 GCM)
 * **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
 * **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
 * **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)

@@ -17,7 +17,7 @@ package network.spiritscorp;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import kotlin.Unit;
+import androidx.annotation.NonNull;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
@@ -30,8 +30,6 @@ import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.data.UserSettingsDao;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +44,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Java integration tests verifying the interaction between the data access layer,
- * reactive Flows, suspend queries, and the InsulinRepository domain coordinator.
+ * reactive Flows, and the InsulinRepository domain coordinator.
  */
 public class InsulinRepositoryIntegrationTest {
 
@@ -65,7 +63,7 @@ public class InsulinRepositoryIntegrationTest {
 
     @Test
     public void testDefaultSettingsCreatedWhenNoneExist() {
-        UserSettings settings = runBlocking((scope, cont) -> repository.getSettings(cont));
+        UserSettings settings = repository.getSettings();
         assertNotNull(settings);
         assertEquals(1.50, settings.getMorningFactor(), DELTA);
         assertEquals("GRAMS", settings.getDefaultCarbUnit());
@@ -73,7 +71,7 @@ public class InsulinRepositoryIntegrationTest {
         assertEquals(50.0, settings.getCorrectionFactorMgDl(), DELTA);
 
         // Verify default settings were persisted to DAO
-        UserSettings direct = runBlocking((scope, cont) -> fakeSettingsDao.getSettingsDirect(cont));
+        UserSettings direct = fakeSettingsDao.getSettingsDirect();
         assertNotNull(direct);
         assertEquals(1.50, direct.getMorningFactor(), DELTA);
     }
@@ -97,9 +95,9 @@ public class InsulinRepositoryIntegrationTest {
                 "SYSTEM"
         );
 
-        runBlocking((scope, cont) -> repository.saveSettings(custom, cont));
+        repository.saveSettings(custom);
 
-        UserSettings retrieved = runBlocking((scope, cont) -> repository.getSettings(cont));
+        UserSettings retrieved = repository.getSettings();
         assertEquals(1.75, retrieved.getMorningFactor(), DELTA);
         assertEquals("BE", retrieved.getDefaultCarbUnit());
         assertEquals("AMBER_WARM", retrieved.getSelectedTheme());
@@ -132,8 +130,7 @@ public class InsulinRepositoryIntegrationTest {
                 "Leichte Sporteinheit danach"
         );
 
-        Long id = runBlocking((scope, cont) -> repository.saveCalculation(log, cont));
-        assertNotNull(id);
+        long id = repository.saveCalculation(log);
         assertTrue(id > 0);
 
         List<CalculationLog> logsFromFlow = firstFromFlow(repository.getAllLogs());
@@ -142,7 +139,7 @@ public class InsulinRepositoryIntegrationTest {
         assertEquals("Mittagessen (Reis mit Hühnchen)", logsFromFlow.get(0).getMealTitle());
         assertEquals(5.5, logsFromFlow.get(0).getRoundedInsulin(), DELTA);
 
-        List<CalculationLog> directLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        List<CalculationLog> directLogs = repository.getAllLogsDirect();
         assertEquals(1, directLogs.size());
     }
 
@@ -152,10 +149,10 @@ public class InsulinRepositoryIntegrationTest {
         CalculationLog log2 = new CalculationLog(2L, 2000L, "Mahlzeit 2", 0.0, "g KH", 0.0, 0.0, 0.0, "Mittags", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
         CalculationLog log3 = new CalculationLog(3L, 3000L, "Mahlzeit 3", 0.0, "g KH", 0.0, 0.0, 0.0, "Abends", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
 
-        List<Long> insertedIds = runBlocking((scope, cont) -> repository.saveLogs(Arrays.asList(log1, log2, log3), cont));
-        assertEquals(3, insertedIds.size());
+        long[] insertedIds = repository.saveLogs(Arrays.asList(log1, log2, log3));
+        assertEquals(3, insertedIds.length);
 
-        List<CalculationLog> allLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        List<CalculationLog> allLogs = repository.getAllLogsDirect();
         assertEquals(3, allLogs.size());
         // Verify chronological descending order
         assertEquals("Mahlzeit 3", allLogs.get(0).getMealTitle());
@@ -168,12 +165,12 @@ public class InsulinRepositoryIntegrationTest {
         CalculationLog log1 = new CalculationLog(10L, 1000L, "Frühstück", 0.0, "g KH", 0.0, 0.0, 0.0, "Morgens", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
         CalculationLog log2 = new CalculationLog(20L, 2000L, "Abendessen", 0.0, "g KH", 0.0, 0.0, 0.0, "Abends", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
 
-        runBlocking((scope, cont) -> repository.saveLogs(Arrays.asList(log1, log2), cont));
-        List<CalculationLog> initialLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        repository.saveLogs(Arrays.asList(log1, log2));
+        List<CalculationLog> initialLogs = repository.getAllLogsDirect();
         assertEquals(2, initialLogs.size());
 
-        runBlocking((scope, cont) -> repository.deleteLog(10L, cont));
-        List<CalculationLog> remaining = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        repository.deleteLog(10L);
+        List<CalculationLog> remaining = repository.getAllLogsDirect();
         assertEquals(1, remaining.size());
         assertEquals("Abendessen", remaining.get(0).getMealTitle());
     }
@@ -182,32 +179,19 @@ public class InsulinRepositoryIntegrationTest {
     public void testClearAllLogs() {
         CalculationLog log1 = new CalculationLog(1L, 1000L, "Eintrag 1", 0.0, "g KH", 0.0, 0.0, 0.0, "Morgens", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
         CalculationLog log2 = new CalculationLog(2L, 2000L, "Eintrag 2", 0.0, "g KH", 0.0, 0.0, 0.0, "Mittags", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
-        runBlocking((scope, cont) -> repository.saveLogs(Arrays.asList(log1, log2), cont));
+        repository.saveLogs(Arrays.asList(log1, log2));
 
-        List<CalculationLog> initialLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        List<CalculationLog> initialLogs = repository.getAllLogsDirect();
         assertEquals(2, initialLogs.size());
 
-        runBlocking((scope, cont) -> repository.clearLogs(cont));
-        List<CalculationLog> remainingLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        repository.clearLogs();
+        List<CalculationLog> remainingLogs = repository.getAllLogsDirect();
         assertEquals(0, remainingLogs.size());
         List<CalculationLog> flowLogs = firstFromFlow(repository.getAllLogs());
         assertEquals(0, flowLogs.size());
     }
 
-    // --- Coroutine Helper Methods for Java ---
-
-    @SuppressWarnings("unchecked")
-    public static <T> T runBlocking(kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, Continuation<? super T>, ?> block) {
-        try {
-            return (T) BuildersKt.runBlocking(
-                    EmptyCoroutineContext.INSTANCE,
-                    block
-            );
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Coroutine execution interrupted", e);
-        }
-    }
+    // --- Coroutine Helper Methods for Flow collection in Java ---
 
     @SuppressWarnings("unchecked")
     public static <T> T firstFromFlow(Flow<T> flow) {
@@ -235,15 +219,15 @@ public class InsulinRepositoryIntegrationTest {
             flow.setValue(Collections.unmodifiableList(sorted));
         }
 
-        @NotNull
+        @NonNull
         @Override
         public Flow<List<CalculationLog>> getAllLogs() {
             return flow;
         }
 
-        @Nullable
+        @NonNull
         @Override
-        public Object getAllLogsDirect(@NotNull Continuation<? super List<CalculationLog>> continuation) {
+        public List<CalculationLog> getAllLogsDirect() {
             synchronized (this) {
                 List<CalculationLog> sorted = new ArrayList<>(logs);
                 sorted.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
@@ -251,31 +235,12 @@ public class InsulinRepositoryIntegrationTest {
             }
         }
 
-        @Nullable
         @Override
-        public Object insertLog(@NotNull CalculationLog log, @NotNull Continuation<? super Long> continuation) {
+        public long insertLog(@NonNull CalculationLog log) {
             synchronized (this) {
                 long assignedId = log.getId() == 0L ? nextId++ : log.getId();
-                CalculationLog toSave = log.copy(
-                        assignedId,
-                        log.getTimestamp(),
-                        log.getMealTitle(),
-                        log.getRawCarbInput(),
-                        log.getCarbUnit(),
-                        log.getCarbGrams(),
-                        log.getBeValue(),
-                        log.getKeValue(),
-                        log.getTimeOfDay(),
-                        log.getInsulinFactor(),
-                        log.getMealInsulin(),
-                        log.getBloodGlucose(),
-                        log.getTargetGlucose(),
-                        log.getCorrectionFactor(),
-                        log.getCorrectionInsulin(),
-                        log.getTotalInsulin(),
-                        log.getRoundedInsulin(),
-                        log.getNotes()
-                );
+                CalculationLog toSave = log.copy();
+                toSave.setId(assignedId);
                 logs.removeIf(l -> l.getId() == assignedId);
                 logs.add(toSave);
                 updateFlow();
@@ -283,60 +248,38 @@ public class InsulinRepositoryIntegrationTest {
             }
         }
 
-        @Nullable
         @Override
-        public Object insertLogs(@NotNull List<CalculationLog> newLogs, @NotNull Continuation<? super List<Long>> continuation) {
+        public long[] insertLogs(@NonNull List<CalculationLog> newLogs) {
             synchronized (this) {
-                List<Long> ids = new ArrayList<>();
-                for (CalculationLog log : newLogs) {
+                long[] ids = new long[newLogs.size()];
+                for (int i = 0; i < newLogs.size(); i++) {
+                    CalculationLog log = newLogs.get(i);
                     long assignedId = log.getId() == 0L ? nextId++ : log.getId();
-                    CalculationLog toSave = log.copy(
-                            assignedId,
-                            log.getTimestamp(),
-                            log.getMealTitle(),
-                            log.getRawCarbInput(),
-                            log.getCarbUnit(),
-                            log.getCarbGrams(),
-                            log.getBeValue(),
-                            log.getKeValue(),
-                            log.getTimeOfDay(),
-                            log.getInsulinFactor(),
-                            log.getMealInsulin(),
-                            log.getBloodGlucose(),
-                            log.getTargetGlucose(),
-                            log.getCorrectionFactor(),
-                            log.getCorrectionInsulin(),
-                            log.getTotalInsulin(),
-                            log.getRoundedInsulin(),
-                            log.getNotes()
-                    );
+                    CalculationLog toSave = log.copy();
+                    toSave.setId(assignedId);
                     logs.removeIf(l -> l.getId() == assignedId);
                     logs.add(toSave);
-                    ids.add(assignedId);
+                    ids[i] = assignedId;
                 }
                 updateFlow();
                 return ids;
             }
         }
 
-        @Nullable
         @Override
-        public Object deleteLogById(long logId, @NotNull Continuation<? super Unit> continuation) {
+        public void deleteLogById(long logId) {
             synchronized (this) {
                 logs.removeIf(l -> l.getId() == logId);
                 updateFlow();
             }
-            return Unit.INSTANCE;
         }
 
-        @Nullable
         @Override
-        public Object clearAllLogs(@NotNull Continuation<? super Unit> continuation) {
+        public void clearAllLogs() {
             synchronized (this) {
                 logs.clear();
                 updateFlow();
             }
-            return Unit.INSTANCE;
         }
     }
 
@@ -344,24 +287,21 @@ public class InsulinRepositoryIntegrationTest {
         private UserSettings storedSettings = null;
         private final MutableStateFlow<UserSettings> flow = StateFlowKt.MutableStateFlow(null);
 
-        @NotNull
+        @NonNull
         @Override
         public Flow<UserSettings> getSettings() {
             return flow;
         }
 
-        @Nullable
         @Override
-        public Object getSettingsDirect(@NotNull Continuation<? super UserSettings> continuation) {
+        public UserSettings getSettingsDirect() {
             return storedSettings;
         }
 
-        @Nullable
         @Override
-        public Object saveSettings(@NotNull UserSettings settings, @NotNull Continuation<? super Unit> continuation) {
+        public void saveSettings(@NonNull UserSettings settings) {
             storedSettings = settings;
             flow.setValue(settings);
-            return Unit.INSTANCE;
         }
     }
 }

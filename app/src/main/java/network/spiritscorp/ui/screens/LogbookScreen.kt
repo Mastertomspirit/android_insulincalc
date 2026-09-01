@@ -138,6 +138,8 @@ fun LogbookScreen(
         }
     }
 
+    val exportHelper = remember { LogbookExportHelper() }
+
     val filterDescription by remember(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
             getFilterDescription(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis)
@@ -180,7 +182,7 @@ fun LogbookScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     IconButton(
                         onClick = {
-                            val exportText = LogbookExportHelper.generateExportText(filteredLogs, filterDescription)
+                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription)
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
                                 putExtra(Intent.EXTRA_TEXT, exportText)
@@ -295,7 +297,7 @@ fun LogbookScreen(
                 LogbookItemCard(
                     log = log,
                     onShareRequest = {
-                        val shareText = LogbookExportHelper.formatSingleLogShare(log)
+                        val shareText = exportHelper.formatSingleLogShare(log)
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, shareText)

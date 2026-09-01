@@ -208,6 +208,6 @@ public class InsulinDomainAndCalculationTest {
         assertEquals(10, customSettings.getBeGramsDivisor());
         assertEquals("KE", customSettings.getDefaultCarbUnit());
         assertEquals("EMERALD_MINT", customSettings.getSelectedTheme());
-        assertFalse(customSettings.getShowDisclaimer());
+        assertFalse(customSettings.isShowDisclaimer());
     }
 }

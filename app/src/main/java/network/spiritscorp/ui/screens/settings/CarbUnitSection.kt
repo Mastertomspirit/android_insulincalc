@@ -25,9 +25,13 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -95,7 +99,9 @@ fun CarbUnitSection(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CarbUnit.entries.forEach { unit ->
@@ -105,6 +111,7 @@ fun CarbUnitSection(
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
+                                    .fillMaxHeight()
                                     .clip(RoundedCornerShape(10.dp))
                                     .clickable { onDefaultCarbUnitChange(unit.name) }
                                     .testTag("unit_setting_${unit.name.lowercase()}"),
@@ -112,15 +119,21 @@ fun CarbUnitSection(
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                                 border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
                             ) {
-                                Text(
-                                    text = "${unit.label} (${unit.shortName})",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                    ),
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(vertical = 10.dp)
-                                )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(vertical = 10.dp, horizontal = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "${unit.label}\n(${unit.shortName})",
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        ),
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }

@@ -94,8 +94,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         // Load initial theme settings from SharedPreferences as fallback before Room loads
-        val initialSavedTheme = ThemePreferences.getSelectedTheme(this)
-        val initialSavedMode = ThemePreferences.getThemeMode(this)
+        val themePrefs = ThemePreferences(this)
+        val initialSavedTheme = themePrefs.selectedTheme
+        val initialSavedMode = themePrefs.themeMode
 
         setContent {
             // Collect user settings reactively from ViewModel

@@ -18,23 +18,31 @@ package network.spiritscorp.util;
  */
 
 import network.spiritscorp.model.CalculationLog;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Pure Java unit tests for {@link LogbookExportHelper}.
+ * Pure Java unit tests for {@link LogbookExportHelper} object instance.
  */
 public class LogbookExportHelperTest {
 
     private static final double DELTA = 0.001;
+    private LogbookExportHelper exportHelper;
+
+    @Before
+    public void setUp() {
+        exportHelper = new LogbookExportHelper(Locale.GERMANY);
+    }
 
     private List<CalculationLog> createSampleLogs() {
         return Arrays.asList(
@@ -103,10 +111,10 @@ public class LogbookExportHelperTest {
 
     @Test
     public void testGenerateExportTextWithEmptyList() {
-        String textNull = LogbookExportHelper.generateExportText(null, "Heute");
+        String textNull = exportHelper.generateExportText(null, "Heute");
         assertTrue(textNull.contains("Keine Einträge"));
 
-        String textEmpty = LogbookExportHelper.generateExportText(Collections.emptyList(), "Letzte 7 Tage");
+        String textEmpty = exportHelper.generateExportText(Collections.emptyList(), "Letzte 7 Tage");
         assertTrue(textEmpty.contains("Keine Einträge"));
         assertTrue(textEmpty.contains("Letzte 7 Tage"));
     }
@@ -114,7 +122,7 @@ public class LogbookExportHelperTest {
     @Test
     public void testGenerateExportTextWithLogs() {
         List<CalculationLog> logs = createSampleLogs();
-        String report = LogbookExportHelper.generateExportText(logs, "Alle Einträge");
+        String report = exportHelper.generateExportText(logs, "Alle Einträge");
 
         assertNotNull(report);
         assertTrue(report.contains("Insulin-Rechner Tagebuch-Export"));
@@ -127,9 +135,25 @@ public class LogbookExportHelperTest {
     }
 
     @Test
+    public void testFormatSingleLogShare() {
+        CalculationLog log = createSampleLogs().get(0);
+        String singleShare = exportHelper.formatSingleLogShare(log);
+
+        assertNotNull(singleShare);
+        assertTrue(singleShare.contains("Insulin-Berechnung: Frühstück"));
+        assertTrue(singleShare.contains("Kohlenhydrate: 40.0 g"));
+        assertTrue(singleShare.contains("Faktor (Morgens): 1.5 IE/KE"));
+        assertTrue(singleShare.contains("Mahlzeiten-Bolus: 6.0 IE"));
+        assertTrue(singleShare.contains("Gemessener BZ: 130.0"));
+        assertTrue(singleShare.contains("Korrektur-Bolus: +0.75 IE"));
+        assertTrue(singleShare.contains("Gesamtdosis: 7.0 IE"));
+        assertTrue(singleShare.contains("Notiz: Haferflocken"));
+    }
+
+    @Test
     public void testGenerateCsvExport() {
         List<CalculationLog> logs = createSampleLogs();
-        String csv = LogbookExportHelper.generateCsvExport(logs);
+        String csv = exportHelper.generateCsvExport(logs);
 
         assertNotNull(csv);
         String[] lines = csv.trim().split("\n");
@@ -172,7 +196,7 @@ public class LogbookExportHelperTest {
                 )
         );
 
-        String csv = LogbookExportHelper.generateCsvExport(logs);
+        String csv = exportHelper.generateCsvExport(logs);
         assertTrue(csv.contains("\"Pizza \"\"Salami, Pilze\"\"\""));
         assertTrue(csv.contains("\"Notiz: \"\"Lecker, aber fettig\"\"\""));
     }
@@ -180,7 +204,7 @@ public class LogbookExportHelperTest {
     @Test
     public void testCalculateSummaryMetrics() {
         List<CalculationLog> logs = createSampleLogs();
-        LogbookExportHelper.LogbookMetrics metrics = LogbookExportHelper.calculateMetrics(logs);
+        LogbookExportHelper.LogbookMetrics metrics = exportHelper.calculateMetrics(logs);
 
         assertEquals(3, metrics.totalEntries());
         assertEquals(120.0, metrics.totalCarbsGrams(), DELTA);

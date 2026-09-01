@@ -140,7 +140,9 @@ fun GlucoseCorrectionSection(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         OutlinedTextField(
@@ -148,7 +150,10 @@ fun GlucoseCorrectionSection(
                             onValueChange = onTargetGlucoseChange,
                             label = { Text("Ziel-BZ") },
                             suffix = { Text(glucoseUnit.shortName) },
-                            modifier = Modifier.weight(1f).testTag("target_glucose_input"),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .testTag("target_glucose_input"),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp)
@@ -159,7 +164,10 @@ fun GlucoseCorrectionSection(
                             onValueChange = onCorrectionFactorChange,
                             label = { Text("Korrekturfaktor (ISF)") },
                             suffix = { Text("${glucoseUnit.shortName}/IE") },
-                            modifier = Modifier.weight(1f).testTag("correction_factor_input"),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .testTag("correction_factor_input"),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp)

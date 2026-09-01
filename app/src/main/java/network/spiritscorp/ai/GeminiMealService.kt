@@ -80,11 +80,12 @@ class GeminiMealService {
             return@withContext if (offline != null) {
                 Result.success(offline)
             } else {
-                Result.failure(Exception("In der Offline-Datenbank wurde zu \"$foodDescription\" kein passendes Lebensmittel gefunden. Bitte trage einen Gemini API-Key ein, um beliebige Freitext-Mahlzeiten per KI zu analysieren."))
+                Result.failure(Exception("In der Offline-Datenbank wurde zu \"$foodDescription\" kein passender Eintrag gefunden.\n\n💡 Bitte trage oben im Menü 'KI-Modell & API-Schlüssel' deinen Gemini API-Key ein, um beliebige Gerichte und Rezepte per Online-KI zu analysieren."))
             }
         }
 
-        val effectiveModel = if (!modelId.isNullOrBlank()) modelId.trim() else GeminiAiModel.GEMINI_3_5_FLASH_LITE.modelId
+        // Always resolve to a valid Gemini model ID
+        val effectiveModel = GeminiAiModel.fromModelId(modelId).modelId
 
         try {
             val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent?key=$apiKey"
@@ -138,12 +139,15 @@ class GeminiMealService {
 
             if (!response.isSuccessful) {
                 Log.e("GeminiMealService", "API call failed with code ${response.code}: $responseBody")
-                val offline = createOfflineEstimation(foodDescription)
-                return@withContext if (offline != null) {
-                    Result.success(offline)
-                } else {
-                    Result.failure(Exception("KI-Anfrage fehlgeschlagen (${response.code}) und in der Offline-Datenbank wurde kein Eintrag für \"$foodDescription\" gefunden."))
+                val errorMessage = try {
+                    val errorObj = JSONObject(responseBody).optJSONObject("error")
+                    errorObj?.optString("message") ?: "HTTP ${response.code}"
+                } catch (_: Exception) {
+                    "HTTP ${response.code}"
                 }
+                return@withContext Result.failure(
+                    Exception("Gemini API-Anfrage fehlgeschlagen (${response.code}): $errorMessage. Bitte überprüfe deinen API-Key in den KI-Einstellungen.")
+                )
             }
 
             val rootJson = JSONObject(responseBody)
@@ -163,11 +167,15 @@ class GeminiMealService {
                 }
             }
 
+            if (jsonText.isBlank()) {
+                return@withContext Result.failure(Exception("Die KI hat keine Antwort geliefert. Bitte versuche eine andere Formulierung."))
+            }
+
             // Clean json text if wrapped in Markdown
             val cleaned = jsonText.replace("```json", "").replace("```", "").trim()
             val parsedResult = JSONObject(cleaned)
 
-            val mealTitle = parsedResult.optString("mealTitle", "Mahlzeit")
+            val mealTitle = parsedResult.optString("mealTitle", foodDescription.take(30))
             val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
             val explanation = parsedResult.optString("explanation", "Ernährungswissenschaftliche Schätzung.")
             val insulinTip = parsedResult.optString("insulinTip", "Bitte aktuellen BZ-Wert vor der Injektion prüfen.")
@@ -204,12 +212,7 @@ class GeminiMealService {
             )
         } catch (e: Exception) {
             Log.e("GeminiMealService", "Error during Gemini estimation", e)
-            val offline = createOfflineEstimation(foodDescription)
-            if (offline != null) {
-                Result.success(offline)
-            } else {
-                Result.failure(Exception("Anfrage fehlgeschlagen und in der Offline-Datenbank wurde kein passender Eintrag für \"$foodDescription\" gefunden."))
-            }
+            Result.failure(Exception("Netzwerkfehler bei der KI-Anfrage: ${e.localizedMessage ?: e.message}"))
         }
     }
 
