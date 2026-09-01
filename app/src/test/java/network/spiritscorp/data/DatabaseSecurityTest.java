@@ -25,11 +25,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
-import java.util.Arrays;
-
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Robust unit and integration tests for {@link DatabaseSecurityManager}.
@@ -54,7 +52,7 @@ public class DatabaseSecurityTest {
         byte[] secondPassphrase = secondManager.getOrCreateDatabasePassphrase();
         assertNotNull(secondPassphrase);
         assertEquals(32, secondPassphrase.length);
-        assertTrue(Arrays.equals(passphrase, secondPassphrase));
+        assertArrayEquals(passphrase, secondPassphrase);
     }
 
     @Test
@@ -70,7 +68,7 @@ public class DatabaseSecurityTest {
 
         DatabaseSecurityManager securityManager2 = new DatabaseSecurityManager(customPrefs);
         byte[] key2 = securityManager2.getOrCreateDatabasePassphrase();
-        assertTrue("Keys from the same SharedPreferences must match", Arrays.equals(key1, key2));
+        assertArrayEquals("Keys from the same SharedPreferences must match", key1, key2);
     }
 
     @Test
@@ -107,7 +105,7 @@ public class DatabaseSecurityTest {
         if (encrypted != null) {
             byte[] decrypted = securityManager.decryptWithKeyStore(encrypted.iv(), encrypted.ciphertext());
             assertNotNull(decrypted);
-            assertTrue(Arrays.equals(original, decrypted));
+            assertArrayEquals(original, decrypted);
         }
     }
 }

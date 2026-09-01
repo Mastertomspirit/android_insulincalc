@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Unit & integration tests for the Calculator state computation engine in Java,
- * verifying accurate multi-step formulas, correction factors, unit toggles,
+ * verifying accurate multistep formulas, correction factors, unit toggles,
  * and user factor overrides.
  */
 public class CalculatorEngineStateTest {
@@ -84,7 +84,6 @@ public class CalculatorEngineStateTest {
 
         boolean isHypoRisk = false;
         String advisory = "Standard-Dosis für die Mahlzeit";
-        settings.getGlucoseUnit();
         boolean isMmol = settings.getGlucoseUnit().toLowerCase().contains("mmol");
         double hypoThreshold = isMmol ? 3.9 : 70.0;
 
@@ -108,13 +107,14 @@ public class CalculatorEngineStateTest {
 
         double factorStep = roundingStep > 0.0 ? 1.0 / roundingStep : 1.0;
         double roundedTotal;
+        double roundedTotal1 = new BigDecimal(rawTotal).setScale(2, RoundingMode.HALF_UP).doubleValue();
         if (roundingStep > 0.0) {
             int scale = (roundingStep == 0.1 || roundingStep == 0.5) ? 1 : 0;
             roundedTotal = new BigDecimal(Math.round(rawTotal * factorStep) / factorStep)
                     .setScale(scale, RoundingMode.HALF_UP)
                     .doubleValue();
         } else {
-            roundedTotal = new BigDecimal(rawTotal).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            roundedTotal = roundedTotal1;
         }
 
         return new CalculationSummary(
@@ -126,7 +126,7 @@ public class CalculatorEngineStateTest {
                 currentBg,
                 targetBg,
                 new BigDecimal(correctionInsulin).setScale(2, RoundingMode.HALF_UP).doubleValue(),
-                new BigDecimal(rawTotal).setScale(2, RoundingMode.HALF_UP).doubleValue(),
+                roundedTotal1,
                 roundedTotal,
                 roundingStep,
                 isHypoRisk,

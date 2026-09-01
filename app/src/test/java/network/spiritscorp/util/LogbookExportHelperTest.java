@@ -136,7 +136,7 @@ public class LogbookExportHelperTest {
 
     @Test
     public void testFormatSingleLogShare() {
-        CalculationLog log = createSampleLogs().get(0);
+        CalculationLog log = createSampleLogs().getFirst();
         String singleShare = exportHelper.formatSingleLogShare(log);
 
         assertNotNull(singleShare);

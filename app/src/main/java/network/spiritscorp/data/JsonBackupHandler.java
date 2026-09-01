@@ -18,12 +18,14 @@ package network.spiritscorp.data;
  */
 
 import android.util.Log;
+import androidx.annotation.NonNull;
 import kotlin.Pair;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 import network.spiritscorp.util.AppConstants;
 import network.spiritscorp.util.DateTimeUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -31,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Handles JSON serialization and deserialization for therapy configuration and calculation logs.
@@ -85,39 +86,7 @@ public class JsonBackupHandler {
                 root.put("settings", settingsObj);
             }
 
-            JSONArray logsArray = new JSONArray();
-            if (logs != null) {
-                for (CalculationLog log : logs) {
-                    JSONObject logObj = new JSONObject();
-                    logObj.put("id", log.getId());
-                    logObj.put("timestamp", log.getTimestamp());
-                    logObj.put("mealTitle", log.getMealTitle());
-                    logObj.put("rawCarbInput", log.getRawCarbInput());
-                    logObj.put("carbUnit", log.getCarbUnit());
-                    logObj.put("carbGrams", log.getCarbGrams());
-                    logObj.put("beValue", log.getBeValue());
-                    logObj.put("keValue", log.getKeValue());
-                    logObj.put("timeOfDay", log.getTimeOfDay());
-                    logObj.put("insulinFactor", log.getInsulinFactor());
-                    logObj.put("mealInsulin", log.getMealInsulin());
-                    if (log.getBloodGlucose() != null) {
-                        logObj.put("bloodGlucose", log.getBloodGlucose());
-                    }
-                    if (log.getTargetGlucose() != null) {
-                        logObj.put("targetGlucose", log.getTargetGlucose());
-                    }
-                    if (log.getCorrectionFactor() != null) {
-                        logObj.put("correctionFactor", log.getCorrectionFactor());
-                    }
-                    if (log.getCorrectionInsulin() != null) {
-                        logObj.put("correctionInsulin", log.getCorrectionInsulin());
-                    }
-                    logObj.put("totalInsulin", log.getTotalInsulin());
-                    logObj.put("roundedInsulin", log.getRoundedInsulin());
-                    logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
-                    logsArray.put(logObj);
-                }
-            }
+            JSONArray logsArray = getJsonArray(logs);
             root.put("logs", logsArray);
 
             return root.toString(2);
@@ -125,6 +94,44 @@ public class JsonBackupHandler {
             Log.e(TAG, "Error serializing backup to JSON: " + e.getMessage(), e);
             return "{}";
         }
+    }
+
+    @NonNull
+    private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
+        JSONArray logsArray = new JSONArray();
+        if (logs != null) {
+            for (CalculationLog log : logs) {
+                JSONObject logObj = new JSONObject();
+                logObj.put("id", log.getId());
+                logObj.put("timestamp", log.getTimestamp());
+                logObj.put("mealTitle", log.getMealTitle());
+                logObj.put("rawCarbInput", log.getRawCarbInput());
+                logObj.put("carbUnit", log.getCarbUnit());
+                logObj.put("carbGrams", log.getCarbGrams());
+                logObj.put("beValue", log.getBeValue());
+                logObj.put("keValue", log.getKeValue());
+                logObj.put("timeOfDay", log.getTimeOfDay());
+                logObj.put("insulinFactor", log.getInsulinFactor());
+                logObj.put("mealInsulin", log.getMealInsulin());
+                if (log.getBloodGlucose() != null) {
+                    logObj.put("bloodGlucose", log.getBloodGlucose());
+                }
+                if (log.getTargetGlucose() != null) {
+                    logObj.put("targetGlucose", log.getTargetGlucose());
+                }
+                if (log.getCorrectionFactor() != null) {
+                    logObj.put("correctionFactor", log.getCorrectionFactor());
+                }
+                if (log.getCorrectionInsulin() != null) {
+                    logObj.put("correctionInsulin", log.getCorrectionInsulin());
+                }
+                logObj.put("totalInsulin", log.getTotalInsulin());
+                logObj.put("roundedInsulin", log.getRoundedInsulin());
+                logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
+                logsArray.put(logObj);
+            }
+        }
+        return logsArray;
     }
 
     /**

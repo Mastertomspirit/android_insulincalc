@@ -207,7 +207,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     fun clearAllCalculatorInputs() {
         _uiState.update {
             it.copy(
-                carbInput = "0",
+                carbInput = "",
                 currentGlucoseInput = "",
                 mealTitle = "",
                 notes = ""
@@ -256,7 +256,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     fun dismissDisclaimer() {
         viewModelScope.launch(Dispatchers.IO) {
             val currentSettings = userSettings.value ?: cachedSettings
-            currentSettings.setShowDisclaimer(false)
+            currentSettings.isShowDisclaimer = false
             repository.saveSettings(currentSettings)
         }
     }
@@ -441,16 +441,16 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     suspend fun exportJsonBackup(): String = withContext(Dispatchers.IO) {
         val settings = repository.settings
         val logs = repository.allLogsDirect
-        DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao).exportToJson(settings, logs)
+        DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao()).exportToJson(settings, logs)
     }
 
     suspend fun exportCsvBackup(): String = withContext(Dispatchers.IO) {
         val logs = repository.allLogsDirect
-        DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao).exportToCsv(logs)
+        DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao()).exportToCsv(logs)
     }
 
     suspend fun importBackupContent(content: String): DatabaseBackupManager.ImportResult = withContext(Dispatchers.IO) {
-        val manager = DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao)
+        val manager = DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao())
         val trimmed = content.trim()
         if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             manager.importFromJson(trimmed)

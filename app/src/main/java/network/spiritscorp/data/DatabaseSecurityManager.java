@@ -35,12 +35,12 @@ import javax.crypto.spec.GCMParameterSpec;
 
 /**
  * Enterprise-grade security manager object for SQLite / SQLCipher database encryption.
- *
- * Designed as an instantiable, object-oriented cryptographic vault:
+ *<br><br>
+ * Designed as an instantiable, object-oriented cryptographic vault:<br>
  * 1. Hardware-backed Android KeyStore protection: Encrypts/decrypts the 256-bit database master passphrase
- *    using an AES-256 GCM key stored in the hardware security module (TEE / StrongBox).
- * 2. Pure instance-based encapsulation: Enables clean dependency injection, modularity, and test mocking.
- * 3. JVM / Test Resilience: Gracefully falls back in local JVM unit testing environments where KeyStore is absent.
+ *    using an AES-256 GCM key stored in the hardware security module (TEE / StrongBox).<br>
+ * 2. Pure instance-based encapsulation: Enables clean dependency injection, modularity, and test mocking.<br>
+ * 3. JVM / Test Resilience: Gracefully falls back in local JVM unit testing environments where KeyStore is absent.<br>
  */
 public class DatabaseSecurityManager {
 

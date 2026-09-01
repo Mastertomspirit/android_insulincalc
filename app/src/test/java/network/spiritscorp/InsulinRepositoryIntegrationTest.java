@@ -18,7 +18,6 @@ package network.spiritscorp;
  */
 
 import androidx.annotation.NonNull;
-import kotlin.coroutines.Continuation;
 import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.flow.Flow;
@@ -50,13 +49,12 @@ public class InsulinRepositoryIntegrationTest {
 
     private static final double DELTA = 0.001;
 
-    private FakeCalculationLogDao fakeLogDao;
     private FakeUserSettingsDao fakeSettingsDao;
     private InsulinRepository repository;
 
     @Before
     public void setup() {
-        fakeLogDao = new FakeCalculationLogDao();
+        FakeCalculationLogDao fakeLogDao = new FakeCalculationLogDao();
         fakeSettingsDao = new FakeUserSettingsDao();
         repository = new InsulinRepository(fakeLogDao, fakeSettingsDao);
     }
@@ -136,8 +134,8 @@ public class InsulinRepositoryIntegrationTest {
         List<CalculationLog> logsFromFlow = firstFromFlow(repository.getAllLogs());
         assertNotNull(logsFromFlow);
         assertEquals(1, logsFromFlow.size());
-        assertEquals("Mittagessen (Reis mit Hühnchen)", logsFromFlow.get(0).getMealTitle());
-        assertEquals(5.5, logsFromFlow.get(0).getRoundedInsulin(), DELTA);
+        assertEquals("Mittagessen (Reis mit Hühnchen)", logsFromFlow.getFirst().getMealTitle());
+        assertEquals(5.5, logsFromFlow.getFirst().getRoundedInsulin(), DELTA);
 
         List<CalculationLog> directLogs = repository.getAllLogsDirect();
         assertEquals(1, directLogs.size());
@@ -172,7 +170,7 @@ public class InsulinRepositoryIntegrationTest {
         repository.deleteLog(10L);
         List<CalculationLog> remaining = repository.getAllLogsDirect();
         assertEquals(1, remaining.size());
-        assertEquals("Abendessen", remaining.get(0).getMealTitle());
+        assertEquals("Abendessen", remaining.getFirst().getMealTitle());
     }
 
     @Test
@@ -193,12 +191,11 @@ public class InsulinRepositoryIntegrationTest {
 
     // --- Coroutine Helper Methods for Flow collection in Java ---
 
-    @SuppressWarnings("unchecked")
     public static <T> T firstFromFlow(Flow<T> flow) {
         try {
-            return (T) BuildersKt.runBlocking(
+            return BuildersKt.runBlocking(
                     EmptyCoroutineContext.INSTANCE,
-                    (scope, continuation) -> FlowKt.first(flow, continuation)
+                    (_, continuation) -> FlowKt.first(flow, continuation)
             );
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

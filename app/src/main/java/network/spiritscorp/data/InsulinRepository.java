@@ -26,15 +26,8 @@ import network.spiritscorp.model.UserSettings;
  * Single source of truth repository managing data access for calculation logs
  * and personalized insulin therapy settings in Java.
  */
-public class InsulinRepository {
-
-    private final CalculationLogDao calculationLogDao;
-    private final UserSettingsDao userSettingsDao;
-
-    public InsulinRepository(CalculationLogDao calculationLogDao, UserSettingsDao userSettingsDao) {
-        this.calculationLogDao = calculationLogDao;
-        this.userSettingsDao = userSettingsDao;
-    }
+public record InsulinRepository(CalculationLogDao calculationLogDao,
+                                UserSettingsDao userSettingsDao) {
 
     /**
      * Cold Flow emitting all historical calculation logs ordered chronologically descending.
@@ -103,13 +96,5 @@ public class InsulinRepository {
      */
     public void clearLogs() {
         calculationLogDao.clearAllLogs();
-    }
-
-    public CalculationLogDao getCalculationLogDao() {
-        return calculationLogDao;
-    }
-
-    public UserSettingsDao getUserSettingsDao() {
-        return userSettingsDao;
     }
 }

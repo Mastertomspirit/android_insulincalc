@@ -29,7 +29,6 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -133,7 +132,7 @@ public class InsulinCalculatorSystemScenarioTest {
         // 30g / 12 = 2.5 BE. 2.5 * 1.3 = 3.25 IE. BG 95 -> 0 corr. Total = 3.25 IE -> 3.5 IE
         CalculationLog dinnerLog = new CalculationLog(
                 3L,
-                now - (1 * 3600 * 1000),
+                now - (3600 * 1000),
                 "Abendessen: Vollkornbrot & Salat",
                 30.0,
                 "g KH",
@@ -294,7 +293,7 @@ public class InsulinCalculatorSystemScenarioTest {
         List<CalculationLog> allLogs = repository.getAllLogsDirect();
 
         assertEquals(1, allLogs.size());
-        CalculationLog retrieved = allLogs.get(0);
+        CalculationLog retrieved = allLogs.getFirst();
         assertEquals("Abendessen im Restaurant", retrieved.getMealTitle());
         assertEquals("Vorher 30 Min Spaziergang gemacht, Sensorwert stabil", retrieved.getNotes());
         assertEquals(6.5, retrieved.getRoundedInsulin(), DELTA);
@@ -373,8 +372,8 @@ public class InsulinCalculatorSystemScenarioTest {
 
         List<CalculationLog> logs = repository.getAllLogsDirect();
         assertEquals(1, logs.size());
-        assertEquals("Abendessen: Lasagne", logs.get(0).getMealTitle());
-        assertEquals("Vor dem Essen gemessen", logs.get(0).getNotes());
+        assertEquals("Abendessen: Lasagne", logs.getFirst().getMealTitle());
+        assertEquals("Vor dem Essen gemessen", logs.getFirst().getNotes());
 
         // When all inputs are cleared (simulating viewModel.clearAllCalculatorInputs())
         carbInput = "0";
@@ -440,7 +439,7 @@ public class InsulinCalculatorSystemScenarioTest {
 
         List<CalculationLog> restoredLogs = repository.getAllLogsDirect();
         assertEquals(1, restoredLogs.size());
-        assertEquals("Haferflocken & Heidelbeeren", restoredLogs.get(0).getMealTitle());
-        assertEquals("Sensor leicht steigend", restoredLogs.get(0).getNotes());
+        assertEquals("Haferflocken & Heidelbeeren", restoredLogs.getFirst().getMealTitle());
+        assertEquals("Sensor leicht steigend", restoredLogs.getFirst().getNotes());
     }
 }

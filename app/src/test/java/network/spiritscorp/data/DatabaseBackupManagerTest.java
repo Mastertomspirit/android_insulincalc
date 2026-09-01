@@ -33,7 +33,6 @@ import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -321,8 +320,8 @@ public class DatabaseBackupManagerTest {
         List<CalculationLog> parsed = backupManager.parseCsv(csv);
 
         assertEquals(1, parsed.size());
-        assertEquals("Pizza \"Speciale\", extra Käse", parsed.get(0).getMealTitle());
-        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.get(0).getNotes());
+        assertEquals("Pizza \"Speciale\", extra Käse", parsed.getFirst().getMealTitle());
+        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.getFirst().getNotes());
     }
 
     @Test
@@ -395,8 +394,8 @@ public class DatabaseBackupManagerTest {
         List<CalculationLog> logs = parsed.getSecond();
         assertNull(settings); // Settings was not provided
         assertEquals(1, logs.size());
-        assertEquals("Frühstücks-Smoothie", logs.get(0).getMealTitle());
-        assertEquals(30.0, logs.get(0).getCarbGrams(), DELTA);
+        assertEquals("Frühstücks-Smoothie", logs.getFirst().getMealTitle());
+        assertEquals(30.0, logs.getFirst().getCarbGrams(), DELTA);
     }
 
     @Test
@@ -461,8 +460,8 @@ public class DatabaseBackupManagerTest {
 
         List<CalculationLog> restoredLogs = calculationLogDao.getAllLogsDirect();
         assertEquals(1, restoredLogs.size());
-        assertEquals("Äpfel, Überbackenes & Öl-Salat (Mahlzeit)", restoredLogs.get(0).getMealTitle());
-        assertNull(restoredLogs.get(0).getBloodGlucose());
-        assertEquals("Notizen mit Umlauten: äöüß & Sonderzeichen <>&\"", restoredLogs.get(0).getNotes());
+        assertEquals("Äpfel, Überbackenes & Öl-Salat (Mahlzeit)", restoredLogs.getFirst().getMealTitle());
+        assertNull(restoredLogs.getFirst().getBloodGlucose());
+        assertEquals("Notizen mit Umlauten: äöüß & Sonderzeichen <>&\"", restoredLogs.getFirst().getNotes());
     }
 }

@@ -37,35 +37,36 @@ public class GeminiMealServiceParserTest {
 
     @Test
     public void testParseStandardGeminiJsonResponse() throws JSONException {
-        String rawJson = "{\n" +
-                "  \"mealTitle\": \"Haferflocken mit Beeren und Mandeln\",\n" +
-                "  \"totalCarbsGrams\": 55.0,\n" +
-                "  \"items\": [\n" +
-                "    {\n" +
-                "      \"name\": \"Haferflocken\",\n" +
-                "      \"portion\": \"60g\",\n" +
-                "      \"carbsGrams\": 40.0,\n" +
-                "      \"calories\": 220,\n" +
-                "      \"notes\": \"Komplexe Kohlenhydrate\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"name\": \"Blaubeeren\",\n" +
-                "      \"portion\": \"100g\",\n" +
-                "      \"carbsGrams\": 12.0,\n" +
-                "      \"calories\": 57,\n" +
-                "      \"notes\": \"Reich an Antioxidantien\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"name\": \"Mandeln\",\n" +
-                "      \"portion\": \"20g\",\n" +
-                "      \"carbsGrams\": 3.0,\n" +
-                "      \"calories\": 115,\n" +
-                "      \"notes\": \"Gesunde Fette\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"explanation\": \"Haferflocken liefern den Großteil der Kohlenhydrate mit niedrigem glykämischen Index.\",\n" +
-                "  \"insulinTip\": \"Durch die Ballaststoffe und Fette steigt der Blutzucker langsam und gleichmäßig an.\"\n" +
-                "}";
+        String rawJson = """
+                {
+                  "mealTitle": "Haferflocken mit Beeren und Mandeln",
+                  "totalCarbsGrams": 55.0,
+                  "items": [
+                    {
+                      "name": "Haferflocken",
+                      "portion": "60g",
+                      "carbsGrams": 40.0,
+                      "calories": 220,
+                      "notes": "Komplexe Kohlenhydrate"
+                    },
+                    {
+                      "name": "Blaubeeren",
+                      "portion": "100g",
+                      "carbsGrams": 12.0,
+                      "calories": 57,
+                      "notes": "Reich an Antioxidantien"
+                    },
+                    {
+                      "name": "Mandeln",
+                      "portion": "20g",
+                      "carbsGrams": 3.0,
+                      "calories": 115,
+                      "notes": "Gesunde Fette"
+                    }
+                  ],
+                  "explanation": "Haferflocken liefern den Großteil der Kohlenhydrate mit niedrigem glykämischen Index.",
+                  "insulinTip": "Durch die Ballaststoffe und Fette steigt der Blutzucker langsam und gleichmäßig an."
+                }""";
 
         JSONObject json = new JSONObject(rawJson);
         String title = json.optString("mealTitle");
@@ -88,30 +89,31 @@ public class GeminiMealServiceParserTest {
 
     @Test
     public void testParseMarkdownWrappedJson() throws JSONException {
-        String markdownWrapped = "```json\n" +
-                "{\n" +
-                "  \"mealTitle\": \"Spaghetti Bolognese\",\n" +
-                "  \"totalCarbsGrams\": 75.0,\n" +
-                "  \"items\": [\n" +
-                "    {\n" +
-                "      \"name\": \"Hartweizen-Nudeln\",\n" +
-                "      \"portion\": \"1 Teller gekocht (250g)\",\n" +
-                "      \"carbsGrams\": 70.0,\n" +
-                "      \"calories\": 380,\n" +
-                "      \"notes\": \"Al dente zubereitet\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"name\": \"Bolognese Sauce\",\n" +
-                "      \"portion\": \"150g\",\n" +
-                "      \"carbsGrams\": 5.0,\n" +
-                "      \"calories\": 190,\n" +
-                "      \"notes\": \"Enthält Tomaten & Rinderhack\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"explanation\": \"Klassische Portion Pasta mit Fleischsauce.\",\n" +
-                "  \"insulinTip\": \"Evtl. verzögerter Bolus (Dual-Bolus) wegen Fettanteil der Sauce ratsam.\"\n" +
-                "}\n" +
-                "```";
+        String markdownWrapped = """
+                ```json
+                {
+                  "mealTitle": "Spaghetti Bolognese",
+                  "totalCarbsGrams": 75.0,
+                  "items": [
+                    {
+                      "name": "Hartweizen-Nudeln",
+                      "portion": "1 Teller gekocht (250g)",
+                      "carbsGrams": 70.0,
+                      "calories": 380,
+                      "notes": "Al dente zubereitet"
+                    },
+                    {
+                      "name": "Bolognese Sauce",
+                      "portion": "150g",
+                      "carbsGrams": 5.0,
+                      "calories": 190,
+                      "notes": "Enthält Tomaten & Rinderhack"
+                    }
+                  ],
+                  "explanation": "Klassische Portion Pasta mit Fleischsauce.",
+                  "insulinTip": "Evtl. verzögerter Bolus (Dual-Bolus) wegen Fettanteil der Sauce ratsam."
+                }
+                ```""";
 
         String cleaned = markdownWrapped.replace("```json", "").replace("```", "").trim();
         JSONObject json = new JSONObject(cleaned);
@@ -123,9 +125,10 @@ public class GeminiMealServiceParserTest {
 
     @Test
     public void testParsePartialOrMalformedJsonGracefulDefaults() throws JSONException {
-        String sparseJson = "{\n" +
-                "  \"totalCarbsGrams\": 30.5\n" +
-                "}";
+        String sparseJson = """
+                {
+                  "totalCarbsGrams": 30.5
+                }""";
 
         JSONObject json = new JSONObject(sparseJson);
         String title = json.optString("mealTitle", "Mahlzeit");

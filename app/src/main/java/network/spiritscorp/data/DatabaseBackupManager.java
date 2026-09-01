@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * High-level coordinator service for backup and restore operations across database, JSON, and CSV.
@@ -106,7 +107,7 @@ public class DatabaseBackupManager {
                 true,
                 logsCount,
                 importedSettings,
-                String.format("Erfolgreich %d Einträge %s wiederhergestellt.", logsCount, importedSettings ? "und Einstellungen" : "")
+                String.format(Locale.getDefault(), "Erfolgreich %d Einträge %s wiederhergestellt.", logsCount, importedSettings ? "und Einstellungen" : "")
         );
     }
 
@@ -137,7 +138,7 @@ public class DatabaseBackupManager {
                 true,
                 logs.size(),
                 false,
-                String.format("Erfolgreich %d Einträge aus CSV importiert.", logs.size())
+                String.format(Locale.getDefault(),"Erfolgreich %d Einträge aus CSV importiert.", logs.size())
         );
     }
 
@@ -204,20 +205,8 @@ public class DatabaseBackupManager {
             return success;
         }
 
-        public boolean getSuccess() {
-            return success;
-        }
-
-        public int getLogsImported() {
-            return logsImported;
-        }
-
         public int getImportedLogsCount() {
             return logsImported;
-        }
-
-        public boolean isSettingsImported() {
-            return settingsImported;
         }
 
         public boolean isImportedSettings() {

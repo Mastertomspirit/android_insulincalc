@@ -70,8 +70,7 @@ public class ImportResult {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ImportResult)) return false;
-        ImportResult that = (ImportResult) o;
+        if (!(o instanceof ImportResult that)) return false;
         return success == that.success &&
                 importedLogsCount == that.importedLogsCount &&
                 importedSettings == that.importedSettings &&

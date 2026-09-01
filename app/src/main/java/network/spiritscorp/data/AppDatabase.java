@@ -28,11 +28,11 @@ import network.spiritscorp.util.AppConstants;
 
 /**
  * Primary Room Database for the Insulin Calculator application written in Java.
- *
- * Security & Architecture Highlights:
- * - Backed by SQLCipher 256-bit AES database encryption.
- * - Hardware-backed passphrase generated and secured via Android KeyStore.
- * - Stores all patient calculation logs and user therapy configurations locally on device.
+ *<br><br>
+ * Security & Architecture Highlights:<br>
+ * - Backed by SQLCipher 256-bit AES database encryption.<br>
+ * - Hardware-backed passphrase generated and secured via Android KeyStore.<br>
+ * - Stores all patient calculation logs and user therapy configurations locally on device.<br>
  */
 @Database(
         entities = {CalculationLog.class, UserSettings.class},

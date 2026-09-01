@@ -61,8 +61,7 @@ public class ThemePreferences {
      */
     @NonNull
     public String getSelectedTheme() {
-        String theme = mPrefs.getString(KEY_SELECTED_THEME, DEFAULT_THEME);
-        return theme != null ? theme : DEFAULT_THEME;
+        return mPrefs.getString(KEY_SELECTED_THEME, DEFAULT_THEME);
     }
 
     /**
@@ -72,8 +71,7 @@ public class ThemePreferences {
      */
     @NonNull
     public String getThemeMode() {
-        String mode = mPrefs.getString(KEY_THEME_MODE, DEFAULT_MODE);
-        return mode != null ? mode : DEFAULT_MODE;
+        return mPrefs.getString(KEY_THEME_MODE, DEFAULT_MODE);
     }
 
     /**

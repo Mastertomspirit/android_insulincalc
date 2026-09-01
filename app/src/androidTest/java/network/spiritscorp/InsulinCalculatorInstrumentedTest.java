@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * On-Device / Instrumentation Test Suite for Android execution environments (in Java).
- *
+ *<br><br>
  * Verifies Android Context binding, package identifier, database instantiation
  * on target device, and Android-level serialization / backup operations.
  */
@@ -103,6 +103,6 @@ public class InsulinCalculatorInstrumentedTest {
         assertNotNull(parsed);
         assertNotNull(parsed.getSecond());
         assertEquals(1, parsed.getSecond().size());
-        assertEquals("Test On-Device Mahlzeit", parsed.getSecond().get(0).getMealTitle());
+        assertEquals("Test On-Device Mahlzeit", parsed.getSecond().getFirst().getMealTitle());
     }
 }
