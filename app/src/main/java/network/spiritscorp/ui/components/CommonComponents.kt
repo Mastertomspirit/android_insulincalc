@@ -181,7 +181,7 @@ fun TimeOfDaySelector(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Faktor: ${String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor)} IE/KE • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
+                            text = "Faktor: ${String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor)} • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

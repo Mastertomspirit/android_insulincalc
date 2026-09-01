@@ -58,7 +58,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.5` (VersionCode: `7`)
+* **Version**: `1.3.6` (VersionCode: `7`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
 * **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)

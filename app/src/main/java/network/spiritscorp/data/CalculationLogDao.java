@@ -17,11 +17,11 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import org.jetbrains.annotations.NotNull;
 import network.spiritscorp.model.CalculationLog;
 import java.util.List;
 import kotlinx.coroutines.flow.Flow;
@@ -35,14 +35,14 @@ public interface CalculationLogDao {
     /**
      * Observes all calculation log entries ordered chronologically descending by creation timestamp.
      */
-    @NonNull
+    @NotNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     Flow<List<CalculationLog>> getAllLogs();
 
     /**
      * Retrieves a snapshot of all calculation log entries ordered chronologically descending.
      */
-    @NonNull
+    @NotNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     List<CalculationLog> getAllLogsDirect();
 
@@ -50,13 +50,13 @@ public interface CalculationLogDao {
      * Inserts or updates a single CalculationLog entry.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insertLog(@NonNull CalculationLog log);
+    long insertLog(@NotNull CalculationLog log);
 
     /**
      * Inserts or updates a batch of CalculationLog entries.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long[] insertLogs(@NonNull List<CalculationLog> logs);
+    long[] insertLogs(@NotNull List<CalculationLog> logs);
 
     /**
      * Deletes a specific calculation log entry by its primary key ID.
