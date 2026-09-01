@@ -85,7 +85,7 @@ fun BackupRestoreSection(
     ) { uri ->
         if (uri != null) {
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val json = backupManager.exportToJson()
+                val json = viewModel.exportJsonBackup()
                 val success = backupManager.writeTextToUri(context, uri, json)
                 withContext(Dispatchers.Main) {
                     if (success) {
@@ -103,12 +103,11 @@ fun BackupRestoreSection(
     ) { uri ->
         if (uri != null) {
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val allLogs = viewModel.getAllLogsDirect()
-                val csv = backupManager.exportToCsv(allLogs)
+                val csv = viewModel.exportCsvBackup()
                 val success = backupManager.writeTextToUri(context, uri, csv)
                 withContext(Dispatchers.Main) {
                     if (success) {
-                        Toast.makeText(context, "Tagebuch (${allLogs.size} Einträge) erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Tagebuch erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
                     }
@@ -122,9 +121,16 @@ fun BackupRestoreSection(
     ) { uri ->
         if (uri != null) {
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val result = backupManager.importFromUri(context, uri)
+                val content = backupManager.readTextFromUri(context, uri)
+                if (content.isNullOrBlank()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Konnte Datei nicht lesen oder Datei ist leer.", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
+                }
+                val result = viewModel.importBackupContent(content)
                 withContext(Dispatchers.Main) {
-                    if (result.success) {
+                    if (result.isSuccess) {
                         Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(context, "Import fehlgeschlagen: ${result.message}", Toast.LENGTH_LONG).show()
@@ -205,15 +211,21 @@ fun BackupRestoreSection(
                     ) {
                         OutlinedButton(
                             onClick = {
-                                viewModel.viewModelScope.launch {
-                                    val json = backupManager.exportToJson()
-                                    val sendIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, json)
-                                        putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
-                                        type = "application/json"
+                                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                                    val json = viewModel.exportJsonBackup()
+                                    withContext(Dispatchers.Main) {
+                                        try {
+                                            val sendIntent = Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                putExtra(Intent.EXTRA_TEXT, json)
+                                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
+                                                type = "text/plain"
+                                            }
+                                            context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Fehler beim Teilen: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
-                                    context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
                                 }
                             },
                             modifier = Modifier.weight(1f).testTag("share_json_backup_button"),
@@ -230,16 +242,21 @@ fun BackupRestoreSection(
 
                         OutlinedButton(
                             onClick = {
-                                viewModel.viewModelScope.launch {
-                                    val allLogs = viewModel.getAllLogsDirect()
-                                    val csv = backupManager.exportToCsv(allLogs)
-                                    val sendIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, csv)
-                                        putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export (${allLogs.size} Einträge)")
-                                        type = "text/csv"
+                                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                                    val csv = viewModel.exportCsvBackup()
+                                    withContext(Dispatchers.Main) {
+                                        try {
+                                            val sendIntent = Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                putExtra(Intent.EXTRA_TEXT, csv)
+                                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export")
+                                                type = "text/plain"
+                                            }
+                                            context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Fehler beim Teilen: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
-                                    context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
                                 }
                             },
                             modifier = Modifier.weight(1f).testTag("share_csv_backup_button"),

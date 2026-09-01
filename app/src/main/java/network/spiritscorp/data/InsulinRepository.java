@@ -104,4 +104,12 @@ public class InsulinRepository {
     public void clearLogs() {
         calculationLogDao.clearAllLogs();
     }
+
+    public CalculationLogDao getCalculationLogDao() {
+        return calculationLogDao;
+    }
+
+    public UserSettingsDao getUserSettingsDao() {
+        return userSettingsDao;
+    }
 }

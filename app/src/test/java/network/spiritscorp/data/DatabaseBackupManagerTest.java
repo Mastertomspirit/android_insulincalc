@@ -22,6 +22,7 @@ import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import kotlin.Pair;
+import network.spiritscorp.data.DatabaseBackupManager.ImportResult;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 import org.junit.After;
@@ -409,5 +410,59 @@ public class DatabaseBackupManagerTest {
         assertEquals("2023-11-14 20:00:00", tokens.get(2));
         assertEquals("Pizza, Pasta & \"Vino\"", tokens.get(3));
         assertEquals("50.0", tokens.get(4));
+    }
+
+    @Test
+    public void testJsonBackupWithUmlautsAndNullValuesRoundtrip() {
+        UserSettings originalSettings = new UserSettings(
+                1, 1.75, 1.25, 1.5, 0.9, "BE", 12, "mg/dl", 115.0, 45.0, 0.5, true, "WARM_EMBER", "DARK", "test-api-key", "gemini-2.5-flash"
+        );
+        userSettingsDao.saveSettings(originalSettings);
+
+        CalculationLog logWithUmlautsAndNulls = new CalculationLog(
+                10L,
+                1700000000000L,
+                "Äpfel, Überbackenes & Öl-Salat (Mahlzeit)",
+                4.5,
+                "BE",
+                54.0,
+                4.5,
+                5.4,
+                "Mittags",
+                1.25,
+                5.625,
+                null,
+                null,
+                null,
+                null,
+                5.625,
+                5.5,
+                "Notizen mit Umlauten: äöüß & Sonderzeichen <>&\""
+        );
+        calculationLogDao.insertLog(logWithUmlautsAndNulls);
+
+        String json = backupManager.exportToJson();
+        assertNotNull(json);
+        assertTrue(json.contains("Äpfel, Überbackenes & Öl-Salat"));
+        assertTrue(json.contains("Notizen mit Umlauten: äöüß & Sonderzeichen"));
+        assertTrue(json.contains("test-api-key"));
+
+        // Import into clean database
+        userSettingsDao.saveSettings(new UserSettings());
+        calculationLogDao.clearAllLogs();
+
+        DatabaseBackupManager.ImportResult result = backupManager.importFromJson(json);
+        assertTrue(result.isSuccess());
+
+        UserSettings restoredSettings = userSettingsDao.getSettingsDirect();
+        assertNotNull(restoredSettings);
+        assertEquals("WARM_EMBER", restoredSettings.getSelectedTheme());
+        assertEquals("test-api-key", restoredSettings.getGeminiApiKey());
+
+        List<CalculationLog> restoredLogs = calculationLogDao.getAllLogsDirect();
+        assertEquals(1, restoredLogs.size());
+        assertEquals("Äpfel, Überbackenes & Öl-Salat (Mahlzeit)", restoredLogs.get(0).getMealTitle());
+        assertNull(restoredLogs.get(0).getBloodGlucose());
+        assertEquals("Notizen mit Umlauten: äöüß & Sonderzeichen <>&\"", restoredLogs.get(0).getNotes());
     }
 }

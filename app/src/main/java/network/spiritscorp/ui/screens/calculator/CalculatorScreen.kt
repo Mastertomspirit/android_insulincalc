@@ -93,7 +93,7 @@ fun CalculatorScreen(
             onSaveToLogbook = {
                 closeKeyboard()
                 viewModel.saveCalculationToLog()
-                viewModel.clearCarbs()
+                viewModel.clearAllCalculatorInputs()
             }
         )
 

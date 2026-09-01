@@ -32,6 +32,7 @@ import kotlinx.coroutines.withContext
 import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.ai.MealEstimateResult
 import network.spiritscorp.data.AppDatabase
+import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.data.InsulinRepository
 import network.spiritscorp.data.ThemePreferences
 import network.spiritscorp.model.CalculationLog
@@ -200,6 +201,18 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
     fun clearCarbs() {
         _uiState.update { it.copy(carbInput = "0") }
+        recalculate()
+    }
+
+    fun clearAllCalculatorInputs() {
+        _uiState.update {
+            it.copy(
+                carbInput = "0",
+                currentGlucoseInput = "",
+                mealTitle = "",
+                notes = ""
+            )
+        }
         recalculate()
     }
 
@@ -423,6 +436,27 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
     suspend fun getAllLogsDirect(): List<CalculationLog> = withContext(Dispatchers.IO) {
         repository.allLogsDirect
+    }
+
+    suspend fun exportJsonBackup(): String = withContext(Dispatchers.IO) {
+        val settings = repository.settings
+        val logs = repository.allLogsDirect
+        DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao).exportToJson(settings, logs)
+    }
+
+    suspend fun exportCsvBackup(): String = withContext(Dispatchers.IO) {
+        val logs = repository.allLogsDirect
+        DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao).exportToCsv(logs)
+    }
+
+    suspend fun importBackupContent(content: String): DatabaseBackupManager.ImportResult = withContext(Dispatchers.IO) {
+        val manager = DatabaseBackupManager(repository.userSettingsDao, repository.calculationLogDao)
+        val trimmed = content.trim()
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            manager.importFromJson(trimmed)
+        } else {
+            manager.importFromCsv(trimmed)
+        }
     }
 
     fun updateUserSettings(settings: UserSettings) {

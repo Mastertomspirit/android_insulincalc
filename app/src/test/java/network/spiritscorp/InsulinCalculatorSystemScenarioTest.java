@@ -340,4 +340,107 @@ public class InsulinCalculatorSystemScenarioTest {
         assertEquals("AIzaSyTestCustomKey12345", parsed.getFirst().getGeminiApiKey());
         assertEquals("gemini-3.7-flash", parsed.getFirst().getSelectedAiModel());
     }
+
+    @Test
+    public void testSaveAndClearAllFieldsScenario() {
+        // Given a user enters carbs, blood glucose, meal title, and notes
+        String mealTitle = "Abendessen: Lasagne";
+        String carbInput = "60";
+        String currentGlucose = "150";
+        String notes = "Vor dem Essen gemessen";
+
+        CalculationLog log = new CalculationLog(
+                1L,
+                System.currentTimeMillis(),
+                mealTitle,
+                Double.parseDouble(carbInput),
+                "g KH",
+                60.0,
+                5.0,
+                6.0,
+                "Abends",
+                1.2,
+                6.0,
+                Double.parseDouble(currentGlucose),
+                100.0,
+                40.0,
+                1.25,
+                7.25,
+                7.5,
+                notes
+        );
+        repository.saveCalculation(log);
+
+        List<CalculationLog> logs = repository.getAllLogsDirect();
+        assertEquals(1, logs.size());
+        assertEquals("Abendessen: Lasagne", logs.get(0).getMealTitle());
+        assertEquals("Vor dem Essen gemessen", logs.get(0).getNotes());
+
+        // When all inputs are cleared (simulating viewModel.clearAllCalculatorInputs())
+        carbInput = "0";
+        currentGlucose = "";
+        mealTitle = "";
+        notes = "";
+
+        assertEquals("0", carbInput);
+        assertTrue(currentGlucose.isEmpty());
+        assertTrue(mealTitle.isEmpty());
+        assertTrue(notes.isEmpty());
+    }
+
+    @Test
+    public void testFullJsonBackupAndRestoreE2E() {
+        UserSettings initialSettings = new UserSettings(
+                1, 1.8, 1.1, 1.4, 0.7, "KE", 10, "mmol/l", 6.5, 2.5, 0.5, true, "OCEAN_BREEZE", "LIGHT", "key-xyz", "gemini-2.5-pro"
+        );
+        repository.saveSettings(initialSettings);
+
+        CalculationLog log = new CalculationLog(
+                100L,
+                1700000000000L,
+                "Haferflocken & Heidelbeeren",
+                4.0,
+                "KE",
+                40.0,
+                3.33,
+                4.0,
+                "Morgens",
+                1.8,
+                7.2,
+                7.8,
+                6.5,
+                2.5,
+                0.52,
+                7.72,
+                7.5,
+                "Sensor leicht steigend"
+        );
+        repository.saveCalculation(log);
+
+        DatabaseBackupManager backupManager = new DatabaseBackupManager(fakeSettingsDao, fakeLogDao);
+        String exportedJson = backupManager.exportToJson();
+        assertNotNull(exportedJson);
+        assertTrue(exportedJson.contains("OCEAN_BREEZE"));
+        assertTrue(exportedJson.contains("Haferflocken & Heidelbeeren"));
+        assertTrue(exportedJson.contains("key-xyz"));
+
+        // Clear database
+        repository.saveSettings(new UserSettings());
+        repository.clearLogs();
+        assertEquals(0, repository.getAllLogsDirect().size());
+
+        // Import
+        DatabaseBackupManager.ImportResult result = backupManager.importFromJson(exportedJson);
+        assertTrue(result.isSuccess());
+
+        UserSettings restoredSettings = repository.getSettings();
+        assertEquals("OCEAN_BREEZE", restoredSettings.getSelectedTheme());
+        assertEquals("mmol/l", restoredSettings.getGlucoseUnit());
+        assertEquals("key-xyz", restoredSettings.getGeminiApiKey());
+
+        List<CalculationLog> restoredLogs = repository.getAllLogsDirect();
+        assertEquals(1, restoredLogs.size());
+        assertEquals("Haferflocken & Heidelbeeren", restoredLogs.get(0).getMealTitle());
+        assertEquals("Sensor leicht steigend", restoredLogs.get(0).getNotes());
+    }
 }

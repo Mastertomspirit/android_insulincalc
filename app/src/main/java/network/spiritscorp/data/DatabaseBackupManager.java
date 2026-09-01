@@ -186,4 +186,46 @@ public class DatabaseBackupManager {
             return importFromCsv(trimmed);
         }
     }
+
+    public static class ImportResult {
+        private final boolean success;
+        private final int logsImported;
+        private final boolean settingsImported;
+        private final String message;
+
+        public ImportResult(boolean success, int logsImported, boolean settingsImported, String message) {
+            this.success = success;
+            this.logsImported = logsImported;
+            this.settingsImported = settingsImported;
+            this.message = message;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public boolean getSuccess() {
+            return success;
+        }
+
+        public int getLogsImported() {
+            return logsImported;
+        }
+
+        public int getImportedLogsCount() {
+            return logsImported;
+        }
+
+        public boolean isSettingsImported() {
+            return settingsImported;
+        }
+
+        public boolean isImportedSettings() {
+            return settingsImported;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }
