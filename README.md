@@ -1,5 +1,5 @@
-[![Latest Release](https://img.shields.io/github/v/release/mastertomspirit/android_insulincalc?color=blue&label=Release)](https://github.com/mastertomspirit/android_insulincalc)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/mastertomspirit/android_insulincalc/android.yml?branch=main&label=Build)](https://github.com/mastertomspirit/android_insulincalc/actions)
+[![Latest Release](https://img.shields.io/github/v/tag/mastertomspirit/android_insulincalc?color=blue&label=Tag)](https://github.com/mastertomspirit/android_insulincalc)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/mastertomspirit/android_insulincalc/test.yaml?branch=main&label=Build)](https://github.com/mastertomspirit/android_insulincalc/actions)
 [![Min SDK](https://img.shields.io/badge/Android-11%2B%20%28API%2030%2B%29-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
 [![Java Version](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
 [![UI Framework](https://img.shields.io/badge/UI-Jetpack%20Compose%20%28M3%29-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
