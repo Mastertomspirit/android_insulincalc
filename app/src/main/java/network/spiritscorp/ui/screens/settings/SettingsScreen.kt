@@ -1,4 +1,4 @@
-package network.spiritscorp.ui.screens
+package network.spiritscorp.ui.screens.settings
 
 /*
  * Copyright (C) 2026 Tom Spirit
@@ -62,12 +62,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
-import network.spiritscorp.ui.screens.settings.AboutAndLegalSection
-import network.spiritscorp.ui.screens.settings.AppearanceSection
-import network.spiritscorp.ui.screens.settings.BackupRestoreSection
-import network.spiritscorp.ui.screens.settings.CarbUnitSection
-import network.spiritscorp.ui.screens.settings.GlucoseCorrectionSection
-import network.spiritscorp.ui.screens.settings.TherapyFactorsSection
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 

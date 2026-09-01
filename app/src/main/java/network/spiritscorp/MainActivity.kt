@@ -65,10 +65,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import network.spiritscorp.data.ThemePreferences
-import network.spiritscorp.ui.screens.AiMealEstimatorScreen
-import network.spiritscorp.ui.screens.CalculatorScreen
-import network.spiritscorp.ui.screens.LogbookScreen
-import network.spiritscorp.ui.screens.SettingsScreen
+import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen
+import network.spiritscorp.ui.screens.calculator.CalculatorScreen
+import network.spiritscorp.ui.screens.logbook.LogbookScreen
+import network.spiritscorp.ui.screens.settings.SettingsScreen
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel

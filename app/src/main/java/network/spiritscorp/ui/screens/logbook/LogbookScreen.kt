@@ -1,4 +1,4 @@
-package network.spiritscorp.ui.screens
+package network.spiritscorp.ui.screens.logbook
 
 /*
  * Copyright (C) 2026 Tom Spirit
@@ -57,11 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.model.CalculationLog
-import network.spiritscorp.ui.screens.logbook.ClearAllLogsDialog
-import network.spiritscorp.ui.screens.logbook.LogbookFilterBar
-import network.spiritscorp.ui.screens.logbook.LogbookItemCard
-import network.spiritscorp.ui.screens.logbook.LogbookStatsHeader
-import network.spiritscorp.ui.screens.logbook.SingleLogDeleteDialog
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.text.SimpleDateFormat
