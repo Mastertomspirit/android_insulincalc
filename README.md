@@ -58,7 +58,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.1` (VersionCode: `6`)
+* **Version**: `1.4.0` (VersionCode: `8`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
 * **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)
@@ -81,19 +81,41 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
 
 ### Schnellstart per Terminal (Gradle CLI):
+
 ```bash
+
 # Debug-APK kompilieren:
 ./gradlew assembleDebug
 
 # Release-APK kompilieren (für R8/ProGuard optimiert):
 ./gradlew assembleRelease
+
 ```
 
 ---
 
 ## 🧪 Tests & Qualitätssicherung
 
-Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie:
-```bash
-./gradlew testDebugUnitTest
-```
+Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie. Es setzt dabei auf ein mehrstufiges Test-Setup aus lokalen Unit-Tests und instrumentierten Integrationstests:
+
+* **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
+
+  ```bash
+  ./gradlew testDebugUnitTest
+  ```
+
+* **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
+
+  ```bash
+  ./gradlew connectedDebugAndroidTest
+  ```
+
+* **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
+
+  ```bash
+  # Alle instrumentierten Tests auf verbundenen Geräten
+  ./gradlew connectedCheck
+
+  # Statische Code-Analyse
+  ./gradlew lintDebug
+  ```
