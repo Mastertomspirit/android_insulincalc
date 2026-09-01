@@ -22,7 +22,7 @@ import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import kotlin.Pair;
-import network.spiritscorp.data.DatabaseBackupManager.ImportResult;
+import network.spiritscorp.data.ImportResult;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 import org.junit.After;
@@ -450,7 +450,7 @@ public class DatabaseBackupManagerTest {
         userSettingsDao.saveSettings(new UserSettings());
         calculationLogDao.clearAllLogs();
 
-        DatabaseBackupManager.ImportResult result = backupManager.importFromJson(json);
+        ImportResult result = backupManager.importFromJson(json);
         assertTrue(result.isSuccess());
 
         UserSettings restoredSettings = userSettingsDao.getSettingsDirect();

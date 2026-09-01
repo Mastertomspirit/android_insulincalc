@@ -19,6 +19,7 @@ package network.spiritscorp;
 
 import kotlin.Pair;
 import network.spiritscorp.data.DatabaseBackupManager;
+import network.spiritscorp.data.ImportResult;
 import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.CarbUnit;
@@ -429,7 +430,7 @@ public class InsulinCalculatorSystemScenarioTest {
         assertEquals(0, repository.getAllLogsDirect().size());
 
         // Import
-        DatabaseBackupManager.ImportResult result = backupManager.importFromJson(exportedJson);
+        ImportResult result = backupManager.importFromJson(exportedJson);
         assertTrue(result.isSuccess());
 
         UserSettings restoredSettings = repository.getSettings();

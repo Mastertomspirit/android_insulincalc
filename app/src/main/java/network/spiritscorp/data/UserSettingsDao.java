@@ -17,6 +17,7 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -33,6 +34,7 @@ public interface UserSettingsDao {
     /**
      * Observes the active user settings (singleton row with ID = 1) reactively.
      */
+    @NonNull
     @Query("SELECT * FROM user_settings WHERE id = 1")
     Flow<UserSettings> getSettings();
 
@@ -46,5 +48,5 @@ public interface UserSettingsDao {
      * Saves or updates the user settings configuration.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void saveSettings(UserSettings settings);
+    void saveSettings(@NonNull UserSettings settings);
 }

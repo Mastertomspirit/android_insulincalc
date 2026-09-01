@@ -33,6 +33,7 @@ import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.ai.MealEstimateResult
 import network.spiritscorp.data.AppDatabase
 import network.spiritscorp.data.DatabaseBackupManager
+import network.spiritscorp.data.ImportResult
 import network.spiritscorp.data.InsulinRepository
 import network.spiritscorp.data.ThemePreferences
 import network.spiritscorp.model.CalculationLog
@@ -449,7 +450,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao()).exportToCsv(logs)
     }
 
-    suspend fun importBackupContent(content: String): DatabaseBackupManager.ImportResult = withContext(Dispatchers.IO) {
+    suspend fun importBackupContent(content: String): ImportResult = withContext(Dispatchers.IO) {
         val manager = DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao())
         val trimmed = content.trim()
         if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
