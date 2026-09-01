@@ -21,7 +21,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 ## 🌟 Hauptfunktionen
 
 ### 1. 🧮 Präzise Bolus-Berechnung
-* **Flexible Einheiten**: Standardmäßig auf **Broteinheiten (BE, 12g KH)** eingestellt – nahtlos umschaltbar auf **Kohlenhydrateinheiten (KE / KHE, 10g KH)** oder reine **Gramm Kohlenhydrate (g KH)**.
+* **Flexible Einheiten**: Standardmäßig auf **Broteinheiten (BE, 12 g KH)** eingestellt – nahtlos umschaltbar auf **Kohlenhydrateinheiten (KE / KHE, 10 g KH)** oder reine **Gramm Kohlenhydrate (g KH)**.
 * **Echtzeit-Umrechnung**: Alle drei Einheiten (BE, KE, g KH) werden parallel und transparent angezeigt.
 * **Feinjustierung in 0,05er-Schritten**: Individuelle Insulin-Faktoren können exakt in 0,05 IE-Schritten angepasst werden (z. B. `0,45`, `0,50`, `0,55`, `1,25` IE).
 
@@ -31,7 +31,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 * **Hypoglykämie-Schutz**: Sicherheitswarnungen bei niedrigen Blutzuckerwerten (< 70 mg/dl) mit Hinweisen zur Kohlenhydrataufnahme (z. B. Traubenzucker).
 
 ### 3. 🔒 Zero-Knowledge & SQLCipher AES-256 Verschlüsselung
-* **Hardware-gestützte Sicherheit**: Vollständige 256-Bit-Verschlüsselung aller lokalen Datenbankdaten (`SQLCipher`) mit Schlüsseln, die im hardware-gesicherten **Android KeyStore** (`MasterKey` & `EncryptedSharedPreferences`) verwaltet werden.
+* **Hardware-gestützte Sicherheit**: Vollständige 256-Bit-AES-Verschlüsselung aller lokalen Datenbankdaten (`SQLCipher`) mit Schlüsseln, die direkt im hardware-gesicherten **Android KeyStore** (AES-256 GCM Master-Key im Hardware-Sicherheitsmodul / TEE / StrongBox) verschlüsselt und verwaltet werden.
 * **Vollständige Datensouveränität**: Keine Weitergabe von Patientendaten an Drittanbieter; alle Berechnungen und Tagebucheinträge bleiben geschützt auf dem Gerät.
 
 ### 4. 🤖 KI-Mahlzeitenschätzer (Gemini AI)
@@ -58,7 +58,7 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.4.0` (VersionCode: `8`)
+* **Version**: `1.3.3` (VersionCode: `7`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
 * **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)
@@ -81,15 +81,12 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
 
 ### Schnellstart per Terminal (Gradle CLI):
-
 ```bash
-
 # Debug-APK kompilieren:
 ./gradlew assembleDebug
 
 # Release-APK kompilieren (für R8/ProGuard optimiert):
 ./gradlew assembleRelease
-
 ```
 
 ---
@@ -99,19 +96,16 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie. Es setzt dabei auf ein mehrstufiges Test-Setup aus lokalen Unit-Tests und instrumentierten Integrationstests:
 
 * **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
-
   ```bash
   ./gradlew testDebugUnitTest
   ```
 
 * **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
-
   ```bash
   ./gradlew connectedDebugAndroidTest
   ```
 
 * **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
-
   ```bash
   # Alle instrumentierten Tests auf verbundenen Geräten
   ./gradlew connectedCheck

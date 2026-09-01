@@ -100,7 +100,7 @@ fun AiConfigCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE.modelId
+    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH.modelId
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
     var selectedModel by remember { mutableStateOf(GeminiAiModel.fromModelId(savedModelId)) }

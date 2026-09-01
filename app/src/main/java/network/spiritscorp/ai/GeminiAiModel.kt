@@ -25,30 +25,38 @@ enum class GeminiAiModel(
     val displayName: String,
     val description: String
 ) {
-    GEMINI_3_5_FLASH_LITE(
-        modelId = "gemini-3.5-flash-lite",
-        displayName = "Gemini 3.5 Flash-Lite (Standard)",
-        description = "Superschnell & extrem sparsam im Tokenverbrauch"
-    ),
     GEMINI_3_5_FLASH(
         modelId = "gemini-3.5-flash",
-        displayName = "Gemini 3.5 Flash",
-        description = "Optimale Balance aus Schnelligkeit und Präzision"
+        displayName = "Gemini 3.5 Flash (Empfohlen)",
+        description = "Schnell, präzise und optimiert für Nährwertanalysen"
     ),
-    GEMINI_3_5_PRO(
-        modelId = "gemini-3.6-flash",
-        displayName = "Gemini 3.6 Flash",
-        description = "Erweiterte Analyse für komplexe Gerichte & Rezepte"
+    GEMINI_3_1_FLASH_LITE(
+        modelId = "gemini-3.1-flash-lite-preview",
+        displayName = "Gemini 3.1 Flash-Lite",
+        description = "Superschnell & extrem sparsam im Tokenverbrauch"
     ),
-    GEMINI_3_7_FLASH(
-        modelId = "gemini-3.7-flash",
-        displayName = "Gemini 3.7 Flash (Hybrid-Thinking)",
-        description = "Neuestes Modell mit optionaler tiefer Denkfähigkeit"
+    GEMINI_3_1_PRO(
+        modelId = "gemini-3.1-pro-preview",
+        displayName = "Gemini 3.1 Pro",
+        description = "Erweiterte Analyse für komplexe Menüs & Rezepte"
+    ),
+    GEMINI_2_5_FLASH(
+        modelId = "gemini-2.5-flash",
+        displayName = "Gemini 2.5 Flash",
+        description = "Bewährtes, stabiles Standard-Modell"
     );
 
     companion object {
         fun fromModelId(id: String?): GeminiAiModel {
-            return entries.find { it.modelId.equals(id, ignoreCase = true) } ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE
+            if (id.isNullOrBlank()) return GEMINI_3_5_FLASH
+            return entries.find { it.modelId.equals(id.trim(), ignoreCase = true) }
+                ?: when {
+                    id.contains("lite", ignoreCase = true) -> GEMINI_3_1_FLASH_LITE
+                    id.contains("pro", ignoreCase = true) -> GEMINI_3_1_PRO
+                    id.contains("2.5", ignoreCase = true) -> GEMINI_2_5_FLASH
+                    else -> GEMINI_3_5_FLASH
+                }
         }
     }
 }
+

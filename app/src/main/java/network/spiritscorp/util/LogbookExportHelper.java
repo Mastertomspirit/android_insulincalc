@@ -28,19 +28,33 @@ import java.util.Locale;
  * Pure Java utility for generating formatted text shares, CSV data, and statistical metrics
  * from diabetic calculation logs.
  */
-public final class LogbookExportHelper {
+public class LogbookExportHelper {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
-    private static final SimpleDateFormat CSV_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private final SimpleDateFormat dateFormat;
+    private final SimpleDateFormat csvDateFormat;
 
-    private LogbookExportHelper() {
-        // Utility class
+    /**
+     * Constructs a new LogbookExportHelper using the system default Locale.
+     */
+    public LogbookExportHelper() {
+        this(Locale.getDefault());
+    }
+
+    /**
+     * Constructs a new LogbookExportHelper with a specific Locale.
+     *
+     * @param locale Desired locale for date/number formatting.
+     */
+    public LogbookExportHelper(Locale locale) {
+        Locale effectiveLocale = locale != null ? locale : Locale.getDefault();
+        this.dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", effectiveLocale);
+        this.csvDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", effectiveLocale);
     }
 
     /**
      * Formats a complete export report of all or filtered logs for text sharing (e.g. Email/Messenger).
      */
-    public static String generateExportText(List<CalculationLog> logs, String filterDescription) {
+    public String generateExportText(List<CalculationLog> logs, String filterDescription) {
         if (logs == null || logs.isEmpty()) {
             return "Insulin-Rechner Tagebuch\nKeine Einträge für den ausgewählten Zeitraum (" + filterDescription + ") vorhanden.";
         }
@@ -53,7 +67,7 @@ public final class LogbookExportHelper {
         StringBuilder sb = new StringBuilder();
         sb.append("📋 Insulin-Rechner Tagebuch-Export\n");
         sb.append("Zeitraum: ").append(filterDescription).append("\n");
-        sb.append("Erstellt am: ").append(DATE_FORMAT.format(new Date())).append("\n");
+        sb.append("Erstellt am: ").append(dateFormat.format(new Date())).append("\n");
         sb.append("----------------------------------------\n\n");
 
         for (CalculationLog log : logs) {
@@ -64,7 +78,7 @@ public final class LogbookExportHelper {
                 bgCount++;
             }
 
-            sb.append("📅 ").append(DATE_FORMAT.format(new Date(log.getTimestamp()))).append(" - ").append(log.getTimeOfDay()).append("\n");
+            sb.append("📅 ").append(dateFormat.format(new Date(log.getTimestamp()))).append(" - ").append(log.getTimeOfDay()).append("\n");
             sb.append("🍽️ Mahlzeit: ").append(log.getMealTitle()).append("\n");
             sb.append("🍞 Kohlenhydrate: ").append(log.getCarbGrams()).append(" g");
             if (log.getBeValue() > 0) {
@@ -89,8 +103,7 @@ public final class LogbookExportHelper {
             }
             sb.append("\n");
 
-            log.getNotes();
-            if (!log.getNotes().trim().isEmpty()) {
+            if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
                 sb.append("📝 Notiz: ").append(log.getNotes()).append("\n");
             }
             sb.append("\n");
@@ -112,10 +125,11 @@ public final class LogbookExportHelper {
     /**
      * Formats a single log entry with full details, breakdown, correction bolus and symbols for sharing.
      */
-    public static String formatSingleLogShare(CalculationLog log) {
+    public String formatSingleLogShare(CalculationLog log) {
+        if (log == null) return "";
         StringBuilder sb = new StringBuilder();
         sb.append("📋 Insulin-Berechnung: ").append(log.getMealTitle()).append("\n");
-        sb.append("📅 ").append(DATE_FORMAT.format(new Date(log.getTimestamp()))).append(" (").append(log.getTimeOfDay()).append(")\n");
+        sb.append("📅 ").append(dateFormat.format(new Date(log.getTimestamp()))).append(" (").append(log.getTimeOfDay()).append(")\n");
         sb.append("----------------------------------------\n");
 
         // Kohlenhydrate & Mahlzeitenbolus
@@ -168,13 +182,16 @@ public final class LogbookExportHelper {
     /**
      * Builds standard CSV file content for medical or spreadsheet export.
      */
-    public static String generateCsvExport(List<CalculationLog> logs) {
+    public String generateCsvExport(List<CalculationLog> logs) {
+        if (logs == null || logs.isEmpty()) {
+            return "ID;Datum_Uhrzeit;Tageszeit;Mahlzeit;KH_Gramm;BE;KE;Faktor;Mahlzeiten_Insulin;Blutzucker;Ziel_BZ;Korrektur_Faktor;Korrektur_Insulin;Gesamt_Insulin_IE;Notizen\n";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("ID;Datum_Uhrzeit;Tageszeit;Mahlzeit;KH_Gramm;BE;KE;Faktor;Mahlzeiten_Insulin;Blutzucker;Ziel_BZ;Korrektur_Faktor;Korrektur_Insulin;Gesamt_Insulin_IE;Notizen\n");
 
         for (CalculationLog log : logs) {
             sb.append(log.getId()).append(";")
-                    .append(CSV_DATE_FORMAT.format(new Date(log.getTimestamp()))).append(";")
+                    .append(csvDateFormat.format(new Date(log.getTimestamp()))).append(";")
                     .append(escapeCsv(log.getTimeOfDay())).append(";")
                     .append(escapeCsv(log.getMealTitle())).append(";")
                     .append(log.getCarbGrams()).append(";")
@@ -197,7 +214,7 @@ public final class LogbookExportHelper {
                                  Double averageBloodGlucose) {
     }
 
-    public static LogbookMetrics calculateMetrics(List<CalculationLog> logs) {
+    public LogbookMetrics calculateMetrics(List<CalculationLog> logs) {
         if (logs == null || logs.isEmpty()) {
             return new LogbookMetrics(0, 0.0, 0.0, null);
         }

@@ -18,58 +18,96 @@ package network.spiritscorp.data;
  */
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit and component tests for the database encryption layer, AES-256 KeyStore key management,
- * and byte formatting helpers.
+ * Robust unit and integration tests for {@link DatabaseSecurityManager}.
+ * Verifies 256-bit passphrase generation, KeyStore encryption/decryption, custom SharedPreferences DI,
+ * persistence consistency, fallback storage, and hex conversions.
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 34)
 public class DatabaseSecurityTest {
 
     @Test
-    public void testPassphraseGenerationIs256Bit() {
+    public void testPassphraseGenerationIs256BitAndPersistent() {
         Context context = ApplicationProvider.getApplicationContext();
-        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
+        DatabaseSecurityManager securityManager = new DatabaseSecurityManager(context);
+        byte[] passphrase = securityManager.getOrCreateDatabasePassphrase();
 
         assertNotNull(passphrase);
         assertEquals(32, passphrase.length); // 32 bytes = 256 bits
 
-        // Subsequent call returns identical persisted passphrase
-        byte[] secondPassphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
+        // Subsequent instantiation with same context returns the exact same passphrase
+        DatabaseSecurityManager secondManager = new DatabaseSecurityManager(context);
+        byte[] secondPassphrase = secondManager.getOrCreateDatabasePassphrase();
         assertNotNull(secondPassphrase);
         assertEquals(32, secondPassphrase.length);
-        assertTrue(java.util.Arrays.equals(passphrase, secondPassphrase));
+        assertTrue(Arrays.equals(passphrase, secondPassphrase));
+    }
+
+    @Test
+    public void testDependencyInjectionWithCustomSharedPreferences() {
+        Context context = ApplicationProvider.getApplicationContext();
+        SharedPreferences customPrefs = context.getSharedPreferences("test_custom_sec_prefs", Context.MODE_PRIVATE);
+        customPrefs.edit().clear().commit();
+
+        DatabaseSecurityManager securityManager1 = new DatabaseSecurityManager(customPrefs);
+        byte[] key1 = securityManager1.getOrCreateDatabasePassphrase();
+        assertNotNull(key1);
+        assertEquals(32, key1.length);
+
+        DatabaseSecurityManager securityManager2 = new DatabaseSecurityManager(customPrefs);
+        byte[] key2 = securityManager2.getOrCreateDatabasePassphrase();
+        assertTrue("Keys from the same SharedPreferences must match", Arrays.equals(key1, key2));
     }
 
     @Test
     public void testBytesToHexFormatting() {
         byte[] bytes = new byte[]{(byte) 0x00, (byte) 0x0F, (byte) 0x1A, (byte) 0xFF};
-        String hex = DatabaseSecurityManager.INSTANCE.bytesToHex(bytes);
+        String hex = DatabaseSecurityManager.bytesToHex(bytes);
         assertEquals("000f1aff", hex);
     }
 
     @Test
     public void testPassphraseHexRepresentationIs64Chars() {
         Context context = ApplicationProvider.getApplicationContext();
-        byte[] passphrase = DatabaseSecurityManager.INSTANCE.getOrCreateDatabasePassphrase(context);
-        String hex = DatabaseSecurityManager.INSTANCE.bytesToHex(passphrase);
+        DatabaseSecurityManager securityManager = new DatabaseSecurityManager(context);
+        byte[] passphrase = securityManager.getOrCreateDatabasePassphrase();
+        String hex = DatabaseSecurityManager.bytesToHex(passphrase);
         assertNotNull(hex);
         assertEquals(64, hex.length()); // 32 bytes * 2 hex chars = 64 hex chars
     }
 
     @Test
-    public void testEmptyByteArrayToHex() {
-        String hex = DatabaseSecurityManager.INSTANCE.bytesToHex(new byte[0]);
-        assertEquals("", hex);
+    public void testEmptyAndNullByteArrayToHex() {
+        assertEquals("", DatabaseSecurityManager.bytesToHex(new byte[0]));
+        assertEquals("", DatabaseSecurityManager.bytesToHex(null));
+    }
+
+    @Test
+    public void testEncryptAndDecryptWithKeyStore() {
+        Context context = ApplicationProvider.getApplicationContext();
+        DatabaseSecurityManager securityManager = new DatabaseSecurityManager(context);
+
+        byte[] original = "DiabeticSecureVaultSecretKey1234".getBytes();
+        DatabaseSecurityManager.EncryptedData encrypted = securityManager.encryptWithKeyStore(original);
+
+        if (encrypted != null) {
+            byte[] decrypted = securityManager.decryptWithKeyStore(encrypted.iv(), encrypted.ciphertext());
+            assertNotNull(decrypted);
+            assertTrue(Arrays.equals(original, decrypted));
+        }
     }
 }

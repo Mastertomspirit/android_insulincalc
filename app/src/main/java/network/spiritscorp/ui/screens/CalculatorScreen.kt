@@ -25,8 +25,10 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -125,7 +127,7 @@ fun CalculatorScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Medical Disclaimer
-        if (settings?.showDisclaimer == true) {
+        if (settings?.isShowDisclaimer == true) {
             MedicalDisclaimerBanner(
                 onDismiss = {
                     closeKeyboard()
@@ -293,6 +295,7 @@ fun CalculatorScreen(
                     onClick = {
                         closeKeyboard()
                         viewModel.saveCalculationToLog()
+                        viewModel.clearCarbs()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -611,7 +614,9 @@ fun CalculatorScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
 
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             // Current Glucose
@@ -630,6 +635,7 @@ fun CalculatorScreen(
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
+                                    .fillMaxHeight()
                                     .testTag("current_glucose_field"),
                                 shape = RoundedCornerShape(12.dp),
                                 singleLine = true
@@ -651,6 +657,7 @@ fun CalculatorScreen(
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
+                                    .fillMaxHeight()
                                     .testTag("target_glucose_field"),
                                 shape = RoundedCornerShape(12.dp),
                                 singleLine = true

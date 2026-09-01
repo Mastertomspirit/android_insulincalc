@@ -20,6 +20,7 @@ package network.spiritscorp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.ai.MealEstimateResult
 import network.spiritscorp.data.AppDatabase
@@ -109,6 +111,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
     private val repository: InsulinRepository
     private val geminiService = GeminiMealService()
+    private val themePreferences = ThemePreferences(application)
     private var cachedSettings: UserSettings = UserSettings()
 
     init {
@@ -134,8 +137,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
                 val settings = settingsNullable ?: UserSettings()
                 cachedSettings = settings
                 // Sync to ThemePreferences
-                ThemePreferences.saveThemePreferences(
-                    getApplication(),
+                themePreferences.savePreferences(
                     settings.selectedTheme,
                     settings.themeMode
                 )
@@ -239,9 +241,10 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun dismissDisclaimer() {
-        viewModelScope.launch {
-            val currentSettings = userSettings.value ?: UserSettings()
-            repository.saveSettings(currentSettings.copy(showDisclaimer = false))
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentSettings = userSettings.value ?: cachedSettings
+            currentSettings.setShowDisclaimer(false)
+            repository.saveSettings(currentSettings)
         }
     }
 
@@ -368,7 +371,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun saveCalculationToLog(notesOverride: String? = null) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val state = _uiState.value
             val summary = state.calculationSummary
             val autoMealTitle = state.mealTitle.ifBlank {
@@ -377,22 +380,24 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             val finalNotes = notesOverride ?: state.notes
 
             val log = CalculationLog(
-                mealTitle = autoMealTitle,
-                rawCarbInput = state.carbInput.toDoubleOrNull() ?: 0.0,
-                carbUnit = state.selectedUnit.shortName,
-                carbGrams = summary.carbGrams,
-                beValue = summary.beValue,
-                keValue = summary.keValue,
-                timeOfDay = state.selectedTimeOfDay.title,
-                insulinFactor = summary.factorUsed,
-                mealInsulin = summary.mealInsulin,
-                bloodGlucose = summary.bloodGlucoseInput,
-                targetGlucose = summary.targetGlucose,
-                correctionFactor = state.correctionFactorInput.toDoubleOrNull(),
-                correctionInsulin = summary.correctionInsulin,
-                totalInsulin = summary.rawTotalInsulin,
-                roundedInsulin = summary.roundedTotalInsulin,
-                notes = finalNotes
+                0L,
+                System.currentTimeMillis(),
+                autoMealTitle,
+                state.carbInput.toDoubleOrNull() ?: 0.0,
+                state.selectedUnit.shortName,
+                summary.carbGrams,
+                summary.beValue,
+                summary.keValue,
+                state.selectedTimeOfDay.title,
+                summary.factorUsed,
+                summary.mealInsulin,
+                summary.bloodGlucoseInput,
+                summary.targetGlucose,
+                state.correctionFactorInput.toDoubleOrNull(),
+                summary.correctionInsulin,
+                summary.rawTotalInsulin,
+                summary.roundedTotalInsulin,
+                finalNotes
             )
             repository.saveCalculation(log)
             _uiState.update { it.copy(snackbarMessage = "Berechnung erfolgreich im Tagebuch gespeichert!") }
@@ -404,29 +409,28 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun deleteLog(logId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.deleteLog(logId)
         }
     }
 
     fun clearAllLogs() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.clearLogs()
             _uiState.update { it.copy(snackbarMessage = "Tagebuch wurde geleert.") }
         }
     }
 
-    suspend fun getAllLogsDirect(): List<CalculationLog> {
-        return repository.getAllLogsDirect()
+    suspend fun getAllLogsDirect(): List<CalculationLog> = withContext(Dispatchers.IO) {
+        repository.allLogsDirect
     }
 
     fun updateUserSettings(settings: UserSettings) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             cachedSettings = settings
             repository.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
-            ThemePreferences.saveThemePreferences(
-                getApplication(),
+            themePreferences.savePreferences(
                 settings.selectedTheme,
                 settings.themeMode
             )
@@ -478,10 +482,9 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     fun saveAiConfiguration(apiKey: String, modelId: String) {
         viewModelScope.launch {
             val current = userSettings.value ?: cachedSettings
-            val updated = current.copy(
-                geminiApiKey = apiKey.trim(),
-                selectedAiModel = modelId
-            )
+            val updated = current.copy()
+            updated.geminiApiKey = apiKey.trim()
+            updated.selectedAiModel = modelId
             updateUserSettings(updated)
         }
     }

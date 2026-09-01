@@ -17,27 +17,63 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Context;
+import androidx.room.Room;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import kotlin.Pair;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests verifying complete database export and import functionality (JSON and CSV),
- * ensuring full logbook coverage and resilient error handling on corrupted data.
+ * Comprehensive unit and integration tests verifying {@link DatabaseBackupManager} as an instantiable,
+ * dependency-injected object. Tests JSON & CSV serialization, deserialization, DAO operations,
+ * and robust handling of corrupted or edge-case input.
  */
+@RunWith(AndroidJUnit4.class)
+@Config(sdk = 34)
 public class DatabaseBackupManagerTest {
 
     private static final double DELTA = 0.001;
+
+    private AppDatabase inMemoryDb;
+    private UserSettingsDao userSettingsDao;
+    private CalculationLogDao calculationLogDao;
+    private DatabaseBackupManager backupManager;
+
+    @Before
+    public void setUp() {
+        Context context = ApplicationProvider.getApplicationContext();
+        inMemoryDb = Room.inMemoryDatabaseBuilder(context, AppDatabase.class)
+                .allowMainThreadQueries()
+                .build();
+        userSettingsDao = inMemoryDb.userSettingsDao();
+        calculationLogDao = inMemoryDb.calculationLogDao();
+        backupManager = new DatabaseBackupManager(userSettingsDao, calculationLogDao);
+    }
+
+    @After
+    public void tearDown() {
+        if (inMemoryDb != null && inMemoryDb.isOpen()) {
+            inMemoryDb.close();
+        }
+    }
 
     private List<CalculationLog> createSampleLogs() {
         return Arrays.asList(
@@ -144,16 +180,16 @@ public class DatabaseBackupManagerTest {
                 "SYSTEM"
         );
 
-        // 1. Export to JSON
-        String jsonOutput = DatabaseBackupManager.INSTANCE.exportToJson(sampleSettings, sampleLogs);
+        // 1. Export to JSON via instance method
+        String jsonOutput = backupManager.exportToJson(sampleSettings, sampleLogs);
         assertNotNull(jsonOutput);
         assertTrue(jsonOutput.contains("\"settings\""));
         assertTrue(jsonOutput.contains("\"logs\""));
         assertTrue(jsonOutput.contains("Frühstück (Müsli & Apfel)"));
         assertTrue(jsonOutput.contains("Spät-Snack"));
 
-        // 2. Parse back
-        Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(jsonOutput);
+        // 2. Parse back via instance method
+        Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(jsonOutput);
         assertNotNull("Parsed result should not be null", parsed);
 
         UserSettings parsedSettings = parsed.getFirst();
@@ -182,9 +218,36 @@ public class DatabaseBackupManagerTest {
     }
 
     @Test
+    public void testDirectDaoIntegrationExportAndImport() {
+        // Populate in-memory database
+        UserSettings settings = new UserSettings(1, 2.0, 1.0, 1.5, 0.8, "g KH", 12, "mg/dl", 100, 40, 0.5, true, "MEDICAL_TEAL", "SYSTEM");
+        userSettingsDao.saveSettings(settings);
+        calculationLogDao.insertLogs(createSampleLogs());
+
+        // Export directly from DAOs
+        String exportedJson = backupManager.exportToJson();
+        assertNotNull(exportedJson);
+        assertTrue(exportedJson.contains("Frühstück (Müsli & Apfel)"));
+
+        // Clear DB
+        calculationLogDao.clearAllLogs();
+        assertEquals(0, calculationLogDao.getAllLogsDirect().size());
+
+        // Import back through DAO
+        ImportResult result = backupManager.importFromJson(exportedJson);
+        assertTrue(result.isSuccess());
+        assertEquals(4, result.getImportedLogsCount());
+        assertTrue(result.isImportedSettings());
+
+        // Verify DAO holds restored items
+        List<CalculationLog> restoredLogs = calculationLogDao.getAllLogsDirect();
+        assertEquals(4, restoredLogs.size());
+    }
+
+    @Test
     public void testExportAllLogsToCsv() {
         List<CalculationLog> sampleLogs = createSampleLogs();
-        String csvOutput = DatabaseBackupManager.INSTANCE.exportToCsv(sampleLogs);
+        String csvOutput = backupManager.exportToCsv(sampleLogs);
 
         assertNotNull(csvOutput);
         String[] lines = csvOutput.trim().split("\n");
@@ -204,7 +267,7 @@ public class DatabaseBackupManagerTest {
         assertTrue(validLines.get(4).contains("Spät-Snack"));
 
         // Parse CSV back
-        List<CalculationLog> parsedLogs = DatabaseBackupManager.INSTANCE.parseCsv(csvOutput);
+        List<CalculationLog> parsedLogs = backupManager.parseCsv(csvOutput);
         assertEquals(sampleLogs.size(), parsedLogs.size());
 
         assertEquals("Frühstück (Müsli & Apfel)", parsedLogs.get(0).getMealTitle());
@@ -212,6 +275,20 @@ public class DatabaseBackupManagerTest {
         assertEquals("Mittagessen (Pasta, Tomatensauce)", parsedLogs.get(1).getMealTitle());
         assertEquals(72.0, parsedLogs.get(1).getCarbGrams(), DELTA);
         assertEquals("Spät-Snack", parsedLogs.get(3).getMealTitle());
+    }
+
+    @Test
+    public void testImportFromCsvDirectToDao() {
+        List<CalculationLog> sampleLogs = createSampleLogs();
+        String csv = backupManager.exportToCsv(sampleLogs);
+
+        ImportResult result = backupManager.importFromCsv(csv);
+        assertTrue(result.isSuccess());
+        assertEquals(4, result.getImportedLogsCount());
+        assertFalse(result.isImportedSettings());
+
+        List<CalculationLog> fromDb = calculationLogDao.getAllLogsDirect();
+        assertEquals(4, fromDb.size());
     }
 
     @Test
@@ -239,32 +316,32 @@ public class DatabaseBackupManagerTest {
                 )
         );
 
-        String csv = DatabaseBackupManager.INSTANCE.exportToCsv(logsWithCommas);
-        List<CalculationLog> parsed = DatabaseBackupManager.INSTANCE.parseCsv(csv);
+        String csv = backupManager.exportToCsv(logsWithCommas);
+        List<CalculationLog> parsed = backupManager.parseCsv(csv);
 
         assertEquals(1, parsed.size());
-        assertEquals("Pizza \"Speciale\", extra Käse", parsed.getFirst().getMealTitle());
-        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.getFirst().getNotes());
+        assertEquals("Pizza \"Speciale\", extra Käse", parsed.get(0).getMealTitle());
+        assertEquals("Mit Salami, Pilzen, und \"Knoblauch-Öl\"", parsed.get(0).getNotes());
     }
 
     @Test
     public void testCorruptedJsonImportDoesNotCrash() {
         // Empty string
-        assertNull(DatabaseBackupManager.INSTANCE.parseJson(""));
+        assertNull(backupManager.parseJson(""));
 
         // Whitespace only
-        assertNull(DatabaseBackupManager.INSTANCE.parseJson("   \n\t  "));
+        assertNull(backupManager.parseJson("   \n\t  "));
 
         // Truncated/Invalid JSON
-        assertNull(DatabaseBackupManager.INSTANCE.parseJson("{\"settings\": { \"morningFactor\": "));
-        assertNull(DatabaseBackupManager.INSTANCE.parseJson("{not_valid_json}"));
+        assertNull(backupManager.parseJson("{\"settings\": { \"morningFactor\": "));
+        assertNull(backupManager.parseJson("{not_valid_json}"));
 
         // Random binary/garbage data
-        assertNull(DatabaseBackupManager.INSTANCE.parseJson("0xDEADBEEF-Corrupted-Binary-Stream-%%%"));
+        assertNull(backupManager.parseJson("0xDEADBEEF-Corrupted-Binary-Stream-%%%"));
 
         // Valid JSON with empty settings/logs should return non-null with empty list
         String emptyJson = "{\"version\": 1, \"settings\": {}, \"logs\": []}";
-        Pair<UserSettings, List<CalculationLog>> parsedEmpty = DatabaseBackupManager.INSTANCE.parseJson(emptyJson);
+        Pair<UserSettings, List<CalculationLog>> parsedEmpty = backupManager.parseJson(emptyJson);
         assertNotNull(parsedEmpty);
         assertEquals(0, parsedEmpty.getSecond().size());
     }
@@ -272,11 +349,11 @@ public class DatabaseBackupManagerTest {
     @Test
     public void testCorruptedCsvImportDoesNotCrash() {
         // Empty string
-        List<CalculationLog> emptyResult = DatabaseBackupManager.INSTANCE.parseCsv("");
+        List<CalculationLog> emptyResult = backupManager.parseCsv("");
         assertTrue(emptyResult.isEmpty());
 
         // Random string without commas
-        List<CalculationLog> garbageResult = DatabaseBackupManager.INSTANCE.parseCsv("Some random invalid non-csv text");
+        List<CalculationLog> garbageResult = backupManager.parseCsv("Some random invalid non-csv text");
         assertTrue(garbageResult.isEmpty());
 
         // Partially broken rows mixed with valid rows
@@ -286,7 +363,7 @@ public class DatabaseBackupManagerTest {
                 BrokenRowWithoutEnoughColumns
                 2,1700000001000,"2023-11-14 21:00:00","Suppe",20.0,"g KH",20.0,1.67,2.0,"Abends",1.0,2.0,,,0.0,2.0,2.0,"Warm\"""";
 
-        List<CalculationLog> parsedMixed = DatabaseBackupManager.INSTANCE.parseCsv(mixedCsv);
+        List<CalculationLog> parsedMixed = backupManager.parseCsv(mixedCsv);
         // Should safely parse the 2 valid rows while gracefully skipping the broken row
         assertEquals(2, parsedMixed.size());
         assertEquals("Salat", parsedMixed.get(0).getMealTitle());
@@ -311,20 +388,20 @@ public class DatabaseBackupManagerTest {
                   }
                 ]""";
 
-        Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(arrayJson);
+        Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(arrayJson);
         assertNotNull(parsed);
         UserSettings settings = parsed.getFirst();
         List<CalculationLog> logs = parsed.getSecond();
         assertNull(settings); // Settings was not provided
         assertEquals(1, logs.size());
-        assertEquals("Frühstücks-Smoothie", logs.getFirst().getMealTitle());
-        assertEquals(30.0, logs.getFirst().getCarbGrams(), DELTA);
+        assertEquals("Frühstücks-Smoothie", logs.get(0).getMealTitle());
+        assertEquals(30.0, logs.get(0).getCarbGrams(), DELTA);
     }
 
     @Test
     public void testSplitCsvLineHelper() {
         String line = "1,1700000000000,\"2023-11-14 20:00:00\",\"Pizza, Pasta & \"\"Vino\"\"\",50.0";
-        List<String> tokens = DatabaseBackupManager.INSTANCE.splitCsvLine(line);
+        List<String> tokens = backupManager.splitCsvLine(line);
 
         assertEquals(5, tokens.size());
         assertEquals("1", tokens.get(0));

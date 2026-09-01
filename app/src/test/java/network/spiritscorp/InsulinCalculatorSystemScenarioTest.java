@@ -18,9 +18,6 @@ package network.spiritscorp;
  */
 
 import kotlin.Pair;
-import kotlin.coroutines.Continuation;
-import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.BuildersKt;
 import network.spiritscorp.data.DatabaseBackupManager;
 import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.model.CalculationLog;
@@ -80,7 +77,7 @@ public class InsulinCalculatorSystemScenarioTest {
                 "SLATE_CALM",
                 "SYSTEM"
         );
-        runBlocking((scope, cont) -> repository.saveSettings(userSettings, cont));
+        repository.saveSettings(userSettings);
 
         long now = System.currentTimeMillis();
 
@@ -106,7 +103,7 @@ public class InsulinCalculatorSystemScenarioTest {
                 7.0,
                 "Vor der Arbeit"
         );
-        runBlocking((scope, cont) -> repository.saveCalculation(breakfastLog, cont));
+        repository.saveCalculation(breakfastLog);
 
         // Step 3: Lunch (4.0 BE, BG = 180 mg/dl - elevated)
         // 4 BE * 12 = 48g KH. 4 * 1.0 = 4.0 IE. BG 180 -> (180-100)/40 = +2.0 IE. Total = 6.0 IE
@@ -130,7 +127,7 @@ public class InsulinCalculatorSystemScenarioTest {
                 6.0,
                 "Kantine"
         );
-        runBlocking((scope, cont) -> repository.saveCalculation(lunchLog, cont));
+        repository.saveCalculation(lunchLog);
 
         // Step 4: Dinner (30g KH, BG = 95 mg/dl - in range)
         // 30g / 12 = 2.5 BE. 2.5 * 1.3 = 3.25 IE. BG 95 -> 0 corr. Total = 3.25 IE -> 3.5 IE
@@ -154,10 +151,10 @@ public class InsulinCalculatorSystemScenarioTest {
                 3.5,
                 "Zuhause"
         );
-        runBlocking((scope, cont) -> repository.saveCalculation(dinnerLog, cont));
+        repository.saveCalculation(dinnerLog);
 
         // Step 5: Verify Logbook state & total statistics
-        List<CalculationLog> allLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        List<CalculationLog> allLogs = repository.getAllLogsDirect();
         assertEquals(3, allLogs.size());
 
         double totalCarbsToday = allLogs.stream().mapToDouble(CalculationLog::getCarbGrams).sum();
@@ -167,24 +164,25 @@ public class InsulinCalculatorSystemScenarioTest {
         assertEquals(16.5, totalInsulinToday, DELTA);
 
         // Step 6: Export to CSV and verify all 3 meals are included
-        String csv = DatabaseBackupManager.INSTANCE.exportToCsv(allLogs);
+        DatabaseBackupManager backupManager = new DatabaseBackupManager();
+        String csv = backupManager.exportToCsv(allLogs);
         assertTrue(csv.contains("Frühstück: Haferflocken mit Beeren"));
         assertTrue(csv.contains("Mittagessen: Reisgericht"));
         assertTrue(csv.contains("Abendessen: Vollkornbrot & Salat"));
         assertTrue(csv.contains("128.0") || (csv.contains("50.0") && csv.contains("48.0") && csv.contains("30.0")));
 
         // Step 7: Export to JSON Backup
-        UserSettings settings = runBlocking((scope, cont) -> repository.getSettings(cont));
-        String jsonBackup = DatabaseBackupManager.INSTANCE.exportToJson(settings, allLogs);
+        UserSettings settings = repository.getSettings();
+        String jsonBackup = backupManager.exportToJson(settings, allLogs);
         assertNotNull(jsonBackup);
 
         // Step 8: Simulate clearing database (e.g. device switch / reset)
-        runBlocking((scope, cont) -> repository.clearLogs(cont));
-        List<CalculationLog> clearedLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        repository.clearLogs();
+        List<CalculationLog> clearedLogs = repository.getAllLogsDirect();
         assertEquals(0, clearedLogs.size());
 
         // Step 9: Restore database from JSON Backup
-        Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(jsonBackup);
+        Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(jsonBackup);
         assertNotNull(parsed);
         UserSettings restoredSettings = parsed.getFirst();
         List<CalculationLog> restoredLogs = parsed.getSecond();
@@ -192,10 +190,10 @@ public class InsulinCalculatorSystemScenarioTest {
         assertNotNull(restoredSettings);
         assertEquals(1.6, restoredSettings.getMorningFactor(), DELTA);
 
-        runBlocking((scope, cont) -> repository.saveSettings(restoredSettings, cont));
-        runBlocking((scope, cont) -> repository.saveLogs(restoredLogs, cont));
+        repository.saveSettings(restoredSettings);
+        repository.saveLogs(restoredLogs);
 
-        List<CalculationLog> restoredDbLogs = runBlocking((scope, cont) -> repository.getAllLogsDirect(cont));
+        List<CalculationLog> restoredDbLogs = repository.getAllLogsDirect();
         assertEquals(3, restoredDbLogs.size());
         assertEquals(128.0, restoredDbLogs.stream().mapToDouble(CalculationLog::getCarbGrams).sum(), DELTA);
         assertEquals(16.5, restoredDbLogs.stream().mapToDouble(CalculationLog::getRoundedInsulin).sum(), DELTA);
@@ -291,11 +289,9 @@ public class InsulinCalculatorSystemScenarioTest {
                 "Vorher 30 Min Spaziergang gemacht, Sensorwert stabil"
         );
 
-        runBlocking((scope, cont) -> repository.saveCalculation(customLog, cont));
+        repository.saveCalculation(customLog);
 
-        List<CalculationLog> allLogs = runBlocking((scope, cont) ->
-                repository.getAllLogsDirect(cont)
-        );
+        List<CalculationLog> allLogs = repository.getAllLogsDirect();
 
         assertEquals(1, allLogs.size());
         CalculationLog retrieved = allLogs.get(0);
@@ -325,37 +321,23 @@ public class InsulinCalculatorSystemScenarioTest {
                 "gemini-3.7-flash"
         );
 
-        runBlocking((scope, cont) -> repository.saveSettings(customAiSettings, cont));
+        repository.saveSettings(customAiSettings);
 
-        UserSettings retrieved = runBlocking((scope, cont) -> repository.getSettings(cont));
+        UserSettings retrieved = repository.getSettings();
         assertNotNull(retrieved);
         assertEquals("AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
         assertEquals("gemini-3.7-flash", retrieved.getSelectedAiModel());
 
         // Test export & restore of AI settings
-        String json = DatabaseBackupManager.INSTANCE.exportToJson(retrieved, java.util.Collections.emptyList());
+        DatabaseBackupManager backupManager = new DatabaseBackupManager();
+        String json = backupManager.exportToJson(retrieved, java.util.Collections.emptyList());
         assertTrue(json.contains("AIzaSyTestCustomKey12345"));
         assertTrue(json.contains("gemini-3.7-flash"));
 
-        Pair<UserSettings, List<CalculationLog>> parsed = DatabaseBackupManager.INSTANCE.parseJson(json);
+        Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(json);
         assertNotNull(parsed);
         assertNotNull(parsed.getFirst());
         assertEquals("AIzaSyTestCustomKey12345", parsed.getFirst().getGeminiApiKey());
         assertEquals("gemini-3.7-flash", parsed.getFirst().getSelectedAiModel());
-    }
-
-    // --- Coroutine Helper Methods for Java ---
-
-    @SuppressWarnings("unchecked")
-    public static <T> T runBlocking(kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, Continuation<? super T>, ?> block) {
-        try {
-            return (T) BuildersKt.runBlocking(
-                    EmptyCoroutineContext.INSTANCE,
-                    block
-            );
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Coroutine execution interrupted", e);
-        }
     }
 }

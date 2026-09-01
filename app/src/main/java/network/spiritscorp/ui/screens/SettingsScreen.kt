@@ -245,20 +245,19 @@ fun SettingsScreen(
                 val targetMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(targetNum) else targetNum
                 val corrMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(corrNum) else corrNum
 
-                val updated = currentSettings.copy(
-                    morningFactor = morningFactor,
-                    noonFactor = noonFactor,
-                    eveningFactor = eveningFactor,
-                    nightFactor = nightFactor,
-                    defaultCarbUnit = defaultCarbUnit,
-                    beGramsDivisor = beDivisor,
-                    glucoseUnit = glucoseUnit.shortName,
-                    targetGlucoseMgDl = targetMgDl,
-                    correctionFactorMgDl = corrMgDl,
-                    roundingStep = roundingStep,
-                    selectedTheme = selectedThemeName,
-                    themeMode = themeMode
-                )
+                val updated = currentSettings.copy()
+                updated.morningFactor = morningFactor
+                updated.noonFactor = noonFactor
+                updated.eveningFactor = eveningFactor
+                updated.nightFactor = nightFactor
+                updated.defaultCarbUnit = defaultCarbUnit
+                updated.beGramsDivisor = beDivisor
+                updated.glucoseUnit = glucoseUnit.shortName
+                updated.targetGlucoseMgDl = targetMgDl
+                updated.correctionFactorMgDl = corrMgDl
+                updated.roundingStep = roundingStep
+                updated.selectedTheme = selectedThemeName
+                updated.themeMode = themeMode
                 viewModel.updateUserSettings(updated)
                 Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()
                 focusManager.clearFocus()
