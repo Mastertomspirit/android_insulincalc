@@ -24,6 +24,7 @@ import androidx.room.RoomDatabase;
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.util.AppConstants;
 
 /**
  * Primary Room Database for the Insulin Calculator application written in Java.
@@ -35,12 +36,12 @@ import network.spiritscorp.model.UserSettings;
  */
 @Database(
         entities = {CalculationLog.class, UserSettings.class},
-        version = 1,
+        version = AppConstants.DATABASE_VERSION,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    private static final String DATABASE_NAME = "insulin_calculator.db";
+    private static final String DATABASE_NAME = AppConstants.DATABASE_NAME;
     private static volatile AppDatabase INSTANCE;
 
     /**

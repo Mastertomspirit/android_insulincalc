@@ -19,6 +19,8 @@ package network.spiritscorp.data;
 
 import android.util.Log;
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.util.AppConstants;
+import network.spiritscorp.util.DateTimeUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,12 +35,18 @@ import java.util.Locale;
 public class CsvBackupHandler {
 
     private static final String TAG = "CsvBackupHandler";
-    private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
+
+    /**
+     * CSV Schema Format Version.
+     */
+    public static final int CSV_FORMAT_VERSION = AppConstants.CSV_BACKUP_VERSION;
+
+    public static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
 
     private final SimpleDateFormat isoDateFormat;
 
     public CsvBackupHandler() {
-        this(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()));
+        this(DateTimeUtils.getIsoDateTimeFormatter());
     }
 
     public CsvBackupHandler(SimpleDateFormat dateFormat) {

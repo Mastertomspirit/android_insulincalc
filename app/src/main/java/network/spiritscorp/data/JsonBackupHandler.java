@@ -21,6 +21,8 @@ import android.util.Log;
 import kotlin.Pair;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.util.AppConstants;
+import network.spiritscorp.util.DateTimeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,12 +39,12 @@ import java.util.Locale;
 public class JsonBackupHandler {
 
     private static final String TAG = "JsonBackupHandler";
-    private static final int BACKUP_VERSION = 1;
+    public static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
 
     private final SimpleDateFormat isoDateFormat;
 
     public JsonBackupHandler() {
-        this(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()));
+        this(DateTimeUtils.getIsoDateTimeFormatter());
     }
 
     public JsonBackupHandler(SimpleDateFormat dateFormat) {

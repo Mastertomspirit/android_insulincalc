@@ -47,8 +47,8 @@ public class LogbookExportHelper {
      */
     public LogbookExportHelper(Locale locale) {
         Locale effectiveLocale = locale != null ? locale : Locale.getDefault();
-        this.dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", effectiveLocale);
-        this.csvDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", effectiveLocale);
+        this.dateFormat = new SimpleDateFormat(DateTimeUtils.PATTERN_DISPLAY_DATETIME, effectiveLocale);
+        this.csvDateFormat = new SimpleDateFormat(DateTimeUtils.PATTERN_ISO_DATETIME, effectiveLocale);
     }
 
     /**

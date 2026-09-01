@@ -25,6 +25,7 @@ import android.util.Base64;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import network.spiritscorp.util.AppConstants;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import javax.crypto.Cipher;
@@ -44,11 +45,12 @@ import javax.crypto.spec.GCMParameterSpec;
 public class DatabaseSecurityManager {
 
     private static final String TAG = "DatabaseSecurityManager";
-    private static final String PREFS_FILE = "secure_db_vault_prefs";
+    private static final String PREFS_FILE = AppConstants.SECURITY_PREFS_FILE;
 
     // Android KeyStore Alias & Cipher specifications
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
-    private static final String KEY_ALIAS = "network.spiritscorp.insulincalc.db_vault_master_key_v2";
+    public static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
+    public static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int PASSPHRASE_BYTE_LENGTH = 32; // 256-bit AES Key

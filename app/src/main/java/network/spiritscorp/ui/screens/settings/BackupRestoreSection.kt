@@ -58,10 +58,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.spiritscorp.data.DatabaseBackupManager
+import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -170,7 +168,7 @@ fun BackupRestoreSection(
                     ) {
                         Button(
                             onClick = {
-                                val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                val dateTag = DateTimeUtils.getFilenameTimestamp()
                                 jsonExportLauncher.launch("insulin_backup_$dateTag.json")
                             },
                             modifier = Modifier.weight(1f).testTag("export_json_file_button"),
@@ -187,7 +185,7 @@ fun BackupRestoreSection(
 
                         Button(
                             onClick = {
-                                val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                val dateTag = DateTimeUtils.getFilenameTimestamp()
                                 csvExportLauncher.launch("insulin_tagebuch_$dateTag.csv")
                             },
                             modifier = Modifier.weight(1f).testTag("export_csv_file_button"),

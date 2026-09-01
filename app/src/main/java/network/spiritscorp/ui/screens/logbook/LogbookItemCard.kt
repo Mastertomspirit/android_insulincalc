@@ -48,9 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.model.CalculationLog
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import network.spiritscorp.util.DateTimeUtils
 import androidx.compose.ui.platform.LocalLocale
 
 @Composable
@@ -60,8 +58,7 @@ fun LogbookItemCard(
     modifier: Modifier = Modifier,
     onShareRequest: () -> Unit = {}
 ) {
-    val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy • HH:mm", Locale.getDefault()) }
-    val dateString = remember(log.timestamp) { dateFormat.format(Date(log.timestamp)) }
+    val dateString = remember(log.timestamp) { DateTimeUtils.formatDisplayDateTimeBullet(log.timestamp) }
 
     Card(
         modifier = modifier

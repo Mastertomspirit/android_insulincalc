@@ -57,12 +57,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.model.CalculationLog
+import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 
 /**
  * Filter options for the calculation history.
@@ -339,7 +338,7 @@ private fun getFilterDescription(
     customStart: Long,
     customEnd: Long
 ): String {
-    val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+    val sdf = DateTimeUtils.getDisplayDateFormatter()
     return when (filter) {
         HistoryFilter.ALL -> "Alle Einträge"
         HistoryFilter.TODAY -> {
@@ -360,6 +359,6 @@ private fun getFilterDescription(
             if (sliceOffset == 0) "Letzte 30 Tage"
             else "30 Tage (vor $sliceOffset Monat(en))"
         }
-        HistoryFilter.CUSTOM -> "${sdf.format(Date(customStart))} bis ${sdf.format(Date(customEnd))}"
+        HistoryFilter.CUSTOM -> "${DateTimeUtils.formatDisplayDate(customStart)} bis ${DateTimeUtils.formatDisplayDate(customEnd)}"
     }
 }
