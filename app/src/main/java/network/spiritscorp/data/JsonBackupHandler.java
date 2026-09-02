@@ -64,6 +64,7 @@ public class JsonBackupHandler {
 
             if (settings != null) {
                 JSONObject settingsObj = new JSONObject();
+                settingsObj.put("id", 1);
                 settingsObj.put("morningFactor", settings.getMorningFactor());
                 settingsObj.put("noonFactor", settings.getNoonFactor());
                 settingsObj.put("eveningFactor", settings.getEveningFactor());
@@ -77,12 +78,8 @@ public class JsonBackupHandler {
                 settingsObj.put("showDisclaimer", settings.isShowDisclaimer());
                 settingsObj.put("selectedTheme", settings.getSelectedTheme());
                 settingsObj.put("themeMode", settings.getThemeMode());
-                if (settings.getGeminiApiKey() != null) {
-                    settingsObj.put("geminiApiKey", settings.getGeminiApiKey());
-                }
-                if (settings.getSelectedAiModel() != null) {
-                    settingsObj.put("selectedAiModel", settings.getSelectedAiModel());
-                }
+                settingsObj.put("geminiApiKey", settings.getGeminiApiKey() != null ? settings.getGeminiApiKey() : "");
+                settingsObj.put("selectedAiModel", settings.getSelectedAiModel() != null ? settings.getSelectedAiModel() : "gemini-3.5-flash");
                 root.put("settings", settingsObj);
             }
 

@@ -412,6 +412,115 @@ public class DatabaseBackupManagerTest {
     }
 
     @Test
+    public void testExportAndRestoreAllTimeOfDayFactorsAndSettings() {
+        UserSettings customSettings = new UserSettings(
+                1,
+                2.25,
+                1.35,
+                1.75,
+                0.95,
+                "BE",
+                10,
+                "mmol/l",
+                105.0,
+                35.0,
+                0.1,
+                false,
+                "ROSE_ELEGANCE",
+                "DARK",
+                "test-api-key-9988",
+                "gemini-3.5-pro"
+        );
+        userSettingsDao.saveSettings(customSettings);
+
+        String jsonBackup = backupManager.exportToJson();
+        assertNotNull(jsonBackup);
+
+        // Reset database to standard default settings
+        userSettingsDao.saveSettings(new UserSettings());
+        UserSettings resetSettings = userSettingsDao.getSettingsDirect();
+        assertNotNull(resetSettings);
+        assertEquals(1.50, resetSettings.getMorningFactor(), DELTA);
+        assertEquals(1.00, resetSettings.getNoonFactor(), DELTA);
+        assertEquals(1.20, resetSettings.getEveningFactor(), DELTA);
+        assertEquals(0.80, resetSettings.getNightFactor(), DELTA);
+        assertEquals("GRAMS", resetSettings.getDefaultCarbUnit());
+
+        // Import the backup
+        ImportResult result = backupManager.importFromJson(jsonBackup);
+        assertTrue(result.isSuccess());
+        assertTrue(result.isImportedSettings());
+
+        // Verify that EVERY setting and all 4 time-of-day factors are restored
+        UserSettings restored = userSettingsDao.getSettingsDirect();
+        assertNotNull(restored);
+        assertEquals(2.25, restored.getMorningFactor(), DELTA);
+        assertEquals(1.35, restored.getNoonFactor(), DELTA);
+        assertEquals(1.75, restored.getEveningFactor(), DELTA);
+        assertEquals(0.95, restored.getNightFactor(), DELTA);
+        assertEquals("BE", restored.getDefaultCarbUnit());
+        assertEquals(10, restored.getBeGramsDivisor());
+        assertEquals("mmol/l", restored.getGlucoseUnit());
+        assertEquals(105.0, restored.getTargetGlucoseMgDl(), DELTA);
+        assertEquals(35.0, restored.getCorrectionFactorMgDl(), DELTA);
+        assertEquals(0.1, restored.getRoundingStep(), DELTA);
+        assertFalse(restored.isShowDisclaimer());
+        assertEquals("ROSE_ELEGANCE", restored.getSelectedTheme());
+        assertEquals("DARK", restored.getThemeMode());
+        assertEquals("test-api-key-9988", restored.getGeminiApiKey());
+        assertEquals("gemini-3.5-pro", restored.getSelectedAiModel());
+    }
+
+    @Test
+    public void testLegacyAndAlternativeKeyJsonFormatSettingsRestore() {
+        String legacyJson = """
+                {
+                  "version": 1,
+                  "settings": {
+                    "morgenFaktor": "2,4",
+                    "noon_factor": 1.45,
+                    "abendFaktor": "1,85",
+                    "factorNight": 0.75,
+                    "carb_unit": "KE",
+                    "grams_per_be": 11,
+                    "blutzuckerEinheit": "mg/dl",
+                    "target_glucose": "110,0",
+                    "korrekturFaktor": "42,5",
+                    "rundungsSchritt": 0.25,
+                    "disclaimer": false,
+                    "farbDesign": "EMERALD_GREEN",
+                    "darkMode": "DARK",
+                    "api_key": "custom-legacy-key",
+                    "model": "gemini-3.5-flash"
+                  },
+                  "logs": []
+                }
+                """;
+
+        ImportResult result = backupManager.importFromJson(legacyJson);
+        assertTrue(result.isSuccess());
+        assertTrue(result.isImportedSettings());
+
+        UserSettings restored = userSettingsDao.getSettingsDirect();
+        assertNotNull(restored);
+        assertEquals(2.40, restored.getMorningFactor(), DELTA);
+        assertEquals(1.45, restored.getNoonFactor(), DELTA);
+        assertEquals(1.85, restored.getEveningFactor(), DELTA);
+        assertEquals(0.75, restored.getNightFactor(), DELTA);
+        assertEquals("KE", restored.getDefaultCarbUnit());
+        assertEquals(11, restored.getBeGramsDivisor());
+        assertEquals("mg/dl", restored.getGlucoseUnit());
+        assertEquals(110.0, restored.getTargetGlucoseMgDl(), DELTA);
+        assertEquals(42.5, restored.getCorrectionFactorMgDl(), DELTA);
+        assertEquals(0.25, restored.getRoundingStep(), DELTA);
+        assertFalse(restored.isShowDisclaimer());
+        assertEquals("EMERALD_GREEN", restored.getSelectedTheme());
+        assertEquals("DARK", restored.getThemeMode());
+        assertEquals("custom-legacy-key", restored.getGeminiApiKey());
+        assertEquals("gemini-3.5-flash", restored.getSelectedAiModel());
+    }
+
+    @Test
     public void testJsonBackupWithUmlautsAndNullValuesRoundtrip() {
         UserSettings originalSettings = new UserSettings(
                 1, 1.75, 1.25, 1.5, 0.9, "BE", 12, "mg/dl", 115.0, 45.0, 0.5, true, "WARM_EMBER", "DARK", "test-api-key", "gemini-2.5-flash"

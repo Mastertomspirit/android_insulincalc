@@ -385,34 +385,36 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun saveCalculationToLog(notesOverride: String? = null) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val state = _uiState.value
-            val summary = state.calculationSummary
-            val autoMealTitle = state.mealTitle.ifBlank {
-                "${state.selectedTimeOfDay.title} (${summary.carbGrams}g KH)"
-            }
-            val finalNotes = notesOverride ?: state.notes
+        // Capture full snapshot synchronously at moment of invocation
+        val state = _uiState.value
+        val summary = state.calculationSummary
+        val autoMealTitle = state.mealTitle.ifBlank {
+            "${state.selectedTimeOfDay.title} (${summary.carbGrams}g KH)"
+        }
+        val finalNotes = notesOverride ?: state.notes
 
-            val log = CalculationLog(
-                0L,
-                System.currentTimeMillis(),
-                autoMealTitle,
-                state.carbInput.toDoubleOrNull() ?: 0.0,
-                state.selectedUnit.shortName,
-                summary.carbGrams,
-                summary.beValue,
-                summary.keValue,
-                state.selectedTimeOfDay.title,
-                summary.factorUsed,
-                summary.mealInsulin,
-                summary.bloodGlucoseInput,
-                summary.targetGlucose,
-                state.correctionFactorInput.toDoubleOrNull(),
-                summary.correctionInsulin,
-                summary.rawTotalInsulin,
-                summary.roundedTotalInsulin,
-                finalNotes
-            )
+        val log = CalculationLog(
+            0L,
+            System.currentTimeMillis(),
+            autoMealTitle,
+            state.carbInput.toDoubleOrNull() ?: 0.0,
+            state.selectedUnit.shortName,
+            summary.carbGrams,
+            summary.beValue,
+            summary.keValue,
+            state.selectedTimeOfDay.title,
+            summary.factorUsed,
+            summary.mealInsulin,
+            summary.bloodGlucoseInput,
+            summary.targetGlucose,
+            state.correctionFactorInput.toDoubleOrNull(),
+            summary.correctionInsulin,
+            summary.rawTotalInsulin,
+            summary.roundedTotalInsulin,
+            finalNotes
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
             repository.saveCalculation(log)
             _uiState.update { it.copy(snackbarMessage = "Berechnung erfolgreich im Tagebuch gespeichert!") }
         }
@@ -453,11 +455,20 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     suspend fun importBackupContent(content: String): ImportResult = withContext(Dispatchers.IO) {
         val manager = DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao())
         val trimmed = content.trim()
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        val result = if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             manager.importFromJson(trimmed)
         } else {
             manager.importFromCsv(trimmed)
         }
+        if (result.isSuccess && result.isImportedSettings) {
+            val updated = repository.settings
+            if (updated != null) {
+                cachedSettings = updated
+                themePreferences.savePreferences(updated.selectedTheme, updated.themeMode)
+                recalculate(updated)
+            }
+        }
+        result
     }
 
     fun updateUserSettings(settings: UserSettings) {
