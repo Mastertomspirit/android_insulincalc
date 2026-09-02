@@ -66,6 +66,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun BackupRestoreSection(
@@ -179,8 +180,11 @@ fun BackupRestoreSection(
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("JSON Export")
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "Backup\nExport",
+                                textAlign = TextAlign.Center
+                            )
                         }
 
                         Button(
@@ -196,8 +200,11 @@ fun BackupRestoreSection(
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("CSV Export")
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "Tagebuch\nExport",
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
 
