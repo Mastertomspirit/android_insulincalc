@@ -174,30 +174,79 @@ public class JsonBackupHandler {
 
     private UserSettings parseUserSettingsJson(JSONObject obj) {
         UserSettings settings = new UserSettings();
-        if (obj.has("morningFactor")) settings.setMorningFactor(obj.optDouble("morningFactor", 1.5));
-        if (obj.has("noonFactor")) settings.setNoonFactor(obj.optDouble("noonFactor", 1.0));
-        if (obj.has("eveningFactor")) settings.setEveningFactor(obj.optDouble("eveningFactor", 1.2));
-        if (obj.has("nightFactor")) settings.setNightFactor(obj.optDouble("nightFactor", 0.8));
-        if (obj.has("defaultCarbUnit")) settings.setDefaultCarbUnit(obj.optString("defaultCarbUnit", "g KH"));
-        if (obj.has("beGramsDivisor")) {
-            settings.setBeGramsDivisor(obj.optInt("beGramsDivisor", 12));
-        } else if (obj.has("gramsPerBe")) {
-            settings.setBeGramsDivisor(obj.optInt("gramsPerBe", 12));
-        }
-        if (obj.has("glucoseUnit")) settings.setGlucoseUnit(obj.optString("glucoseUnit", "mg/dl"));
-        if (obj.has("targetGlucoseMgDl")) settings.setTargetGlucoseMgDl(obj.optDouble("targetGlucoseMgDl", 120.0));
-        if (obj.has("correctionFactorMgDl")) settings.setCorrectionFactorMgDl(obj.optDouble("correctionFactorMgDl", 50.0));
-        if (obj.has("roundingStep")) settings.setRoundingStep(obj.optDouble("roundingStep", 0.5));
-        if (obj.has("showDisclaimer")) {
-            settings.setShowDisclaimer(obj.optBoolean("showDisclaimer", true));
-        } else if (obj.has("autoTimeDetection")) {
-            settings.setShowDisclaimer(obj.optBoolean("autoTimeDetection", true));
-        }
-        if (obj.has("selectedTheme")) settings.setSelectedTheme(obj.optString("selectedTheme", "MEDICAL_TEAL"));
-        if (obj.has("themeMode")) settings.setThemeMode(obj.optString("themeMode", "SYSTEM"));
-        if (obj.has("geminiApiKey")) settings.setGeminiApiKey(obj.optString("geminiApiKey", null));
-        if (obj.has("selectedAiModel")) settings.setSelectedAiModel(obj.optString("selectedAiModel", "gemini-2.5-flash"));
+        settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor", "morning_factor", "morgenFaktor", "morgen_faktor", "factorMorning"));
+        settings.setNoonFactor(getDoubleFlexible(obj, 1.0, "noonFactor", "noon_factor", "mittagFaktor", "mittag_faktor", "factorNoon"));
+        settings.setEveningFactor(getDoubleFlexible(obj, 1.2, "eveningFactor", "evening_factor", "abendFaktor", "abend_faktor", "factorEvening"));
+        settings.setNightFactor(getDoubleFlexible(obj, 0.8, "nightFactor", "night_factor", "nachtFaktor", "nacht_faktor", "factorNight"));
+        settings.setDefaultCarbUnit(getStringFlexible(obj, "g KH", "defaultCarbUnit", "default_carb_unit", "carbUnit", "carb_unit", "kohlenhydrateEinheit", "einheit"));
+        settings.setBeGramsDivisor(getIntFlexible(obj, 12, "beGramsDivisor", "be_grams_divisor", "gramsPerBe", "grams_per_be", "beDivisor", "beTeiler", "grams_per_be"));
+        settings.setGlucoseUnit(getStringFlexible(obj, "mg/dl", "glucoseUnit", "glucose_unit", "blutzuckerEinheit", "bgUnit"));
+        settings.setTargetGlucoseMgDl(getDoubleFlexible(obj, 120.0, "targetGlucoseMgDl", "target_glucose_mg_dl", "targetGlucose", "target_glucose", "zielwert"));
+        settings.setCorrectionFactorMgDl(getDoubleFlexible(obj, 50.0, "correctionFactorMgDl", "correction_factor_mg_dl", "correctionFactor", "correction_factor", "korrekturFaktor"));
+        settings.setRoundingStep(getDoubleFlexible(obj, 0.5, "roundingStep", "rounding_step", "rundungsSchritt", "rundung"));
+        settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer", "show_disclaimer", "disclaimer", "autoTimeDetection", "auto_time_detection"));
+        settings.setSelectedTheme(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme", "selected_theme", "theme", "farbDesign", "farbschema"));
+        settings.setThemeMode(getStringFlexible(obj, "SYSTEM", "themeMode", "theme_mode", "darkMode", "dark_mode"));
+        settings.setGeminiApiKey(getStringFlexible(obj, null, "geminiApiKey", "gemini_api_key", "apiKey", "api_key"));
+        settings.setSelectedAiModel(getStringFlexible(obj, "gemini-2.5-flash", "selectedAiModel", "selected_ai_model", "aiModel", "ai_model", "model"));
         return settings;
+    }
+
+    private double getDoubleFlexible(JSONObject obj, double defaultVal, String... keys) {
+        for (String key : keys) {
+            if (obj.has(key) && !obj.isNull(key)) {
+                Object val = obj.opt(key);
+                if (val instanceof Number) {
+                    return ((Number) val).doubleValue();
+                } else if (val instanceof String) {
+                    try {
+                        String clean = ((String) val).trim().replace(",", ".");
+                        return Double.parseDouble(clean);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return defaultVal;
+    }
+
+    private int getIntFlexible(JSONObject obj, int defaultVal, String... keys) {
+        for (String key : keys) {
+            if (obj.has(key) && !obj.isNull(key)) {
+                Object val = obj.opt(key);
+                if (val instanceof Number) {
+                    return ((Number) val).intValue();
+                } else if (val instanceof String) {
+                    try {
+                        String clean = ((String) val).trim();
+                        return Integer.parseInt(clean);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return defaultVal;
+    }
+
+    private String getStringFlexible(JSONObject obj, String defaultVal, String... keys) {
+        for (String key : keys) {
+            if (obj.has(key) && !obj.isNull(key)) {
+                return obj.optString(key, defaultVal);
+            }
+        }
+        return defaultVal;
+    }
+
+    private boolean getBooleanFlexible(JSONObject obj, boolean defaultVal, String... keys) {
+        for (String key : keys) {
+            if (obj.has(key) && !obj.isNull(key)) {
+                Object val = obj.opt(key);
+                if (val instanceof Boolean) {
+                    return (Boolean) val;
+                } else if (val instanceof String) {
+                    return Boolean.parseBoolean((String) val);
+                }
+            }
+        }
+        return defaultVal;
     }
 
     private List<CalculationLog> parseLogsArray(JSONArray array) {

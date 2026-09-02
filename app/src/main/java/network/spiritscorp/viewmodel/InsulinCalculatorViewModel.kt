@@ -53,19 +53,19 @@ internal fun createInitialUiState(): CalculatorUiState {
     return CalculatorUiState(
         selectedTimeOfDay = currentTime,
         calculationSummary = CalculationSummary(
-            carbGrams = 0.0,
-            keValue = 0.0,
-            beValue = 0.0,
-            factorUsed = initialFactor,
-            mealInsulin = 0.0,
-            bloodGlucoseInput = null,
-            targetGlucose = null,
-            correctionInsulin = 0.0,
-            rawTotalInsulin = 0.0,
-            roundedTotalInsulin = 0.0,
-            roundingStep = 0.5,
-            isHypoRisk = false,
-            advisoryNote = "Bereit für Eingabe"
+            0.0,
+            0.0,
+            0.0,
+            initialFactor,
+            0.0,
+            null,
+            null,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            false,
+            "Bereit für Eingabe"
         )
     )
 }
@@ -84,19 +84,19 @@ data class CalculatorUiState(
     val mealTitle: String = "",
     val notes: String = "",
     val calculationSummary: CalculationSummary = CalculationSummary(
-        carbGrams = 0.0,
-        keValue = 0.0,
-        beValue = 0.0,
-        factorUsed = TimeOfDay.current().defaultFactor,
-        mealInsulin = 0.0,
-        bloodGlucoseInput = null,
-        targetGlucose = null,
-        correctionInsulin = 0.0,
-        rawTotalInsulin = 0.0,
-        roundedTotalInsulin = 0.0,
-        roundingStep = 0.5,
-        isHypoRisk = false,
-        advisoryNote = "Bereit für Eingabe"
+        0.0,
+        0.0,
+        0.0,
+        TimeOfDay.current().defaultFactor,
+        0.0,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        false,
+        "Bereit für Eingabe"
     ),
     val snackbarMessage: String? = null,
     val activeTab: Int = 0 // 0: Rechner, 1: KI-Schätzer, 2: Tagebuch, 3: Einstellungen
@@ -366,19 +366,19 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         _uiState.update {
             it.copy(
                 calculationSummary = CalculationSummary(
-                    carbGrams = InsulinMathEngine.roundToDecimals(grams, 1),
-                    keValue = InsulinMathEngine.roundToDecimals(ke, 2),
-                    beValue = InsulinMathEngine.roundToDecimals(be, 2),
-                    factorUsed = factor,
-                    mealInsulin = InsulinMathEngine.roundToDecimals(mealInsulin, 2),
-                    bloodGlucoseInput = currentBg,
-                    targetGlucose = targetBg,
-                    correctionInsulin = InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
-                    rawTotalInsulin = InsulinMathEngine.roundToDecimals(rawTotal, 2),
-                    roundedTotalInsulin = roundedTotal,
-                    roundingStep = roundingStep,
-                    isHypoRisk = isHypoRisk,
-                    advisoryNote = advisory
+                    InsulinMathEngine.roundToDecimals(grams, 1),
+                    InsulinMathEngine.roundToDecimals(ke, 2),
+                    InsulinMathEngine.roundToDecimals(be, 2),
+                    factor,
+                    InsulinMathEngine.roundToDecimals(mealInsulin, 2),
+                    currentBg,
+                    targetBg,
+                    InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
+                    InsulinMathEngine.roundToDecimals(rawTotal, 2),
+                    roundedTotal,
+                    roundingStep,
+                    isHypoRisk,
+                    advisory
                 )
             )
         }
