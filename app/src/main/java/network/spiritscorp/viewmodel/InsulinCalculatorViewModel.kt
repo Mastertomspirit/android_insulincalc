@@ -389,7 +389,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         val state = _uiState.value
         val summary = state.calculationSummary
         val autoMealTitle = state.mealTitle.ifBlank {
-            "${state.selectedTimeOfDay.title} (${summary.carbGrams}g KH)"
+            "${state.selectedTimeOfDay.title} (${summary.carbGrams()}g KH)"
         }
         val finalNotes = notesOverride ?: state.notes
 
@@ -399,18 +399,18 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
             autoMealTitle,
             state.carbInput.toDoubleOrNull() ?: 0.0,
             state.selectedUnit.shortName,
-            summary.carbGrams,
-            summary.beValue,
-            summary.keValue,
+            summary.carbGrams(),
+            summary.beValue(),
+            summary.keValue(),
             state.selectedTimeOfDay.title,
-            summary.factorUsed,
-            summary.mealInsulin,
-            summary.bloodGlucoseInput,
-            summary.targetGlucose,
+            summary.factorUsed(),
+            summary.mealInsulin(),
+            summary.bloodGlucoseInput(),
+            summary.targetGlucose(),
             state.correctionFactorInput.toDoubleOrNull(),
-            summary.correctionInsulin,
-            summary.rawTotalInsulin,
-            summary.roundedTotalInsulin,
+            summary.correctionInsulin(),
+            summary.rawTotalInsulin(),
+            summary.roundedTotalInsulin(),
             finalNotes
         )
 

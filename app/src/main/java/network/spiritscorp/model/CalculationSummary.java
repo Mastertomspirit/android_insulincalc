@@ -17,25 +17,18 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.NonNull;
 import java.util.Objects;
 
-public final class CalculationSummary {
-    private final double carbGrams;
-    private final double keValue;
-    private final double beValue;
-    private final double factorUsed;
-    private final double mealInsulin;
-    private final Double bloodGlucoseInput;
-    private final Double targetGlucose;
-    private final double correctionInsulin;
-    private final double rawTotalInsulin;
-    private final double roundedTotalInsulin;
-    private final double roundingStep;
-    private final boolean isHypoRisk;
-    private final String advisoryNote;
-
+public record CalculationSummary(double carbGrams, double keValue, double beValue,
+                                 double factorUsed, double mealInsulin, Double bloodGlucoseInput,
+                                 Double targetGlucose, double correctionInsulin,
+                                 double rawTotalInsulin, double roundedTotalInsulin,
+                                 double roundingStep, boolean isHypoRisk, String advisoryNote) {
     public CalculationSummary() {
-        this(0.0, 0.0, 0.0, 0.0, 0.0, null, null, 0.0, 0.0, 0.0, 0.5, false, "");
+        this(0.0, 0.0, 0.0, 0.0, 0.0,
+                null, null, 0.0, 0.0,
+                0.0, 0.5, false, "");
     }
 
     public CalculationSummary(
@@ -68,58 +61,6 @@ public final class CalculationSummary {
         this.advisoryNote = advisoryNote != null ? advisoryNote : "";
     }
 
-    public double getCarbGrams() {
-        return carbGrams;
-    }
-
-    public double getKeValue() {
-        return keValue;
-    }
-
-    public double getBeValue() {
-        return beValue;
-    }
-
-    public double getFactorUsed() {
-        return factorUsed;
-    }
-
-    public double getMealInsulin() {
-        return mealInsulin;
-    }
-
-    public Double getBloodGlucoseInput() {
-        return bloodGlucoseInput;
-    }
-
-    public Double getTargetGlucose() {
-        return targetGlucose;
-    }
-
-    public double getCorrectionInsulin() {
-        return correctionInsulin;
-    }
-
-    public double getRawTotalInsulin() {
-        return rawTotalInsulin;
-    }
-
-    public double getRoundedTotalInsulin() {
-        return roundedTotalInsulin;
-    }
-
-    public double getRoundingStep() {
-        return roundingStep;
-    }
-
-    public boolean isHypoRisk() {
-        return isHypoRisk;
-    }
-
-    public String getAdvisoryNote() {
-        return advisoryNote;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -150,6 +91,7 @@ public final class CalculationSummary {
         );
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "CalculationSummary{" +
