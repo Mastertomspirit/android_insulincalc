@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.model.TimeOfDay
+import network.spiritscorp.ui.theme.accentColor
 import androidx.compose.ui.platform.LocalLocale
 
 /**

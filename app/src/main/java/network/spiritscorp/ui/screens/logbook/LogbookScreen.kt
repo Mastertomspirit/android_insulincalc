@@ -83,7 +83,7 @@ fun LogbookScreen(
     val context = LocalContext.current
     var showClearAllDialog by remember { mutableStateOf(false) }
     var logToDelete by remember { mutableStateOf<CalculationLog?>(null) }
-    var selectedFilter by remember { mutableStateOf(HistoryFilter.ALL) }
+    var selectedFilter by remember { mutableStateOf(HistoryFilter.TODAY) }
     var sliceOffset by remember { mutableIntStateOf(0) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var customStartDateMillis by remember { mutableLongStateOf(System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000) }

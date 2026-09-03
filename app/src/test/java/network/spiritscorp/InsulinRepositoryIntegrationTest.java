@@ -195,7 +195,7 @@ public class InsulinRepositoryIntegrationTest {
         try {
             return BuildersKt.runBlocking(
                     EmptyCoroutineContext.INSTANCE,
-                    (_, continuation) -> FlowKt.first(flow, continuation)
+                    (scope, continuation) -> FlowKt.first(flow, continuation)
             );
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

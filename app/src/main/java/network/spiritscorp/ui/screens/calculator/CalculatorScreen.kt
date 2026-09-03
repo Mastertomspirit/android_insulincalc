@@ -123,7 +123,7 @@ fun CalculatorScreen(
         // 4. Time of Day Selector & Active Factor
         TimeOfDaySelector(
             selectedTimeOfDay = uiState.selectedTimeOfDay,
-            effectiveFactor = uiState.calculationSummary.factorUsed,
+            effectiveFactor = uiState.calculationSummary.factorUsed(),
             isAutoDetected = uiState.isAutoTimeDetection,
             onSelect = {
                 closeKeyboard()

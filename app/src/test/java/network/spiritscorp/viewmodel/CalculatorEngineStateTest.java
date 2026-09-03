@@ -171,12 +171,12 @@ public class CalculatorEngineStateTest {
         );
 
         // 60g KH / 12 = 5 BE. 5 BE * 1.5 = 7.5 IE
-        assertEquals(60.0, summary.getCarbGrams(), DELTA);
-        assertEquals(5.0, summary.getBeValue(), DELTA);
-        assertEquals(6.0, summary.getKeValue(), DELTA);
-        assertEquals(1.50, summary.getFactorUsed(), DELTA);
-        assertEquals(7.50, summary.getMealInsulin(), DELTA);
-        assertEquals(7.5, summary.getRoundedTotalInsulin(), DELTA);
+        assertEquals(60.0, summary.carbGrams(), DELTA);
+        assertEquals(5.0, summary.beValue(), DELTA);
+        assertEquals(6.0, summary.keValue(), DELTA);
+        assertEquals(1.50, summary.factorUsed(), DELTA);
+        assertEquals(7.50, summary.mealInsulin(), DELTA);
+        assertEquals(7.5, summary.roundedTotalInsulin(), DELTA);
         assertFalse(summary.isHypoRisk());
     }
 
@@ -200,11 +200,11 @@ public class CalculatorEngineStateTest {
         );
 
         // 4.5 BE * 12 = 54.0g KH. 4.5 BE * 1.30 = 5.85 IE -> Rounded to step 0.5 = 6.0 IE
-        assertEquals(54.0, summary.getCarbGrams(), DELTA);
-        assertEquals(4.5, summary.getBeValue(), DELTA);
-        assertEquals(1.30, summary.getFactorUsed(), DELTA);
-        assertEquals(5.85, summary.getMealInsulin(), DELTA);
-        assertEquals(6.0, summary.getRoundedTotalInsulin(), DELTA);
+        assertEquals(54.0, summary.carbGrams(), DELTA);
+        assertEquals(4.5, summary.beValue(), DELTA);
+        assertEquals(1.30, summary.factorUsed(), DELTA);
+        assertEquals(5.85, summary.mealInsulin(), DELTA);
+        assertEquals(6.0, summary.roundedTotalInsulin(), DELTA);
     }
 
     @Test
@@ -228,12 +228,12 @@ public class CalculatorEngineStateTest {
                 settings
         );
 
-        assertEquals(36.0, summary.getCarbGrams(), DELTA);
-        assertEquals(3.60, summary.getMealInsulin(), DELTA);
-        assertEquals(3.00, summary.getCorrectionInsulin(), DELTA);
-        assertEquals(6.60, summary.getRawTotalInsulin(), DELTA);
-        assertEquals(6.5, summary.getRoundedTotalInsulin(), DELTA);
-        assertTrue(summary.getAdvisoryNote().contains("Erhöhter Blutzucker"));
+        assertEquals(36.0, summary.carbGrams(), DELTA);
+        assertEquals(3.60, summary.mealInsulin(), DELTA);
+        assertEquals(3.00, summary.correctionInsulin(), DELTA);
+        assertEquals(6.60, summary.rawTotalInsulin(), DELTA);
+        assertEquals(6.5, summary.roundedTotalInsulin(), DELTA);
+        assertTrue(summary.advisoryNote().contains("Erhöhter Blutzucker"));
     }
 
     @Test
@@ -256,7 +256,7 @@ public class CalculatorEngineStateTest {
         );
 
         assertTrue(summary.isHypoRisk());
-        assertTrue(summary.getAdvisoryNote().contains("Achtung: Niedriger Blutzucker"));
+        assertTrue(summary.advisoryNote().contains("Achtung: Niedriger Blutzucker"));
     }
 
     @Test
@@ -280,12 +280,12 @@ public class CalculatorEngineStateTest {
                 settings
         );
 
-        assertEquals(2.0, summary.getMealInsulin(), DELTA);
-        assertEquals(-0.50, summary.getCorrectionInsulin(), DELTA);
-        assertEquals(1.50, summary.getRawTotalInsulin(), DELTA);
-        assertEquals(1.5, summary.getRoundedTotalInsulin(), DELTA);
+        assertEquals(2.0, summary.mealInsulin(), DELTA);
+        assertEquals(-0.50, summary.correctionInsulin(), DELTA);
+        assertEquals(1.50, summary.rawTotalInsulin(), DELTA);
+        assertEquals(1.5, summary.roundedTotalInsulin(), DELTA);
         assertFalse(summary.isHypoRisk());
-        assertTrue(summary.getAdvisoryNote().contains("reduziert"));
+        assertTrue(summary.advisoryNote().contains("reduziert"));
     }
 
     @Test
@@ -311,12 +311,12 @@ public class CalculatorEngineStateTest {
                 settings
         );
 
-        assertEquals(30.0, summary.getCarbGrams(), DELTA);
-        assertEquals(3.00, summary.getMealInsulin(), DELTA);
-        assertEquals(2.00, summary.getCorrectionInsulin(), DELTA);
-        assertEquals(5.00, summary.getRawTotalInsulin(), DELTA);
-        assertEquals(5.0, summary.getRoundedTotalInsulin(), DELTA);
-        assertTrue(summary.getAdvisoryNote().contains("Erhöhter Blutzucker"));
+        assertEquals(30.0, summary.carbGrams(), DELTA);
+        assertEquals(3.00, summary.mealInsulin(), DELTA);
+        assertEquals(2.00, summary.correctionInsulin(), DELTA);
+        assertEquals(5.00, summary.rawTotalInsulin(), DELTA);
+        assertEquals(5.0, summary.roundedTotalInsulin(), DELTA);
+        assertTrue(summary.advisoryNote().contains("Erhöhter Blutzucker"));
     }
 
     @Test

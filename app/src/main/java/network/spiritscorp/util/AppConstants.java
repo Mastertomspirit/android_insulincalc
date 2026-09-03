@@ -39,7 +39,7 @@ public final class AppConstants {
     /**
      * JSON Backup Payload Format Version.
      */
-    public static final int JSON_BACKUP_VERSION = 1;
+    public static final int JSON_BACKUP_VERSION = 2;
 
     /**
      * CSV Export & Import Format Version.

@@ -211,10 +211,10 @@ fun GlucoseCorrectionCard(
                         singleLine = true
                     )
 
-                    if (uiState.calculationSummary.correctionInsulin != 0.0) {
+                    if (uiState.calculationSummary.correctionInsulin() != 0.0) {
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                            color = if (uiState.calculationSummary.correctionInsulin() > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -223,16 +223,16 @@ fun GlucoseCorrectionCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = if (uiState.calculationSummary.correctionInsulin > 0) Icons.Default.Add else Icons.Default.Warning,
+                                    imageVector = if (uiState.calculationSummary.correctionInsulin() > 0) Icons.Default.Add else Icons.Default.Warning,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
-                                    tint = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
+                                    tint = if (uiState.calculationSummary.correctionInsulin() > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Korrektur-Dosis: ${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
+                                    text = "Korrektur-Dosis: ${if (uiState.calculationSummary.correctionInsulin() > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin()} IE",
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (uiState.calculationSummary.correctionInsulin > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
+                                    color = if (uiState.calculationSummary.correctionInsulin() > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
                                 )
                             }
                         }

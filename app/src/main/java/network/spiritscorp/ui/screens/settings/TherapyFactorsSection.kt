@@ -98,7 +98,7 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     FactorRow(
-                        title = "Morgens (06:00 - 11:00)",
+                        title = "Morgens (06:00 - 10:30)",
                         subtitle = "Höherer Insulinbedarf wegen Dawn-Phänomen",
                         icon = Icons.Default.WbTwilight,
                         iconColor = MorningColor,
@@ -110,7 +110,7 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     FactorRow(
-                        title = "Mittags (11:00 - 17:00)",
+                        title = "Mittags (10:30 - 16:00)",
                         subtitle = "Typischerweise geringster Faktor des Tages",
                         icon = Icons.Default.WbSunny,
                         iconColor = NoonColor,
@@ -122,7 +122,7 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     FactorRow(
-                        title = "Abends (17:00 - 22:00)",
+                        title = "Abends (16:00 - 22:00)",
                         subtitle = "Mittlerer bis leicht erhöhter Bedarf",
                         icon = Icons.Default.Brightness5,
                         iconColor = EveningColor,

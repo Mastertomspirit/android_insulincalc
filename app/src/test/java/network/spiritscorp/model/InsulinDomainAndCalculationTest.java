@@ -95,36 +95,47 @@ public class InsulinDomainAndCalculationTest {
 
     @Test
     public void testTimeOfDayFull24HourCoverage() {
-        // Morning: 06:00 - 10:59
-        assertEquals(TimeOfDay.MORNING, TimeOfDay.Companion.fromHour(6));
-        assertEquals(TimeOfDay.MORNING, TimeOfDay.Companion.fromHour(8));
-        assertEquals(TimeOfDay.MORNING, TimeOfDay.Companion.fromHour(10));
+        // Morning: 06:00 - 10:30 (6.0 to 10.5)
+        assertEquals(TimeOfDay.MORNING, TimeOfDay.fromHour(6));
+        assertEquals(TimeOfDay.MORNING, TimeOfDay.fromHour(8));
+        assertEquals(TimeOfDay.MORNING, TimeOfDay.fromHour(10));
+        assertEquals(TimeOfDay.MORNING, TimeOfDay.fromTime(10, 29));
 
-        // Noon: 11:00 - 16:59
-        assertEquals(TimeOfDay.NOON, TimeOfDay.Companion.fromHour(11));
-        assertEquals(TimeOfDay.NOON, TimeOfDay.Companion.fromHour(13));
-        assertEquals(TimeOfDay.NOON, TimeOfDay.Companion.fromHour(16));
+        // Noon: 10:30 - 16:00 (10.5 to 16.0)
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromTime(10, 30));
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromHour(10.5));
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromHour(11));
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromHour(13));
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromHour(15));
+        assertEquals(TimeOfDay.NOON, TimeOfDay.fromTime(15, 59));
 
-        // Evening: 17:00 - 21:59
-        assertEquals(TimeOfDay.EVENING, TimeOfDay.Companion.fromHour(17));
-        assertEquals(TimeOfDay.EVENING, TimeOfDay.Companion.fromHour(19));
-        assertEquals(TimeOfDay.EVENING, TimeOfDay.Companion.fromHour(21));
+        // Evening: 16:00 - 22:00 (16.0 to 22.0)
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromHour(16));
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromTime(16, 0));
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromHour(17));
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromHour(19));
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromHour(21));
+        assertEquals(TimeOfDay.EVENING, TimeOfDay.fromTime(21, 59));
 
-        // Night: 22:00 - 05:59
-        assertEquals(TimeOfDay.NIGHT, TimeOfDay.Companion.fromHour(22));
-        assertEquals(TimeOfDay.NIGHT, TimeOfDay.Companion.fromHour(23));
-        assertEquals(TimeOfDay.NIGHT, TimeOfDay.Companion.fromHour(0));
-        assertEquals(TimeOfDay.NIGHT, TimeOfDay.Companion.fromHour(3));
-        assertEquals(TimeOfDay.NIGHT, TimeOfDay.Companion.fromHour(5));
+        // Night: 22:00 - 06:00 (22.0 to 6.0)
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromHour(22));
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromHour(23));
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromHour(0));
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromHour(3));
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromHour(5));
+        assertEquals(TimeOfDay.NIGHT, TimeOfDay.fromTime(5, 59));
     }
 
     @Test
     public void testTimeOfDayMetadataAndProperties() {
-        for (TimeOfDay tod : TimeOfDay.getEntries()) {
+        for (TimeOfDay tod : TimeOfDay.values()) {
             assertNotNull(tod.getTitle());
             assertNotNull(tod.getSubtitle());
             assertTrue(tod.getDefaultFactor() > 0.0);
+            assertTrue(tod.getStartHour() >= 0.0);
+            assertTrue(tod.getEndHour() >= 0.0);
             assertNotNull(tod.getIcon());
+            assertTrue(tod.getColorValue() != 0);
         }
     }
 

@@ -244,7 +244,7 @@ fun CarbsInputCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams} g KH",
+                        text = "${uiState.calculationSummary.carbGrams()} g KH",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -253,7 +253,7 @@ fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.keValue} KE",
+                        text = "${uiState.calculationSummary.keValue()} KE",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -262,7 +262,7 @@ fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.beValue} BE",
+                        text = "${uiState.calculationSummary.beValue()} BE",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )

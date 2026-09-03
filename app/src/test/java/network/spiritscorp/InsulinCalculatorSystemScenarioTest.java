@@ -389,6 +389,68 @@ public class InsulinCalculatorSystemScenarioTest {
     }
 
     @Test
+    public void testKeyboardInputPersistenceDuringSaveScenario() {
+        // Given user sets morning factor of 1.75
+        UserSettings settings = new UserSettings(
+                1, 1.75, 1.0, 1.2, 0.8, "GRAMS", 12, "mg/dl", 100.0, 40.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+        );
+        repository.saveSettings(settings);
+
+        // Simulate user typing "48" in the carb input field and "140" in glucose field while keyboard is open
+        String liveCarbInput = "48";
+        String liveGlucoseInput = "140";
+        String mealTitle = "Müsli & Banane";
+        String notes = "Vor dem Training";
+
+        // Computing snapshot at click time
+        double rawCarbs = Double.parseDouble(liveCarbInput);
+        double bg = Double.parseDouble(liveGlucoseInput);
+        double carbGrams = rawCarbs;
+        double be = carbGrams / 12.0; // 4.0 BE
+        double ke = carbGrams / 10.0; // 4.8 KE
+        double mealInsulin = be * settings.getMorningFactor(); // 4.0 * 1.75 = 7.0 IE
+        double corrInsulin = (bg - 100.0) / 40.0; // +1.0 IE
+        double totalInsulin = mealInsulin + corrInsulin; // 8.0 IE
+
+        CalculationLog log = new CalculationLog(
+                0L,
+                System.currentTimeMillis(),
+                mealTitle,
+                rawCarbs,
+                "g KH",
+                carbGrams,
+                be,
+                ke,
+                TimeOfDay.MORNING.getTitle(),
+                settings.getMorningFactor(),
+                mealInsulin,
+                bg,
+                100.0,
+                40.0,
+                corrInsulin,
+                totalInsulin,
+                totalInsulin,
+                notes
+        );
+
+        // Save immediately before clearing
+        long id = repository.saveCalculation(log);
+        assertTrue("Saved log must have valid ID", id > 0);
+
+        // Verify stored entity is NOT 0
+        List<CalculationLog> logs = repository.getAllLogsDirect();
+        assertEquals(1, logs.size());
+        CalculationLog saved = logs.getFirst();
+        assertEquals(48.0, saved.getRawCarbInput(), DELTA);
+        assertEquals(48.0, saved.getCarbGrams(), DELTA);
+        assertEquals(7.0, saved.getMealInsulin(), DELTA);
+        assertEquals(140.0, saved.getBloodGlucose(), DELTA);
+        assertEquals(8.0, saved.getTotalInsulin(), DELTA);
+        assertEquals(8.0, saved.getRoundedInsulin(), DELTA);
+        assertEquals("Müsli & Banane", saved.getMealTitle());
+    }
+
+    @Test
     public void testFullJsonBackupAndRestoreE2E() {
         UserSettings initialSettings = new UserSettings(
                 1, 1.8, 1.1, 1.4, 0.7, "KE", 10, "mmol/l", 6.5, 2.5, 0.5, true, "OCEAN_BREEZE", "LIGHT", "key-xyz", "gemini-2.5-pro"

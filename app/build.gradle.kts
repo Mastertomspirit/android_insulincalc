@@ -16,8 +16,8 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 7
-    versionName = "1.3.6"
+    versionCode = 8
+    versionName = "1.3.7"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -60,7 +60,14 @@ android {
       isIncludeAndroidResources = true
       all {
         val testTask = this as? Test
-        testTask?.jvmArgs("--enable-native-access=ALL-UNNAMED")
+        testTask?.jvmArgs(
+          "--enable-native-access=ALL-UNNAMED",
+          "-XX:+EnableDynamicAgentLoading"
+        )
+        val jvmMajor = JavaVersion.current().majorVersion.toIntOrNull() ?: 21
+        if (jvmMajor >= 24) {
+          testTask?.jvmArgs("--sun-misc-unsafe-memory-access=allow")
+        }
       }
     }
   }

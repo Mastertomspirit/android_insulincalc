@@ -96,7 +96,7 @@ fun CalculationResultHeroCard(
                     text = String.format(
                         LocalLocale.current.platformLocale,
                         "%.1f",
-                        uiState.calculationSummary.roundedTotalInsulin
+                        uiState.calculationSummary.roundedTotalInsulin()
                     ),
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
@@ -115,9 +115,9 @@ fun CalculationResultHeroCard(
                 )
             }
 
-            if (uiState.calculationSummary.roundingStep > 0.0) {
+            if (uiState.calculationSummary.roundingStep() > 0.0) {
                 Text(
-                    text = "Gerundet auf ${uiState.calculationSummary.roundingStep} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin} IE)",
+                    text = "Gerundet auf ${uiState.calculationSummary.roundingStep()} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin()} IE)",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                 )
@@ -139,18 +139,18 @@ fun CalculationResultHeroCard(
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = "${uiState.calculationSummary.mealInsulin} IE",
+                        text = "${uiState.calculationSummary.mealInsulin()} IE",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams}g × ${uiState.calculationSummary.factorUsed}",
+                        text = "${uiState.calculationSummary.carbGrams()}g × ${uiState.calculationSummary.factorUsed()}",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
                 }
 
-                if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin != 0.0) {
+                if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin() != 0.0) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "Korrektur",
@@ -158,7 +158,7 @@ fun CalculationResultHeroCard(
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                         )
                         Text(
-                            text = "${if (uiState.calculationSummary.correctionInsulin > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin} IE",
+                            text = "${if (uiState.calculationSummary.correctionInsulin() > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin()} IE",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
@@ -182,7 +182,7 @@ fun CalculationResultHeroCard(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "Faktor: ${uiState.calculationSummary.factorUsed}",
+                        text = "Faktor: ${uiState.calculationSummary.factorUsed()}",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
@@ -207,7 +207,7 @@ fun CalculationResultHeroCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = uiState.calculationSummary.advisoryNote,
+                            text = uiState.calculationSummary.advisoryNote(),
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )

@@ -58,10 +58,10 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.6` (VersionCode: `7`)
+* **Version**: `1.3.7` (VersionCode: `8`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
-* **Android Gradle Plugin (AGP)**: `9.3.2` (optimiert für Gradle 9.7.1)
+* **Android Gradle Plugin (AGP)**: `9.4.0` (optimiert für Gradle 9.7.1)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
 * **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und AndroidX Security Crypto (`1.1.0`)

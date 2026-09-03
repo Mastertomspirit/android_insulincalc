@@ -5,6 +5,8 @@
 
 /assetWizardSettings.xml
 /deploymentTargetSelector.xml
+/gradle.xml
+/kotlinc.xml
 /modules.xml
 /navEditor.xml
 /workspace.xml

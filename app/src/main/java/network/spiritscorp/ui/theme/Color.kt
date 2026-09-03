@@ -120,3 +120,12 @@ val AlertRed = Color(0xFFBA1A1A)
 val SuccessGreen = Color(0xFF2E7D32)
 val InfoBlue = Color(0xFF0288D1)
 
+val network.spiritscorp.model.TimeOfDay.accentColor: Color
+    get() = when (this) {
+        network.spiritscorp.model.TimeOfDay.MORNING -> MorningColor
+        network.spiritscorp.model.TimeOfDay.NOON -> NoonColor
+        network.spiritscorp.model.TimeOfDay.EVENING -> EveningColor
+        network.spiritscorp.model.TimeOfDay.NIGHT -> NightColor
+    }
+
+
