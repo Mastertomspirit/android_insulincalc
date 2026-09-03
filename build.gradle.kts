@@ -7,17 +7,6 @@ plugins {
   alias(libs.plugins.secrets) apply false
 }
 
-// Helper funktion
-
-val overrideDependencies = Action<DependencyResolveDetails> {
-  when (requested.group) {
-    "io.netty" -> useVersion("4.1.137.Final")
-    "org.bouncycastle" -> useVersion("1.84")
-    "org.apache.httpcomponents" -> useVersion("4.5.14")
-    "org.apache.commons" -> useVersion("3.18.0")
-  }
-}
-
 // 1. For build plugins
   buildscript {
     configurations.all {
@@ -26,28 +15,36 @@ val overrideDependencies = Action<DependencyResolveDetails> {
           useVersion("4.1.137.Final")
         }
         if (requested.group == "org.bouncycastle") {
-          useVersion("1.84")
+          useVersion("1.85")
         }
       }
     }
   }
 
-// 2. App and test dependencies
-  allprojects {
-    configurations.all {
-      resolutionStrategy.eachDependency {
-        if (requested.group == "io.netty") {
-          useVersion("4.1.137.Final")
+// 2. App, lint, and test dependencies
+allprojects {
+  configurations.all {
+    resolutionStrategy.eachDependency {
+      if (requested.group == "io.netty") {
+        useVersion("4.1.137.Final")
+      }
+      if (requested.group == "org.bouncycastle") {
+        useVersion("1.85")
+      }
+      if (requested.group == "org.apache.httpcomponents") {
+        if (requested.name == "httpclient" || requested.name == "httpmime") {
+          useVersion("4.5.15")
+        } else if (requested.name == "httpcore") {
+          useVersion("4.4.16")
         }
-        if (requested.group == "org.bouncycastle") {
-          useVersion("1.84")
-        }
-        if (requested.group == "org.apache.httpcomponents") {
-          useVersion("4.5.14")
-        }
-        if (requested.group == "org.apache.commons") {
-          useVersion("3.18.0")
+      }
+      if (requested.group == "org.apache.commons") {
+        if (requested.name == "commons-lang3") {
+          useVersion("3.20.0")
+        } else if (requested.name == "commons-compress") {
+          useVersion("1.28.0")
         }
       }
     }
   }
+}

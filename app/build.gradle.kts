@@ -60,7 +60,14 @@ android {
       isIncludeAndroidResources = true
       all {
         val testTask = this as? Test
-        testTask?.jvmArgs("--enable-native-access=ALL-UNNAMED")
+        testTask?.jvmArgs(
+          "--enable-native-access=ALL-UNNAMED",
+          "-XX:+EnableDynamicAgentLoading"
+        )
+        val jvmMajor = JavaVersion.current().majorVersion.toIntOrNull() ?: 21
+        if (jvmMajor >= 24) {
+          testTask?.jvmArgs("--sun-misc-unsafe-memory-access=allow")
+        }
       }
     }
   }
