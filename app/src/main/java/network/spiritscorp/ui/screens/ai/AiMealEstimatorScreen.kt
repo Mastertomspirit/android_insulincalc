@@ -217,7 +217,7 @@ fun AiMealEstimatorScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        val activeModel = GeminiAiModel.fromModelId(userSettings?.selectedAiModel)
+                        val activeModel = GeminiAiModel.fromModelId(userSettings.selectedAiModel)
                         Text("Analysiere mit ${activeModel.displayName}...")
                     } else {
                         Icon(

@@ -101,8 +101,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Collect user settings reactively from ViewModel
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-            val themeString = userSettings?.selectedTheme ?: initialSavedTheme
-            val modeString = userSettings?.themeMode ?: initialSavedMode
+            val themeString = userSettings.selectedTheme ?: initialSavedTheme
+            val modeString = userSettings.themeMode ?: initialSavedMode
 
             // Resolve color theme enum from stored string value
             val themeEnum = try {

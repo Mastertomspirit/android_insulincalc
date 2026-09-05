@@ -304,7 +304,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         if (state.factorOverride != null) {
             return state.factorOverride
         }
-        val effectiveSettings = if (settings.id != 0 || settings != UserSettings()) settings else (userSettings.value ?: cachedSettings)
+        val effectiveSettings = if (settings.id != 0 || settings != UserSettings()) settings else (userSettings.value)
         return getFactorForTime(state.selectedTimeOfDay, effectiveSettings)
     }
 
@@ -517,7 +517,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
         if (description.isBlank()) return
         _aiState.value = AiEstimateState.Loading
         viewModelScope.launch {
-            val settings = userSettings.value ?: cachedSettings
+            val settings = userSettings.value
             val result = geminiService.estimateCarbsFromDescription(
                 foodDescription = description,
                 customApiKey = settings.geminiApiKey,
@@ -533,7 +533,7 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
     fun saveAiConfiguration(apiKey: String, modelId: String) {
         viewModelScope.launch {
-            val current = userSettings.value ?: cachedSettings
+            val current = userSettings.value
             val updated = current.copy()
             updated.geminiApiKey = apiKey.trim()
             updated.selectedAiModel = modelId
