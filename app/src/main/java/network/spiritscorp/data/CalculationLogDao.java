@@ -17,6 +17,7 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -35,14 +36,14 @@ public interface CalculationLogDao {
     /**
      * Observes all calculation log entries ordered chronologically descending by creation timestamp.
      */
-    @NotNull
+    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     Flow<List<CalculationLog>> getAllLogs();
 
     /**
      * Retrieves a snapshot of all calculation log entries ordered chronologically descending.
      */
-    @NotNull
+    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     List<CalculationLog> getAllLogsDirect();
 
