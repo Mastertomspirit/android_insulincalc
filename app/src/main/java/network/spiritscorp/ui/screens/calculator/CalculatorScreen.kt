@@ -58,7 +58,7 @@ fun CalculatorScreen(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val settings by viewModel.userSettings.collectAsState(initial = null)
+    val settings by viewModel.userSettings.collectAsState()
 
     val closeKeyboard = {
         focusManager.clearFocus()
@@ -78,7 +78,7 @@ fun CalculatorScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // 1. Optional Medical Disclaimer Banner
-        if (settings?.isShowDisclaimer == true) {
+        if (settings.isShowDisclaimer) {
             MedicalDisclaimerBanner(
                 onDismiss = {
                     closeKeyboard()

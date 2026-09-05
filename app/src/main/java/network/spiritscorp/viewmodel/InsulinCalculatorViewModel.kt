@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -119,15 +120,20 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
     init {
         val db = AppDatabase.getDatabase(application)
         repository = InsulinRepository(db.calculationLogDao(), db.userSettingsDao())
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getSettings()
+        }
     }
 
     val historyLogs: StateFlow<List<CalculationLog>> = repository.allLogs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val userSettings: StateFlow<UserSettings?> = repository.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val userSettings: StateFlow<UserSettings> = repository.settingsFlow
+        .map { it ?: UserSettings() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
 
     private val _uiState = MutableStateFlow(createInitialUiState())
+
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
     private val _aiState = MutableStateFlow<AiEstimateState>(AiEstimateState.Idle)
@@ -256,9 +262,9 @@ class InsulinCalculatorViewModel(application: Application) : AndroidViewModel(ap
 
     fun dismissDisclaimer() {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentSettings = userSettings.value ?: cachedSettings
-            currentSettings.isShowDisclaimer = false
-            repository.saveSettings(currentSettings)
+            val updatedSettings = userSettings.value.copy()
+            updatedSettings.isShowDisclaimer = false
+            repository.saveSettings(updatedSettings)
         }
     }
 
