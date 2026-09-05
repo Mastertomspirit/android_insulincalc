@@ -129,32 +129,18 @@ fun MealResultCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Quick adjustment controls for fine-tuning portions
+            // Quick adjustment controls for weight-based portion scaling
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Menge feinanpassen:",
+                    text = "Gesamtgewicht anpassen:",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { if (customCarbs >= 5.0) customCarbs -= 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = "-5g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                     Surface(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -165,21 +151,7 @@ fun MealResultCard(
                         Text(
                             text = "-10g",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { customCarbs += 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = "+5g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -193,7 +165,7 @@ fun MealResultCard(
                         Text(
                             text = "+10g",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

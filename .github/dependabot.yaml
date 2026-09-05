@@ -5,10 +5,10 @@ updates:
   # ==========================================================================
   - package-ecosystem: "gradle"
     directory: "/"
-    target-branch: "main"
+    target-branch: "dev"
     schedule:
       interval: "daily"
-      time: "07:00"
+      time: "14:25"
       timezone: "Europe/Berlin"
     
     # Specifies the GitHub usernames of individuals requested to review the created PRs
@@ -21,7 +21,6 @@ updates:
     # Assigns specific organizational tags to the PRs for easier filtering and automated workflows
     labels:
       - "dependencies"
-      - "android"
 
     # Defines rules to consolidate multiple dependency updates into single, manageable Pull Requests
     groups:
@@ -32,22 +31,25 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      # Combines critical version bumps (Major) into a dedicated PR, highlighting potential breaking changes
-      major-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "major"
+    # Commit messages settings
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
 
   # ==========================================================================
   # 2. GITHUB ACTIONS CONFIGURATION
   # ==========================================================================
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     reviewers:
       - "mastertomspirit"
     labels:
       - "dependencies"
       - "github-action"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

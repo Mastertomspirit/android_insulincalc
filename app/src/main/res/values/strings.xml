@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">InsulinRechner</string>
+    <string name="ai_meal_disclaimer">Bitte überprüfe die KI-Schätzung immer mit deinem eigenen Urteilsvermögen. Die Werte dienen nur als Orientierungshilfe.</string>
 </resources>
