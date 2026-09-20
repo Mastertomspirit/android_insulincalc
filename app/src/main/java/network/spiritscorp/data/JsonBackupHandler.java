@@ -40,7 +40,7 @@ import java.util.List;
 public class JsonBackupHandler {
 
     private static final String TAG = "JsonBackupHandler";
-    public static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
+    private static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
 
     private final SimpleDateFormat isoDateFormat;
 
@@ -78,7 +78,6 @@ public class JsonBackupHandler {
                 settingsObj.put("showDisclaimer", settings.isShowDisclaimer());
                 settingsObj.put("selectedTheme", settings.getSelectedTheme());
                 settingsObj.put("themeMode", settings.getThemeMode());
-                settingsObj.put("geminiApiKey", settings.getGeminiApiKey() != null ? settings.getGeminiApiKey() : "");
                 settingsObj.put("selectedAiModel", settings.getSelectedAiModel() != null ? settings.getSelectedAiModel() : "gemini-3.5-flash");
                 root.put("settings", settingsObj);
             }
@@ -187,7 +186,6 @@ public class JsonBackupHandler {
         settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer", "show_disclaimer", "disclaimer", "autoTimeDetection", "auto_time_detection"));
         settings.setSelectedTheme(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme", "selected_theme", "theme", "farbDesign", "farbschema"));
         settings.setThemeMode(getStringFlexible(obj, "SYSTEM", "themeMode", "theme_mode", "darkMode", "dark_mode"));
-        settings.setGeminiApiKey(getStringFlexible(obj, null, "geminiApiKey", "gemini_api_key", "apiKey", "api_key"));
         settings.setSelectedAiModel(getStringFlexible(obj, "gemini-2.5-flash", "selectedAiModel", "selected_ai_model", "aiModel", "ai_model", "model"));
         return settings;
     }

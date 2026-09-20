@@ -26,9 +26,9 @@ import java.math.RoundingMode;
  */
 public final class InsulinMathEngine {
 
-    public static final double HYPO_THRESHOLD_MG_DL = 70.0;
-    public static final double HYPO_THRESHOLD_MMOL_L = 3.9;
-    public static final double MMOL_CONVERSION_FACTOR = 18.0182;
+    private static final double HYPO_THRESHOLD_MG_DL = 70.0;
+    private static final double HYPO_THRESHOLD_MMOL_L = 3.9;
+    private static final double MMOL_CONVERSION_FACTOR = 18.0182;
 
     private InsulinMathEngine() {
         // Utility class
@@ -80,7 +80,7 @@ public final class InsulinMathEngine {
     /**
      * Calculates correction insulin dose (positive or negative).
      */
-    public static double calculateCorrectionInsulin(boolean showCorrection, Double currentBg, Double targetBg, Double corrFactor) {
+    static double calculateCorrectionInsulin(boolean showCorrection, Double currentBg, Double targetBg, Double corrFactor) {
         if (!showCorrection || currentBg == null || targetBg == null || corrFactor == null || corrFactor <= 0) {
             return 0.0;
         }
@@ -126,11 +126,11 @@ public final class InsulinMathEngine {
     /**
      * Converts blood glucose between mg/dL and mmol/L.
      */
-    public static double convertMgDlToMmol(double mgDl) {
+    static double convertMgDlToMmol(double mgDl) {
         return roundToDecimals(mgDl / MMOL_CONVERSION_FACTOR, 1);
     }
 
-    public static double convertMmolToMgDl(double mmol) {
+    static double convertMmolToMgDl(double mmol) {
         return roundToDecimals(mmol * MMOL_CONVERSION_FACTOR, 0);
     }
 }

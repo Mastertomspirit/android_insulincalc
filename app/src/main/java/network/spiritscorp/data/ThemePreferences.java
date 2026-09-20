@@ -31,8 +31,8 @@ public class ThemePreferences {
     private static final String KEY_SELECTED_THEME = "selected_theme";
     private static final String KEY_THEME_MODE = "theme_mode";
 
-    public static final String DEFAULT_THEME = "MEDICAL_TEAL";
-    public static final String DEFAULT_MODE = "SYSTEM";
+    private static final String DEFAULT_THEME = "MEDICAL_TEAL";
+    private static final String DEFAULT_MODE = "SYSTEM";
 
     private final SharedPreferences mPrefs;
 
