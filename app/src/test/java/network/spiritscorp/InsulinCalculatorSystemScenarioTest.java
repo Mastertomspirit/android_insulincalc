@@ -75,7 +75,9 @@ public class InsulinCalculatorSystemScenarioTest {
                 0.5,
                 true,
                 "SLATE_CALM",
-                "SYSTEM"
+                "SYSTEM",
+                "",
+                "gemini-3.9"
         );
         repository.saveSettings(userSettings);
 
@@ -375,24 +377,13 @@ public class InsulinCalculatorSystemScenarioTest {
         assertEquals(1, logs.size());
         assertEquals("Abendessen: Lasagne", logs.getFirst().getMealTitle());
         assertEquals("Vor dem Essen gemessen", logs.getFirst().getNotes());
-
-        // When all inputs are cleared (simulating viewModel.clearAllCalculatorInputs())
-        carbInput = "0";
-        currentGlucose = "";
-        mealTitle = "";
-        notes = "";
-
-        assertEquals("0", carbInput);
-        assertTrue(currentGlucose.isEmpty());
-        assertTrue(mealTitle.isEmpty());
-        assertTrue(notes.isEmpty());
     }
 
     @Test
     public void testKeyboardInputPersistenceDuringSaveScenario() {
         // Given user sets morning factor of 1.75
         UserSettings settings = new UserSettings(
-                1, 1.75, 1.0, 1.2, 0.8, "GRAMS", 12, "mg/dl", 100.0, 40.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.75, 1.0, 1.2, 0.8, "GRAMS", 12, "mg/dl", 100.0, 40.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM", "", "gemini-3.9"
         );
         repository.saveSettings(settings);
 
@@ -403,9 +394,8 @@ public class InsulinCalculatorSystemScenarioTest {
         String notes = "Vor dem Training";
 
         // Computing snapshot at click time
-        double rawCarbs = Double.parseDouble(liveCarbInput);
         double bg = Double.parseDouble(liveGlucoseInput);
-        double carbGrams = rawCarbs;
+        double carbGrams = Double.parseDouble(liveCarbInput);
         double be = carbGrams / 12.0; // 4.0 BE
         double ke = carbGrams / 10.0; // 4.8 KE
         double mealInsulin = be * settings.getMorningFactor(); // 4.0 * 1.75 = 7.0 IE
@@ -416,7 +406,7 @@ public class InsulinCalculatorSystemScenarioTest {
                 0L,
                 System.currentTimeMillis(),
                 mealTitle,
-                rawCarbs,
+                carbGrams,
                 "g KH",
                 carbGrams,
                 be,

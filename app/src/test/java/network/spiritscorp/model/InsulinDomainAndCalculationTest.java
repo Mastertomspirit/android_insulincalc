@@ -212,7 +212,9 @@ public class InsulinDomainAndCalculationTest {
                 0.1,
                 false,
                 "EMERALD_MINT",
-                "SYSTEM"
+                "SYSTEM",
+                "",
+                "gemini-3.9"
         );
 
         assertEquals(2.0, customSettings.getMorningFactor(), DELTA);

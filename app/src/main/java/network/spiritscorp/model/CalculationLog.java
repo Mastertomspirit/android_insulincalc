@@ -51,13 +51,13 @@ public class CalculationLog {
     public CalculationLog() {
         this.id = 0;
         this.timestamp = System.currentTimeMillis();
-        this.mealTitle = "Mahlzeit";
+        this.mealTitle = "";
         this.rawCarbInput = 0.0;
         this.carbUnit = "g KH";
         this.carbGrams = 0.0;
         this.beValue = 0.0;
         this.keValue = 0.0;
-        this.timeOfDay = "Morgens";
+        this.timeOfDay = "";
         this.insulinFactor = 1.0;
         this.mealInsulin = 0.0;
         this.bloodGlucose = null;
@@ -92,13 +92,13 @@ public class CalculationLog {
     ) {
         this.id = id;
         this.timestamp = timestamp;
-        this.mealTitle = mealTitle != null ? mealTitle : "Mahlzeit";
+        this.mealTitle = mealTitle;
         this.rawCarbInput = rawCarbInput;
-        this.carbUnit = carbUnit != null ? carbUnit : "g KH";
+        this.carbUnit = carbUnit;
         this.carbGrams = carbGrams;
         this.beValue = beValue;
         this.keValue = keValue;
-        this.timeOfDay = timeOfDay != null ? timeOfDay : "Morgens";
+        this.timeOfDay = timeOfDay;
         this.insulinFactor = insulinFactor;
         this.mealInsulin = mealInsulin;
         this.bloodGlucose = bloodGlucose;
@@ -107,16 +107,14 @@ public class CalculationLog {
         this.correctionInsulin = correctionInsulin;
         this.totalInsulin = totalInsulin;
         this.roundedInsulin = roundedInsulin;
-        this.notes = notes != null ? notes : "";
+        this.notes = notes;
     }
 
     public long getId() {
         return id;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
+    public void setId(long id) { this.id = id; }
 
     public long getTimestamp() {
         return timestamp;
@@ -131,7 +129,7 @@ public class CalculationLog {
     }
 
     public void setMealTitle(String mealTitle) {
-        this.mealTitle = mealTitle != null ? mealTitle : "Mahlzeit";
+        this.mealTitle = mealTitle;
     }
 
     public double getRawCarbInput() {
@@ -147,7 +145,7 @@ public class CalculationLog {
     }
 
     public void setCarbUnit(String carbUnit) {
-        this.carbUnit = carbUnit != null ? carbUnit : "g KH";
+        this.carbUnit = carbUnit;
     }
 
     public double getCarbGrams() {
@@ -179,7 +177,7 @@ public class CalculationLog {
     }
 
     public void setTimeOfDay(String timeOfDay) {
-        this.timeOfDay = timeOfDay != null ? timeOfDay : "Morgens";
+        this.timeOfDay = timeOfDay;
     }
 
     public double getInsulinFactor() {
@@ -251,7 +249,7 @@ public class CalculationLog {
     }
 
     public void setNotes(String notes) {
-        this.notes = notes != null ? notes : "";
+        this.notes = notes;
     }
 
     public CalculationLog copy() {

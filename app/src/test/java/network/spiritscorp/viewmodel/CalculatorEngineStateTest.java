@@ -155,7 +155,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testMorningCalculationWithGrams() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         CalculationSummary summary = calculateSummary(
@@ -183,7 +183,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testNoonCalculationWithBEAndFactorOverride() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         // User overrides factor from 1.0 to 1.3
@@ -210,7 +210,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testEveningCalculationWithHighGlucoseCorrection() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         // 3.0 BE (36g KH) -> 3.0 * 1.2 = 3.6 IE
@@ -239,7 +239,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testLowBloodGlucoseWarningAndDoseReduction() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         // Current BG = 65 (Hypo risk < 70)
@@ -262,7 +262,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testNegativeCorrectionDoseReduction() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         // 2 BE = 2.0 IE meal insulin. BG = 80, Target = 100, Corr = 40
@@ -291,7 +291,7 @@ public class CalculatorEngineStateTest {
     @Test
     public void testMmolLCorrectionCalculation() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.00, 0.80, "GRAMS", 12, "mmol/l", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM"
+                1, 1.50, 1.00, 1.00, 0.80, "GRAMS", 12, "mmol/l", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
         );
 
         // 3 KE = 3.0 IE meal insulin

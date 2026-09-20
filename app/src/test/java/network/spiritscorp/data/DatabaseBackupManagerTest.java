@@ -22,7 +22,6 @@ import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import kotlin.Pair;
-import network.spiritscorp.data.ImportResult;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 import org.junit.After;
@@ -177,7 +176,9 @@ public class DatabaseBackupManagerTest {
                 0.5,
                 true,
                 "LAVENDER_PURPLE",
-                "SYSTEM"
+                "SYSTEM",
+                "",
+                "gemini-3.9"
         );
 
         // 1. Export to JSON via instance method
@@ -220,7 +221,7 @@ public class DatabaseBackupManagerTest {
     @Test
     public void testDirectDaoIntegrationExportAndImport() {
         // Populate in-memory database
-        UserSettings settings = new UserSettings(1, 2.0, 1.0, 1.5, 0.8, "g KH", 12, "mg/dl", 100, 40, 0.5, true, "MEDICAL_TEAL", "SYSTEM");
+        UserSettings settings = new UserSettings(1, 2.0, 1.0, 1.5, 0.8, "g KH", 12, "mg/dl", 100, 40, 0.5, true, "MEDICAL_TEAL", "SYSTEM", "", "gemini-3.9");
         userSettingsDao.saveSettings(settings);
         calculationLogDao.insertLogs(createSampleLogs());
 
@@ -392,7 +393,7 @@ public class DatabaseBackupManagerTest {
         assertNotNull(parsed);
         UserSettings settings = parsed.getFirst();
         List<CalculationLog> logs = parsed.getSecond();
-        assertNull(settings); // Settings was not provided
+        assertNull(settings); // Settings are not provided
         assertEquals(1, logs.size());
         assertEquals("Frühstücks-Smoothie", logs.getFirst().getMealTitle());
         assertEquals(30.0, logs.getFirst().getCarbGrams(), DELTA);

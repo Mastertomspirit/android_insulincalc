@@ -59,47 +59,10 @@ public class UserSettings {
         this.correctionFactorMgDl = 50.0;
         this.roundingStep = 0.5;
         this.showDisclaimer = true;
-        this.selectedTheme = "MEDICAL_TEAL";
-        this.themeMode = "SYSTEM";
+        this.selectedTheme = null;
+        this.themeMode = null;
         this.geminiApiKey = "";
         this.selectedAiModel = "gemini-3.5-flash";
-    }
-
-    @Ignore
-    public UserSettings(
-            int id,
-            double morningFactor,
-            double noonFactor,
-            double eveningFactor,
-            double nightFactor,
-            String defaultCarbUnit,
-            int beGramsDivisor,
-            String glucoseUnit,
-            double targetGlucoseMgDl,
-            double correctionFactorMgDl,
-            double roundingStep,
-            boolean showDisclaimer,
-            String selectedTheme,
-            String themeMode
-    ) {
-        this(
-                id,
-                morningFactor,
-                noonFactor,
-                eveningFactor,
-                nightFactor,
-                defaultCarbUnit,
-                beGramsDivisor,
-                glucoseUnit,
-                targetGlucoseMgDl,
-                correctionFactorMgDl,
-                roundingStep,
-                showDisclaimer,
-                selectedTheme,
-                themeMode,
-                "",
-                "gemini-3.5-flash"
-        );
     }
 
     @Ignore
@@ -133,8 +96,8 @@ public class UserSettings {
         this.correctionFactorMgDl = correctionFactorMgDl;
         this.roundingStep = roundingStep;
         this.showDisclaimer = showDisclaimer;
-        this.selectedTheme = selectedTheme != null ? selectedTheme : "MEDICAL_TEAL";
-        this.themeMode = themeMode != null ? themeMode : "SYSTEM";
+        this.selectedTheme = selectedTheme;
+        this.themeMode = themeMode;
         this.geminiApiKey = geminiApiKey != null ? geminiApiKey : "";
         this.selectedAiModel = selectedAiModel != null ? selectedAiModel : "gemini-3.5-flash";
     }
@@ -184,7 +147,7 @@ public class UserSettings {
     }
 
     public void setDefaultCarbUnit(String defaultCarbUnit) {
-        this.defaultCarbUnit = defaultCarbUnit != null ? defaultCarbUnit : "GRAMS";
+        this.defaultCarbUnit = defaultCarbUnit;
     }
 
     public int getBeGramsDivisor() {
@@ -200,7 +163,7 @@ public class UserSettings {
     }
 
     public void setGlucoseUnit(String glucoseUnit) {
-        this.glucoseUnit = glucoseUnit != null ? glucoseUnit : "mg/dl";
+        this.glucoseUnit = glucoseUnit;
     }
 
     public double getTargetGlucoseMgDl() {
@@ -240,7 +203,7 @@ public class UserSettings {
     }
 
     public void setSelectedTheme(String selectedTheme) {
-        this.selectedTheme = selectedTheme != null ? selectedTheme : "MEDICAL_TEAL";
+        this.selectedTheme = selectedTheme;
     }
 
     public String getThemeMode() {
@@ -248,7 +211,7 @@ public class UserSettings {
     }
 
     public void setThemeMode(String themeMode) {
-        this.themeMode = themeMode != null ? themeMode : "SYSTEM";
+        this.themeMode = themeMode;
     }
 
     public String getGeminiApiKey() {
@@ -256,7 +219,7 @@ public class UserSettings {
     }
 
     public void setGeminiApiKey(String geminiApiKey) {
-        this.geminiApiKey = geminiApiKey != null ? geminiApiKey : "";
+        this.geminiApiKey = geminiApiKey;
     }
 
     public String getSelectedAiModel() {
@@ -264,7 +227,7 @@ public class UserSettings {
     }
 
     public void setSelectedAiModel(String selectedAiModel) {
-        this.selectedAiModel = selectedAiModel != null ? selectedAiModel : "gemini-3.5-flash";
+        this.selectedAiModel = selectedAiModel;
     }
 
     public UserSettings copy() {
