@@ -90,7 +90,9 @@ public class InsulinRepositoryIntegrationTest {
                 0.5,
                 true,
                 "AMBER_WARM",
-                "SYSTEM"
+                "SYSTEM",
+                "",
+                "gemini-3.9"
         );
 
         repository.saveSettings(custom);
