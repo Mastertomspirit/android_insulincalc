@@ -88,7 +88,7 @@ class GeminiMealService {
         val effectiveModel = GeminiAiModel.fromModelId(modelId).modelId
 
         try {
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent?key=$apiKey"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent"
 
             val prompt = """
                 Du bist ein erfahrener diabetologischer Ernährungsberater und Experte für Kohlenhydratschätzung (KE/BE und Gramm KH).
@@ -131,6 +131,7 @@ class GeminiMealService {
 
             val request = Request.Builder()
                 .url(url)
+                .header("x-goog-api-key", apiKey )
                 .post(jsonBody.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
