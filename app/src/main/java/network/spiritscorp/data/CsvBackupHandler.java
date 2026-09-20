@@ -39,9 +39,9 @@ public class CsvBackupHandler {
     /**
      * CSV Schema Format Version.
      */
-    public static final int CSV_FORMAT_VERSION = AppConstants.CSV_BACKUP_VERSION;
+    private static final int CSV_FORMAT_VERSION = AppConstants.CSV_BACKUP_VERSION;
 
-    public static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
+    private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
 
     private final SimpleDateFormat isoDateFormat;
 
@@ -179,7 +179,7 @@ public class CsvBackupHandler {
         return tokens;
     }
 
-    public String escapeCsv(String input) {
+    private String escapeCsv(String input) {
         if (input == null) return "\"\"";
         return "\"" + input.replace("\"", "\"\"") + "\"";
     }

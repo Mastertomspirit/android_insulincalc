@@ -49,8 +49,8 @@ public class DatabaseSecurityManager {
 
     // Android KeyStore Alias & Cipher specifications
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
-    public static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
-    public static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
+    private static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
+    private static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int PASSPHRASE_BYTE_LENGTH = 32; // 256-bit AES Key
@@ -176,7 +176,7 @@ public class DatabaseSecurityManager {
     }
 
     @Nullable
-    public EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
+    EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
         try {
             SecretKey secretKey = getOrCreateKeyStoreMasterKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
@@ -191,7 +191,7 @@ public class DatabaseSecurityManager {
     }
 
     @Nullable
-    public byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
+    byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
         try {
             SecretKey secretKey = getOrCreateKeyStoreMasterKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
@@ -211,7 +211,7 @@ public class DatabaseSecurityManager {
      * @return Hexadecimal representation.
      */
     @NonNull
-    public static String bytesToHex(@Nullable byte[] bytes) {
+   static String bytesToHex(@Nullable byte[] bytes) {
         if (bytes == null || bytes.length == 0) {
             return "";
         }
@@ -224,6 +224,6 @@ public class DatabaseSecurityManager {
         return new String(hexChars);
     }
 
-    public record EncryptedData(byte[] iv, byte[] ciphertext) {
+    record EncryptedData(byte[] iv, byte[] ciphertext) {
     }
 }
