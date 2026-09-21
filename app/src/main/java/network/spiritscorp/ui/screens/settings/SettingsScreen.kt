@@ -68,47 +68,46 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
-    settings: UserSettings?,
+    settings: UserSettings,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val currentSettings = settings ?: UserSettings()
 
-    var morningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.morningFactor) }
-    var noonFactor by remember(settings) { mutableDoubleStateOf(currentSettings.noonFactor) }
-    var eveningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.eveningFactor) }
-    var nightFactor by remember(settings) { mutableDoubleStateOf(currentSettings.nightFactor) }
+    var morningFactor by remember(settings) { mutableDoubleStateOf(settings.morningFactor) }
+    var noonFactor by remember(settings) { mutableDoubleStateOf(settings.noonFactor) }
+    var eveningFactor by remember(settings) { mutableDoubleStateOf(settings.eveningFactor) }
+    var nightFactor by remember(settings) { mutableDoubleStateOf(settings.nightFactor) }
 
-    var defaultCarbUnit by remember(settings) { mutableStateOf(currentSettings.defaultCarbUnit) }
-    var beDivisor by remember(settings) { mutableIntStateOf(currentSettings.beGramsDivisor) }
+    var defaultCarbUnit by remember(settings) { mutableStateOf(settings.defaultCarbUnit) }
+    var beDivisor by remember(settings) { mutableIntStateOf(settings.beGramsDivisor) }
 
     var glucoseUnit by remember(settings) {
-        mutableStateOf(GlucoseUnit.fromString(currentSettings.glucoseUnit))
+        mutableStateOf(GlucoseUnit.fromString(settings.glucoseUnit))
     }
 
     var targetGlucose by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.targetGlucoseMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl))
         } else {
-            currentSettings.targetGlucoseMgDl.toInt().toString()
+            settings.targetGlucoseMgDl.toInt().toString()
         }
         mutableStateOf(initialVal)
     }
 
     var correctionFactor by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.correctionFactorMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl))
         } else {
-            currentSettings.correctionFactorMgDl.toInt().toString()
+            settings.correctionFactorMgDl.toInt().toString()
         }
         mutableStateOf(initialVal)
     }
 
-    var roundingStep by remember(settings) { mutableDoubleStateOf(currentSettings.roundingStep) }
-    var selectedThemeName by remember(settings) { mutableStateOf(currentSettings.selectedTheme) }
-    var themeMode by remember(settings) { mutableStateOf(currentSettings.themeMode) }
+    var roundingStep by remember(settings) { mutableDoubleStateOf(settings.roundingStep) }
+    var selectedThemeName by remember(settings) { mutableStateOf(settings.selectedTheme) }
+    var themeMode by remember(settings) { mutableStateOf(settings.themeMode) }
 
     var isFactorsExpanded by remember { mutableStateOf(false) }
     var isGlucoseExpanded by remember { mutableStateOf(false) }
@@ -239,7 +238,7 @@ fun SettingsScreen(
                 val targetMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(targetNum) else targetNum
                 val corrMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(corrNum) else corrNum
 
-                val updated = currentSettings.copy()
+                val updated = settings.copy()
                 updated.morningFactor = morningFactor
                 updated.noonFactor = noonFactor
                 updated.eveningFactor = eveningFactor
