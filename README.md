@@ -83,10 +83,10 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 ### Schnellstart per Terminal (Gradle CLI):
 ```bash
 # Debug-APK kompilieren:
-./gradlew assembleDebug
+gradle assembleDebug
 
 # Release-APK kompilieren (für R8/ProGuard optimiert):
-./gradlew assembleRelease
+gradle assembleRelease
 ```
 
 ---
@@ -97,19 +97,19 @@ Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Ver
 
 * **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
   ```bash
-  ./gradlew testDebugUnitTest
+  gradle testDebugUnitTest
   ```
 
 * **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
   ```bash
-  ./gradlew connectedDebugAndroidTest
+  gradle connectedDebugAndroidTest
   ```
 
 * **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
   ```bash
   # Alle instrumentierten Tests auf verbundenen Geräten
-  ./gradlew connectedCheck
+  gradle connectedCheck
 
   # Statische Code-Analyse
-  ./gradlew lintDebug
+  gradle lintDebug
   ```
