@@ -111,11 +111,6 @@ public class DatabaseBackupManager {
         );
     }
 
-    public String exportToCsv() {
-        List<CalculationLog> logs = calculationLogDao != null ? calculationLogDao.getAllLogsDirect() : Collections.emptyList();
-        return csvHandler.exportToCsv(logs);
-    }
-
     public String exportToCsv(List<CalculationLog> logs) {
         return csvHandler.exportToCsv(logs);
     }

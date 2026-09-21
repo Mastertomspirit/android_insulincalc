@@ -25,11 +25,6 @@ public record CalculationSummary(double carbGrams, double keValue, double beValu
                                  Double targetGlucose, double correctionInsulin,
                                  double rawTotalInsulin, double roundedTotalInsulin,
                                  double roundingStep, boolean isHypoRisk, String advisoryNote) {
-    public CalculationSummary() {
-        this(0.0, 0.0, 0.0, 0.0, 0.0,
-                null, null, 0.0, 0.0,
-                0.0, 0.5, false, "");
-    }
 
     public CalculationSummary(
             double carbGrams,

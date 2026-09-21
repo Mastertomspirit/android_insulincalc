@@ -33,6 +33,7 @@ import java.math.RoundingMode;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -333,13 +334,13 @@ public class InsulinCalculatorSystemScenarioTest {
         // Test export & restore of AI settings
         DatabaseBackupManager backupManager = new DatabaseBackupManager();
         String json = backupManager.exportToJson(retrieved, java.util.Collections.emptyList());
-        assertTrue(json.contains("AIzaSyTestCustomKey12345"));
+        assertFalse(json.contains("AIzaSyTestCustomKey12345"));
         assertTrue(json.contains("gemini-3.7-flash"));
 
         Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(json);
         assertNotNull(parsed);
         assertNotNull(parsed.getFirst());
-        assertEquals("AIzaSyTestCustomKey12345", parsed.getFirst().getGeminiApiKey());
+        assertTrue(parsed.getFirst().getGeminiApiKey().isBlank());
         assertEquals("gemini-3.7-flash", parsed.getFirst().getSelectedAiModel());
     }
 
@@ -474,7 +475,7 @@ public class InsulinCalculatorSystemScenarioTest {
         assertNotNull(exportedJson);
         assertTrue(exportedJson.contains("OCEAN_BREEZE"));
         assertTrue(exportedJson.contains("Haferflocken & Heidelbeeren"));
-        assertTrue(exportedJson.contains("key-xyz"));
+        assertFalse(exportedJson.contains("key-xyz"));
 
         // Clear database
         repository.saveSettings(new UserSettings());
@@ -488,7 +489,7 @@ public class InsulinCalculatorSystemScenarioTest {
         UserSettings restoredSettings = repository.getSettings();
         assertEquals("OCEAN_BREEZE", restoredSettings.getSelectedTheme());
         assertEquals("mmol/l", restoredSettings.getGlucoseUnit());
-        assertEquals("key-xyz", restoredSettings.getGeminiApiKey());
+        assertTrue(restoredSettings.getGeminiApiKey().isBlank());
 
         List<CalculationLog> restoredLogs = repository.getAllLogsDirect();
         assertEquals(1, restoredLogs.size());

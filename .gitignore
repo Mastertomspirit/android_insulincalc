@@ -5,6 +5,8 @@
 
 # Build-Artefakte & Caches
 /app/build/
+/app/debug/
+/app/lint-baseline.xml
 /app/release/
 /captures/
 .cxx/
@@ -13,6 +15,8 @@
 .kotlin/
 build/
 release/
+debug/
+**/*.jar
 
 
 # Output-Dateien

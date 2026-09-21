@@ -468,7 +468,7 @@ public class DatabaseBackupManagerTest {
         assertFalse(restored.isShowDisclaimer());
         assertEquals("ROSE_ELEGANCE", restored.getSelectedTheme());
         assertEquals("DARK", restored.getThemeMode());
-        assertEquals("test-api-key-9988", restored.getGeminiApiKey());
+        assertEquals("", restored.getGeminiApiKey());
         assertEquals("gemini-3.5-pro", restored.getSelectedAiModel());
     }
 
@@ -517,7 +517,7 @@ public class DatabaseBackupManagerTest {
         assertFalse(restored.isShowDisclaimer());
         assertEquals("EMERALD_GREEN", restored.getSelectedTheme());
         assertEquals("DARK", restored.getThemeMode());
-        assertEquals("custom-legacy-key", restored.getGeminiApiKey());
+        assertEquals("", restored.getGeminiApiKey());
         assertEquals("gemini-3.5-flash", restored.getSelectedAiModel());
     }
 
@@ -554,7 +554,7 @@ public class DatabaseBackupManagerTest {
         assertNotNull(json);
         assertTrue(json.contains("Äpfel, Überbackenes & Öl-Salat"));
         assertTrue(json.contains("Notizen mit Umlauten: äöüß & Sonderzeichen"));
-        assertTrue(json.contains("test-api-key"));
+        assertFalse(json.contains("test-api-key"));
 
         // Import into clean database
         userSettingsDao.saveSettings(new UserSettings());
@@ -566,7 +566,7 @@ public class DatabaseBackupManagerTest {
         UserSettings restoredSettings = userSettingsDao.getSettingsDirect();
         assertNotNull(restoredSettings);
         assertEquals("WARM_EMBER", restoredSettings.getSelectedTheme());
-        assertEquals("test-api-key", restoredSettings.getGeminiApiKey());
+        assertEquals("", restoredSettings.getGeminiApiKey());
 
         List<CalculationLog> restoredLogs = calculationLogDao.getAllLogsDirect();
         assertEquals(1, restoredLogs.size());
