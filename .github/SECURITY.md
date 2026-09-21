@@ -2,13 +2,13 @@
 
 ## Supported Versions
 
-Only the ~dev~ branch and the ~main~ branch (as the ~latest~ official release) receive security updates.<br>
+Only the `dev` branch and the `main` branch (as the `latest` official release) receive security updates.<br>
 All older versions are unsupported.
 
 | Version | Supported |
 | ------- | --------- |
-| ~dev~ | ✅ |
-| ~latest~ release (~main~) | ✅ |
+| `dev` | ✅ |
+| `latest` release (`main`) | ✅ |
 | Older releases | ❌ |
 
 ## Reporting a Vulnerability
