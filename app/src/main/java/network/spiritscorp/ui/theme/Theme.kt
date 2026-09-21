@@ -35,7 +35,13 @@ enum class AppTheme(val displayName: String, val previewColor: Color) {
     EMERALD_GREEN("Smaragd Grün", Color(0xFF1B6C43)),
     SUNSET_AMBER("Sonnenuntergang", Color(0xFFB34A00)),
     BERRY_VIOLET("Beere & Violett", Color(0xFF834C77)),
-    MIDNIGHT_DARK("Mitternacht AMOLED", Color(0xFF9965F4))
+    MIDNIGHT_DARK("Mitternacht AMOLED", Color(0xFF9965F4));
+
+    enum class Mode( val displayName: String) {
+        SYSTEM("System"),
+        DARK("Dunkel"),
+        LIGHT("Hell");
+    }
 }
 
 // 1. Teal Theme
@@ -247,6 +253,8 @@ fun MyApplicationTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme: ColorScheme = when {
+        // Dynamic color (Material You) requires Android 12 (API 31) or higher.
+        // Fall back to static color schemes on earlier OS versions.
         selectedTheme == AppTheme.MIDNIGHT_DARK -> MidnightColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
