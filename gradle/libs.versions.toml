@@ -29,7 +29,7 @@ robolectric = "4.17"
 roborazzi = "1.74.0"
 secretsGradlePlugin = "2.0.1"
 jsonVersion = "20260814"
-sqlcipherAndroid = "4.18.0"
+sqlcipherAndroid = "4.19.0"
 securityCrypto = "1.1.0"
 
 
