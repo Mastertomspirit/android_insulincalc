@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
+import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 
@@ -213,9 +214,9 @@ fun SettingsScreen(
 
         // SECTION 4: Farbdesign & Erscheinungsbild
         AppearanceSection(
-            selectedThemeName = selectedThemeName,
+            selectedThemeName = selectedThemeName ?: AppTheme.MEDICAL_TEAL.name,
             onThemeSelected = { selectedThemeName = it },
-            themeMode = themeMode,
+            themeMode = themeMode ?: AppTheme.Mode.SYSTEM.name,
             onThemeModeSelected = { themeMode = it },
             isExpanded = isAppearanceExpanded,
             onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
