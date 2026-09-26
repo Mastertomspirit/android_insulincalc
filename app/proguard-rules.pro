@@ -45,5 +45,11 @@
 # ==============================================================================
 # Domain Data Models, DTOs & AI Service Contracts
 # ==============================================================================
--keep class network.spiritscorp.data.** { *; }
--keep class network.spiritscorp.ai.** { *; }
+
+# Preserve domain entities, value objects and calculation models
+-keep class network.spiritscorp.model.CalculationSummary { *; }
+-keep class network.spiritscorp.ai.MealEstimateResult { *; }
+-keep class network.spiritscorp.ai.MealItemDetail { *; }
+
+-keepclassmembers enum network.spiritscorp.** { *; }
+

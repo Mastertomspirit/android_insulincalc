@@ -47,7 +47,13 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { }
+    debug {
+      buildConfigField(
+        "String",
+        "GEMINI_API_KEY",
+        "\"${localProperties.getProperty("GEMINI_API_KEY")}\""
+      )
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -86,7 +92,6 @@ android {
 secrets {
   propertiesFileName = ".env"
   defaultPropertiesFileName = ".env.spiritscorp"
-  ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
 dependencies {
