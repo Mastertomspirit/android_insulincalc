@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Top-level build file where you can add configuration options common to all subprojects / modules.
 plugins {
   alias(libs.plugins.android.application) apply false
   alias(libs.plugins.kotlin.compose) apply false
@@ -33,7 +33,7 @@ allprojects {
       }
       if (requested.group == "org.apache.httpcomponents") {
         if (requested.name == "httpclient" || requested.name == "httpmime") {
-          useVersion("4.5.15")
+          useVersion("4.5.14")
         } else if (requested.name == "httpcore") {
           useVersion("4.4.16")
         }

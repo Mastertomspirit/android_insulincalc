@@ -21,7 +21,9 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
-
+  lint {
+    baseline = file("lint-baseline.xml")
+  }
   val localProperties = Properties().apply {
     val localFile = rootProject.file("local.properties")
     if (localFile.exists()) {
@@ -59,6 +61,7 @@ android {
     unitTests {
       isIncludeAndroidResources = true
       all {
+        it.useJUnitPlatform()
         val testTask = this as? Test
         testTask?.jvmArgs(
           "--enable-native-access=ALL-UNNAMED",
@@ -111,6 +114,11 @@ dependencies {
   implementation(libs.retrofit)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
+  testImplementation(libs.junit.jupiter.api)
+  testImplementation(libs.junit.jupiter.params)
+  testRuntimeOnly(libs.junit.platform.launcher)
+  testRuntimeOnly(libs.junit.jupiter.engine)
+  testRuntimeOnly(libs.junit.vintage.engine)
   testImplementation(libs.junit)
   testImplementation(libs.json)
   testImplementation(libs.kotlinx.coroutines.test)
