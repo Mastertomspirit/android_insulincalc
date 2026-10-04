@@ -45,19 +45,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -137,15 +136,16 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
 
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearSnackbar()
+    val context = LocalContext.current
+
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearToast()
         }
     }
 
@@ -268,8 +268,7 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     modifier = Modifier.testTag("nav_settings")
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
