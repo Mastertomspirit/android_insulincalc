@@ -17,7 +17,7 @@ android {
     minSdk = 30
     targetSdk = 37
     versionCode = 8
-    versionName = "1.3.7"
+    versionName = "1.3.7.3"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -65,17 +65,17 @@ android {
   }
   testOptions {
     unitTests {
+      isReturnDefaultValues = true
       isIncludeAndroidResources = true
       all {
         it.useJUnitPlatform()
-        val testTask = this as? Test
-        testTask?.jvmArgs(
+        it.jvmArgs(
           "--enable-native-access=ALL-UNNAMED",
           "-XX:+EnableDynamicAgentLoading"
         )
         val jvmMajor = JavaVersion.current().majorVersion.toIntOrNull() ?: 21
         if (jvmMajor >= 24) {
-          testTask?.jvmArgs("--sun-misc-unsafe-memory-access=allow")
+          it.jvmArgs("--sun-misc-unsafe-memory-access=allow")
         }
       }
     }
@@ -125,6 +125,8 @@ dependencies {
   testRuntimeOnly(libs.junit.jupiter.engine)
   testRuntimeOnly(libs.junit.vintage.engine)
   testImplementation(libs.junit)
+  testImplementation(libs.mockito.core)
+  testImplementation(libs.mockito.inline)
   testImplementation(libs.json)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.robolectric)
