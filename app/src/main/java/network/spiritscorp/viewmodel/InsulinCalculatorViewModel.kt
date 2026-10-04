@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import network.spiritscorp.R
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.ai.MealEstimateResult
@@ -100,7 +101,7 @@ data class CalculatorUiState(
         false,
         ""
     ),
-    val snackbarMessage: String? = null,
+    val toastMessage: String? = null,
     val activeTab: Int = 0 // 0: Rechner, 1: KI-Schätzer, 2: Tagebuch, 3: Einstellungen
 )
 
@@ -343,22 +344,19 @@ class InsulinCalculatorViewModel(
         val corrFactor = state.correctionFactorInput.toDoubleOrNull()
 
         var isHypoRisk = false
-        var advisory = "Standard-Dosis für die Mahlzeit"
+        var advisory = getApplication<Application>().getString(R.string.view_model_advisory_standard)
         val gUnit = state.glucoseUnit
         val isMmol = (gUnit == GlucoseUnit.MMOL_L)
 
         if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null) {
             if (InsulinMathEngine.isHypoglycemia(currentBg, isMmol)) {
                 isHypoRisk = true
-                advisory = "Achtung: Niedriger Blutzucker (< ${if (isMmol) "3.9 mmol/l" else "70 mg/dl"})! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
-            } else if (currentBg < targetBg) {
-                val diff = targetBg - currentBg
-                correctionInsulin = - (diff / corrFactor)
-                advisory = "Blutzucker unter Zielbereich: Korrektur reduziert Gesamtdosis."
+                val thresholdStr = if (isMmol) "3.9 " + GlucoseUnit.MMOL_L.shortName else "70 " + GlucoseUnit.MG_DL.shortName
+                advisory = getApplication<Application>().getString(R.string.view_model_advisory_hypo, thresholdStr)
+            }else if (currentBg < targetBg) {
+                advisory = getApplication<Application>().getString(R.string.view_model_advisory_below_target)
             } else if (currentBg > targetBg) {
-                val diff = currentBg - targetBg
-                correctionInsulin = diff / corrFactor
-                advisory = "Erhöhter Blutzucker: Korrektur-Bolus addiert."
+                advisory = getApplication<Application>().getString(R.string.view_model_advisory_above_target)
             }
         }
         val correctionInsulin = InsulinMathEngine.calculateCorrectionInsulin(true, currentBg, targetBg, corrFactor)
@@ -418,24 +416,25 @@ class InsulinCalculatorViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             repository.saveCalculation(log)
-            _uiState.update { it.copy(snackbarMessage = "Berechnung erfolgreich im Tagebuch gespeichert!") }
+            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_diary_saved_toast)) }
         }
     }
 
-    fun clearSnackbar() {
-        _uiState.update { it.copy(snackbarMessage = null) }
+    fun clearToast() {
+        _uiState.update { it.copy(toastMessage = null) }
     }
 
     fun deleteLog(logId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteLog(logId)
+            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.logbook_entry_deleted_toast)) }
         }
     }
 
     fun clearAllLogs() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.clearLogs()
-            _uiState.update { it.copy(snackbarMessage = "Tagebuch wurde geleert.") }
+            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.settings_database_cleared_toast)) }
         }
     }
 
@@ -497,13 +496,13 @@ class InsulinCalculatorViewModel(
             settings.correctionFactorMgDl.toString().replace(".0", "")
         }
 
-                    snackbarMessage = "Einstellungen gespeichert!"
         _uiState.update { current ->
             current.copy(
                 selectedUnit = settings.defaultCarbUnit,
                 glucoseUnit = gUnit,
                 targetGlucoseInput = targetStr,
                 correctionFactorInput = corrStr,
+                toastMessage = getApplication<Application>().getString(R.string.view_model_settings_saved_toast)
             )
         }
         recalculate(settings)
@@ -523,7 +522,7 @@ class InsulinCalculatorViewModel(
             result.onSuccess { data ->
                 _aiState.value = AiEstimateState.Success(data)
             }.onFailure { err ->
-                _aiState.value = AiEstimateState.Error(err.message ?: "Fehler bei der KI-Analyse")
+                _aiState.value = AiEstimateState.Error(err.message ?: getApplication<Application>().getString(R.string.view_model_ai_error_generic))
             }
         }
     }

@@ -64,6 +64,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -217,8 +218,8 @@ fun AiMealEstimatorScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Analysiere mit ${activeModel.displayName}...")
                         val activeModel = userSettings.selectedAiModel
+                        Text("Analysiere mit ${stringResource(activeModel.displayName)}...")
                     } else {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,

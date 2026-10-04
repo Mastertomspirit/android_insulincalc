@@ -17,8 +17,10 @@ package network.spiritscorp.ui.screens.logbook
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,25 +55,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Calendar
-import java.util.Date
 
 /**
  * Filter options for the calculation history.
+ *
+ * @param titleRes Resource ID pointing to the localized display string.
+ *                 This decouples the enum from Android Context while guaranteeing full i18n support.
  */
-enum class HistoryFilter(val title: String) {
-    ALL("Alle"),
-    TODAY("Heute"),
-    DAYS_7("7 Tage"),
-    DAYS_30("30 Tage"),
-    CUSTOM("Zeitraum")
+enum class HistoryFilter(@StringRes val titleRes: Int) {
+    ALL(R.string.enum_history_filter_all),
+    TODAY(R.string.enum_history_filter_today),
+    DAYS_7(R.string.enum_history_filter_7_days),
+    DAYS_30(R.string.enum_history_filter_30_days),
+    CUSTOM(R.string.enum_history_filter_custom);
+
+    /**
+     * Backward-compatible property or helper to retrieve the translated label via a Composable.
+     */
+    val title: String
+        @Composable
+        get() = stringResource(titleRes)
+
+    /**
+     * Helper to retrieve the translated label in non-composable code using a standard [Context].
+     */
+    fun getTitle(context: Context): String = context.getString(titleRes)
 }
 
 @Composable
@@ -136,7 +154,7 @@ fun LogbookScreen(
 
     val filterDescription by remember(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
-            getFilterDescription(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis)
+            getFilterDescription( context,selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis)
         }
     }
 
@@ -162,27 +180,28 @@ fun LogbookScreen(
             ) {
                 Column {
                     Text(
-                        text = "Insulin-Tagebuch",
+                        text = stringResource(R.string.logbook_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "${filteredLogs.size} von ${logs.size} Einträgen",
+                        text = stringResource(R.string.logbook_entry_count, filteredLogs.size, logs.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val shareChooserTitle = stringResource(R.string.logbook_share_chooser_title, filterDescription)
                     IconButton(
                         onClick = {
-                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription)
+                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription, viewModel.userSettings.value.glucoseUnit)
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
                                 putExtra(Intent.EXTRA_TEXT, exportText)
                                 type = "text/plain"
                             }
-                            val shareIntent = Intent.createChooser(sendIntent, "Tagebuch teilen ($filterDescription)")
+                            val shareIntent = Intent.createChooser( sendIntent, shareChooserTitle )
                             context.startActivity(shareIntent)
                         },
                         enabled = filteredLogs.isNotEmpty(),
@@ -190,7 +209,7 @@ fun LogbookScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Tagebuch teilen",
+                            contentDescription = stringResource(R.string.logbook_share_content_description),
                             tint = if (filteredLogs.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -202,7 +221,7 @@ fun LogbookScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Tagebuch leeren",
+                            contentDescription = stringResource(R.string.logbook_clear_content_description),
                             tint = if (logs.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -271,14 +290,22 @@ fun LogbookScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = if (logs.isEmpty()) "Noch keine Berechnungen gespeichert" else "Keine Einträge für diesen Zeitraum",
+                            text = if (logs.isEmpty()) {
+                                stringResource(R.string.logbook_empty_title_no_logs)
+                            } else {
+                                stringResource(R.string.logbook_empty_title_filtered)
+                            },
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (logs.isEmpty()) "Berechne im Rechner eine Dosis und tippe auf 'Im Tagebuch speichern'." else "Wähle oben einen anderen Filter oder springe im Zeitraum.",
+                            text = if (logs.isEmpty()) {
+                                stringResource(R.string.logbook_empty_desc_no_logs)
+                            } else {
+                                stringResource(R.string.logbook_empty_desc_filtered)
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -288,16 +315,20 @@ fun LogbookScreen(
             }
         } else {
             items(items = filteredLogs, key = { it.id }) { log ->
+                val shareSingleTitle = stringResource(R.string.logbook_share_single_title, log.mealTitle)
                 LogbookItemCard(
                     log = log,
                     onShareRequest = {
-                        val shareText = exportHelper.formatSingleLogShare(log)
+                        val shareText = exportHelper.formatSingleLogShare(log, viewModel.userSettings.value.glucoseUnit)
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, shareText)
                             type = "text/plain"
                         }
-                        val shareIntent = Intent.createChooser(sendIntent, "Eintrag teilen (${log.mealTitle})")
+                        val shareIntent = Intent.createChooser(
+                            sendIntent,
+                            shareSingleTitle
+                        )
                         context.startActivity(shareIntent)
                     },
                     onDeleteRequest = { logToDelete = log }
@@ -313,7 +344,6 @@ fun LogbookScreen(
             onConfirm = {
                 viewModel.deleteLog(targetItem.id)
                 logToDelete = null
-                Toast.makeText(context, "Eintrag gelöscht", Toast.LENGTH_SHORT).show()
             },
             onDismiss = { logToDelete = null }
         )
@@ -325,14 +355,13 @@ fun LogbookScreen(
             onConfirm = {
                 viewModel.clearAllLogs()
                 showClearAllDialog = false
-                Toast.makeText(context, "Tagebuch vollständig geleert", Toast.LENGTH_SHORT).show()
             },
             onDismiss = { showClearAllDialog = false }
         )
     }
 }
-
 private fun getFilterDescription(
+    context: Context,
     filter: HistoryFilter,
     sliceOffset: Int,
     customStart: Long,
@@ -340,11 +369,11 @@ private fun getFilterDescription(
 ): String {
     val sdf = DateTimeUtils.getDisplayDateFormatter()
     return when (filter) {
-        HistoryFilter.ALL -> "Alle Einträge"
+        HistoryFilter.ALL -> context.getString(R.string.filter_desc_all)
         HistoryFilter.TODAY -> {
             when (sliceOffset) {
-                0 -> "Heute"
-                1 -> "Gestern"
+                0 -> context.getString(R.string.filter_desc_today)
+                1 -> context.getString(R.string.filter_desc_yesterday)
                 else -> {
                     val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -sliceOffset) }
                     sdf.format(cal.time)
@@ -352,13 +381,17 @@ private fun getFilterDescription(
             }
         }
         HistoryFilter.DAYS_7 -> {
-            if (sliceOffset == 0) "Letzte 7 Tage"
-            else "7 Tage (vor $sliceOffset Woche(n))"
+            if (sliceOffset == 0) context.getString(R.string.filter_desc_last_7_days)
+            else context.getString(R.string.filter_desc_7_days_offset, sliceOffset)
         }
         HistoryFilter.DAYS_30 -> {
-            if (sliceOffset == 0) "Letzte 30 Tage"
-            else "30 Tage (vor $sliceOffset Monat(en))"
+            if (sliceOffset == 0) context.getString(R.string.filter_desc_last_30_days)
+            else context.getString(R.string.filter_desc_30_days_offset, sliceOffset)
         }
-        HistoryFilter.CUSTOM -> "${DateTimeUtils.formatDisplayDate(customStart)} bis ${DateTimeUtils.formatDisplayDate(customEnd)}"
+        HistoryFilter.CUSTOM -> context.getString(
+            R.string.filter_desc_custom_range,
+            DateTimeUtils.formatDisplayDate(customStart),
+            DateTimeUtils.formatDisplayDate(customEnd)
+        )
     }
 }

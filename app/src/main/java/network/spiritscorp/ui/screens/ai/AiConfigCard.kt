@@ -69,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -91,7 +92,7 @@ fun AiConfigCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH.modelId
+    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_FLASH_LITE_LATEST
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
     var selectedModel by remember { mutableStateOf(savedModelId) }
@@ -147,9 +148,10 @@ fun AiConfigCard(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                        val model = stringResource(selectedModel.displayName)
                         val statusText = when {
-                            hasCustomKey -> "Eigener Key aktiv\n(${selectedModel.displayName})"
-                            isDevKeyPresent -> "Entwickler-Key aktiv\n(${selectedModel.displayName})"
+                            hasCustomKey -> "Eigener Key aktiv\n(${model})"
+                            isDevKeyPresent -> "Entwickler-Key aktiv\n(${model})"
                             else -> "Kein Key hinterlegt\n(Offline-Schätzung aktiv)"
                         }
                         Text(
@@ -193,7 +195,7 @@ fun AiConfigCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = selectedModel.displayName,
+                            value = stringResource(selectedModel.displayName),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Gemini KI-Modell") },
@@ -214,11 +216,11 @@ fun AiConfigCard(
                                     text = {
                                         Column {
                                             Text(
-                                                text = model.displayName,
+                                                text = stringResource(model.displayName),
                                                 fontWeight = if (model == selectedModel) FontWeight.Bold else FontWeight.Normal
                                             )
                                             Text(
-                                                text = model.description,
+                                                text = stringResource(model.description),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
