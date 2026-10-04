@@ -45,19 +45,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -72,6 +71,7 @@ import network.spiritscorp.ui.screens.settings.SettingsScreen
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import androidx.compose.ui.res.stringResource
 
 /**
  * The primary entry point Activity for the application.
@@ -136,15 +136,16 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
 
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearSnackbar()
+    val context = LocalContext.current
+
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearToast()
         }
     }
 
@@ -180,11 +181,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val activeDisplayPage = pagerState.targetPage
 
     val topBarTitle = when (activeDisplayPage) {
-        0 -> "Insulin-Rechner"
-        1 -> "KI Mahlzeiten-Schätzer"
-        2 -> "Insulin-Tagebuch"
-        3 -> "Einstellungen & Faktoren"
-        else -> "Insulin-Rechner"
+        0 -> stringResource(R.string.main_top_bar_calculator)
+        1 -> stringResource(R.string.main_top_bar_ai_estimator)
+        2 -> stringResource(R.string.main_top_bar_logbook)
+        3 -> stringResource(R.string.main_top_bar_settings)
+        else -> stringResource(R.string.main_top_bar_calculator)
     }
 
     Scaffold(
@@ -221,10 +222,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 0) Icons.Filled.Calculate else Icons.Outlined.Calculate,
-                            contentDescription = "Rechner"
+                            contentDescription = stringResource(R.string.main_nav_calculator_label)
                         )
                     },
-                    label = { Text("Rechner") },
+                    label = { Text(stringResource(R.string.main_nav_calculator_label)) },
                     modifier = Modifier.testTag("nav_calculator")
                 )
 
@@ -234,10 +235,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 1) Icons.Filled.AutoAwesome else Icons.Outlined.AutoAwesome,
-                            contentDescription = "KI-Schätzer"
+                            contentDescription = stringResource(R.string.main_nav_ai_estimator_label)
                         )
                     },
-                    label = { Text("KI-Schätzer") },
+                    label = { Text(stringResource(R.string.main_nav_ai_estimator_label)) },
                     modifier = Modifier.testTag("nav_ai_estimator")
                 )
 
@@ -247,10 +248,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 2) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = "Tagebuch"
+                            contentDescription = stringResource(R.string.main_nav_logbook_label)
                         )
                     },
-                    label = { Text("Tagebuch") },
+                    label = { Text(stringResource(R.string.main_nav_logbook_label)) },
                     modifier = Modifier.testTag("nav_logbook")
                 )
 
@@ -260,15 +261,14 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
-                            contentDescription = "Einstellungen"
+                            contentDescription = stringResource(R.string.main_nav_settings_label)
                         )
                     },
-                    label = { Text("Einstellungen") },
+                    label = { Text(stringResource(R.string.main_nav_settings_label)) },
                     modifier = Modifier.testTag("nav_settings")
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier

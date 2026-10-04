@@ -17,7 +17,6 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.widget.Toast
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,7 +61,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
-import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 
@@ -253,7 +251,6 @@ fun SettingsScreen(
                 updated.selectedTheme = selectedTheme
                 updated.themeMode = themeMode
                 viewModel.updateUserSettings(updated)
-                Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()
                 focusManager.clearFocus()
                 keyboardController?.hide()
             },
@@ -299,7 +296,6 @@ fun SettingsScreen(
                     onClick = {
                         viewModel.clearAllLogs()
                         showResetDbDialog = false
-                        Toast.makeText(context, "Tagebuch & Daten wurden gelöscht", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.testTag("confirm_reset_all_data_button")
                 ) {

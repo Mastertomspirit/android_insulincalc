@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">InsulinRechner</string>
+
+    <!-- Main Activity & Navigation -->
+    <string name="main_top_bar_calculator">Insulin-Rechner</string>
+    <string name="main_top_bar_ai_estimator">KI Mahlzeiten-Schätzer</string>
+    <string name="main_top_bar_logbook">Insulin-Tagebuch</string>
+    <string name="main_top_bar_settings">Einstellungen &amp; Faktoren</string>
+    <string name="main_nav_calculator_label">Rechner</string>
+    <string name="main_nav_ai_estimator_label">KI-Schätzer</string>
+    <string name="main_nav_logbook_label">Tagebuch</string>
+    <string name="main_nav_settings_label">Einstellungen</string>
+
+    <!-- Common Components -->
+    <string name="common_medical_disclaimer_content_desc">Hinweis</string>
+    <string name="common_medical_disclaimer_text">Rechenhilfe: Bitte Faktoren stets mit deinem Arzt abstimmen.</string>
+    <string name="common_medical_disclaimer_close_desc">Hinweis schließen</string>
+    <string name="common_time_of_day_label">Tageszeit: %1$s</string>
+    <string name="common_time_of_day_factor_subtitle">Faktor: %1$s • Tippe zum %2$s</string>
+    <string name="common_collapse">Einklappen</string>
+    <string name="common_adjust">Anpassen</string>
+    <string name="common_auto">Auto</string>
+    <string name="common_active_insulin_factor_label">Aktiver Insulin-Faktor (±0,05):</string>
+    <string name="common_insulin_unit_label">IE / KE</string>
+    <string name="common_factor_decrease_desc">Faktor -0.05</string>
+    <string name="common_factor_increase_desc">Faktor +0.05</string>
+    <string name="common_restore_auto_mode">Auto-Modus wiederherstellen</string>
+
+    <!-- SettingsScreen UI Strings -->
+    <string name="settings_database_cleared_toast">Tagebuch &amp; Daten wurden gelöscht</string>
+
+    <!-- HistoryFilter Enum Titles -->
+    <string name="enum_history_filter_all">Alle</string>
+    <string name="enum_history_filter_today">Heute</string>
+    <string name="enum_history_filter_7_days">7 Tage</string>
+    <string name="enum_history_filter_30_days">30 Tage</string>
+    <string name="enum_history_filter_custom">Zeitraum</string>
+
+    <!-- LogbookScreen UI Strings -->
+    <string name="logbook_title">Insulin-Tagebuch</string>
+    <string name="logbook_entry_count">%1$d von %2$d Einträgen</string>
+    <string name="logbook_share_content_description">Tagebuch teilen</string>
+    <string name="logbook_share_chooser_title">Tagebuch teilen (%1$s)</string>
+    <string name="logbook_clear_content_description">Tagebuch leeren</string>
+    <string name="logbook_entry_deleted_toast">Eintrag gelöscht</string>
+    <string name="logbook_cleared_toast">Tagebuch vollständig geleert</string>
+    <string name="logbook_share_single_title">Eintrag teilen (%1$s)</string>
+
+    <!-- Empty States -->
+    <string name="logbook_empty_title_no_logs">Noch keine Berechnungen gespeichert</string>
+    <string name="logbook_empty_title_filtered">Keine Einträge für diesen Zeitraum</string>
+    <string name="logbook_empty_desc_no_logs">Berechne im Rechner eine Dosis und tippe auf \'Im Tagebuch speichern\'.</string>
+    <string name="logbook_empty_desc_filtered">Wähle oben einen anderen Filter oder springe im Zeitraum.</string>
+
+    <!-- Filter Descriptions -->
+    <string name="filter_desc_all">Alle Einträge</string>
+    <string name="filter_desc_today">Heute</string>
+    <string name="filter_desc_yesterday">Gestern</string>
+    <string name="filter_desc_last_7_days">Letzte 7 Tage</string>
+    <string name="filter_desc_7_days_offset">7 Tage (vor %1$d Woche(n))</string>
+    <string name="filter_desc_last_30_days">Letzte 30 Tage</string>
+    <string name="filter_desc_30_days_offset">30 Tage (vor %1$d Monat(en))</string>
+    <string name="filter_desc_custom_range">%1$s bis %2$s</string>
+
+    <!-- Calculator Advisories and States -->
+    <string name="view_model_ready">Bereit für Eingabe</string>
+    <string name="view_model_advisory_standard">Standard-Dosis für die Mahlzeit</string>
+    <string name="view_model_advisory_hypo">Achtung: Niedriger Blutzucker (&lt; %1$s)! Bitte zuerst 1–2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen.</string>
+    <string name="view_model_advisory_below_target">Blutzucker unter Zielbereich: Korrektur reduziert Gesamtdosis.</string>
+    <string name="view_model_advisory_above_target">Erhöhter Blutzucker: Korrektur-Bolus addiert.</string>
+    <string name="view_model_diary_saved_toast">Berechnung erfolgreich im Tagebuch gespeichert!</string>
+    <string name="view_model_settings_saved_toast">Einstellungen gespeichert!</string>
+    <string name="view_model_ai_error_generic">Fehler bei der KI-Analyse</string>
+    <string name="view_model_logbook_cleared">Tagebuch wurde geleert.</string>
+
+    <!-- Gemini AI Modelle -->
+    <string name="gemini_model_flash_latest_title">Gemini Flash (Aktuellste)</string>
+    <string name="gemini_model_flash_latest_desc">Nutzt automatisch die neueste stabile Flash-Modellversion</string>
+    <string name="gemini_model_flash_lite_latest_title">Gemini Flash-Lite (Aktuellste)</string>
+    <string name="gemini_model_flash_lite_latest_desc">Superschnell &amp; extrem sparsam im Tokenverbrauch</string>
+    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Empfohlen)</string>
+    <string name="gemini_model_3_8_flash_desc">Neueste Generation, optimiert für schnelle Nährwert- &amp; Mahlzeitenanalysen</string>
+    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash</string>
+    <string name="gemini_model_3_7_flash_desc">Hohe Präzision und schnelle Verarbeitung für Mahlzeitenauswertungen</string>
+    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
+    <string name="gemini_model_3_6_flash_desc">Zuverlässiges Flash-Modell für die tägliche Kohlenhydrat-Erfassung</string>
+    <string name="gemini_model_3_5_flash_title">Gemini 3.5 Flash</string>
+    <string name="gemini_model_3_5_flash_desc">Bewährtes Basis-Flash-Modell für Nährwertschätzungen</string>
+    <string name="gemini_model_3_1_pro_title">Gemini 3.1 Pro</string>
+    <string name="gemini_model_3_1_pro_desc">Erweiterte Analyse für komplexe Menüs, Rezepte &amp; Mehrmahlzeiten</string>
+</resources>

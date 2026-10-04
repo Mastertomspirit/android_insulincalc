@@ -66,6 +66,8 @@ import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.model.TimeOfDay
 import network.spiritscorp.ui.theme.accentColor
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
+import network.spiritscorp.R
 
 /**
  * A professional Jetpack Compose UI component that displays a medical disclaimer banner.
@@ -94,13 +96,13 @@ fun MedicalDisclaimerBanner(
         ) {
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Hinweis",
+                contentDescription = stringResource(R.string.common_medical_disclaimer_content_desc),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Rechenhilfe: Bitte Faktoren stets mit deinem Arzt abstimmen.",
+                text = stringResource(R.string.common_medical_disclaimer_text),
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
@@ -112,7 +114,7 @@ fun MedicalDisclaimerBanner(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Hinweis schließen",
+                        contentDescription = stringResource(R.string.common_medical_disclaimer_close_desc),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
@@ -177,12 +179,16 @@ fun TimeOfDaySelector(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Tageszeit: ${selectedTimeOfDay.title}",
+                            text = stringResource(R.string.common_time_of_day_label, selectedTimeOfDay.title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Faktor: ${String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor)} • Tippe zum ${if (isExpanded) "Einklappen" else "Anpassen"}",
+                            text = stringResource(
+                                R.string.common_time_of_day_factor_subtitle,
+                                String.format(LocalLocale.current.platformLocale, "%.2f", effectiveFactor),
+                                stringResource(if (isExpanded) R.string.common_collapse else R.string.common_adjust)
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -196,7 +202,7 @@ fun TimeOfDaySelector(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = "Auto",
+                                text = stringResource(R.string.common_auto),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -288,7 +294,7 @@ fun TimeOfDaySelector(
                         ) {
                             Column {
                                 Text(
-                                    text = "Aktiver Insulin-Faktor (±0,05):",
+                                    text = stringResource(R.string.common_active_insulin_factor_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -302,7 +308,7 @@ fun TimeOfDaySelector(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "IE / KE",
+                                        text = stringResource(R.string.common_insulin_unit_label),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(bottom = 3.dp)
@@ -323,7 +329,7 @@ fun TimeOfDaySelector(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Remove,
-                                        contentDescription = "Faktor -0.05",
+                                        contentDescription = stringResource(R.string.common_factor_decrease_desc),
                                         tint = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -338,7 +344,7 @@ fun TimeOfDaySelector(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
-                                        contentDescription = "Faktor +0.05",
+                                        contentDescription = stringResource(R.string.common_factor_increase_desc),
                                         tint = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -353,7 +359,7 @@ fun TimeOfDaySelector(
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { onResetAuto() }) {
-                                Text("Auto-Modus wiederherstellen")
+                                Text(stringResource(R.string.common_restore_auto_mode))
                             }
                         }
                     }

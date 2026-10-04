@@ -1,3 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App name -->
     <string name="app_name">InsulinRechner</string>
+
+    <!-- Main Activity & Navigation -->
+    <string name="main_top_bar_calculator">Insulin Calculator</string>
+    <string name="main_top_bar_ai_estimator">AI Meal Estimator</string>
+    <string name="main_top_bar_logbook">Insulin Logbook</string>
+    <string name="main_top_bar_settings">Settings &amp; Factors</string>
+    <string name="main_nav_calculator_label">Calculator</string>
+    <string name="main_nav_ai_estimator_label">AI Estimator</string>
+    <string name="main_nav_logbook_label">Logbook</string>
+    <string name="main_nav_settings_label">Settings</string>
+
+    <!-- Common Components -->
+    <string name="common_medical_disclaimer_content_desc">Notice</string>
+    <string name="common_medical_disclaimer_text">Calculation aid: Please always coordinate factors with your doctor.</string>
+    <string name="common_medical_disclaimer_close_desc">Close notice</string>
+    <string name="common_time_of_day_label">Time of day: %1$s</string>
+    <string name="common_time_of_day_factor_subtitle">Factor: %1$s • Tap to %2$s</string>
+    <string name="common_collapse">collapse</string>
+    <string name="common_adjust">adjust</string>
+    <string name="common_auto">Auto</string>
+    <string name="common_active_insulin_factor_label">Active insulin factor (±0.05):</string>
+    <string name="common_insulin_unit_label">IE / KE</string>
+    <string name="common_factor_decrease_desc">Factor -0.05</string>
+    <string name="common_factor_increase_desc">Factor +0.05</string>
+    <string name="common_restore_auto_mode">Restore auto mode</string>
+
+    <!-- SettingsScreen UI Strings -->
+    <string name="settings_database_cleared_toast">Diary &amp; data cleared</string>
+
+    <!-- HistoryFilter Enum Titles -->
+    <string name="enum_history_filter_all">All</string>
+    <string name="enum_history_filter_today">Today</string>
+    <string name="enum_history_filter_7_days">7 Days</string>
+    <string name="enum_history_filter_30_days">30 Days</string>
+    <string name="enum_history_filter_custom">Range</string>
+
+    <!-- LogbookScreen UI Strings -->
+    <string name="logbook_title">Insulin Logbook</string>
+    <string name="logbook_entry_count">%1$d of %2$d entries</string>
+    <string name="logbook_share_content_description">Share logbook</string>
+    <string name="logbook_share_chooser_title">Share logbook (%1$s)</string>
+    <string name="logbook_clear_content_description">Clear logbook</string>
+    <string name="logbook_entry_deleted_toast">Entry deleted</string>
+    <string name="logbook_cleared_toast">Logbook completely cleared</string>
+    <string name="logbook_share_single_title">Share entry (%1$s)</string>
+
+    <!-- Empty States -->
+    <string name="logbook_empty_title_no_logs">No calculations saved yet</string>
+    <string name="logbook_empty_title_filtered">No entries for this period</string>
+    <string name="logbook_empty_desc_no_logs">Calculate a dose in the calculator and tap \'Save to Logbook\'.</string>
+    <string name="logbook_empty_desc_filtered">Choose a different filter above or jump within the period.</string>
+
+    <!-- Filter Descriptions -->
+    <string name="filter_desc_all">All entries</string>
+    <string name="filter_desc_today">Today</string>
+    <string name="filter_desc_yesterday">Yesterday</string>
+    <string name="filter_desc_last_7_days">Last 7 days</string>
+    <string name="filter_desc_7_days_offset">7 days (%1$d week(s) ago)</string>
+    <string name="filter_desc_last_30_days">Last 30 days</string>
+    <string name="filter_desc_30_days_offset">30 days (%1$d month(s) ago)</string>
+    <string name="filter_desc_custom_range">%1$s to %2$s</string>
+
+    <!-- Calculator Advisories and States -->
+    <string name="view_model_ready">Ready for input</string>
+    <string name="view_model_advisory_standard">Standard meal dose</string>
+    <string name="view_model_advisory_hypo">Warning: Low blood glucose (&lt; %1$s)! Please consume 1–2 fast-acting carbs (e.g. glucose/juice) first.</string>
+    <string name="view_model_advisory_below_target">Blood glucose below target: Correction reduces total dose.</string>
+    <string name="view_model_advisory_above_target">Elevated blood glucose: Correction bolus added.</string>
+    <string name="view_model_diary_saved_toast">Calculation successfully saved to logbook!</string>
+    <string name="view_model_settings_saved_toast">Settings saved!</string>
+    <string name="view_model_logbook_cleared">Logbook cleared.</string>
+    <string name="view_model_ai_error_generic">AI analysis error</string>
+
+    <!-- Gemini AI Models -->
+    <string name="gemini_model_flash_latest_title">Gemini Flash (Latest)</string>
+    <string name="gemini_model_flash_latest_desc">Always uses the newest stable Flash model version</string>
+    <string name="gemini_model_flash_lite_latest_title">Gemini Flash-Lite (Latest)</string>
+    <string name="gemini_model_flash_lite_latest_desc">Ultra-fast &amp; highly cost-effective with minimal token consumption</string>
+    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Recommended)</string>
+    <string name="gemini_model_3_8_flash_desc">Latest generation, optimized for high-speed nutrient &amp; meal analysis</string>
+    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash</string>
+    <string name="gemini_model_3_7_flash_desc">High accuracy and fast processing for meal evaluation</string>
+    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
+    <string name="gemini_model_3_6_flash_desc">Reliable Flash model version for daily carb tracking</string>
+    <string name="gemini_model_3_5_flash_title">Gemini 3.5 Flash</string>
+    <string name="gemini_model_3_5_flash_desc">Proven baseline Flash model for nutritional estimations</string>
+    <string name="gemini_model_3_1_pro_title">Gemini 3.1 Pro</string>
+    <string name="gemini_model_3_1_pro_desc">Advanced reasoning for complex multi-course menus &amp; recipes</string>
 </resources>
