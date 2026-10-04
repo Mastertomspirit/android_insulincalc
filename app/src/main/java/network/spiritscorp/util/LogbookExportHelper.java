@@ -18,6 +18,7 @@ package network.spiritscorp.util;
  */
 
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.GlucoseUnit;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -54,7 +55,7 @@ public class LogbookExportHelper {
     /**
      * Formats a complete export report of all or filtered logs for text sharing (e.g. Email/Messenger).
      */
-    public String generateExportText(List<CalculationLog> logs, String filterDescription) {
+    public String generateExportText(List<CalculationLog> logs, String filterDescription, GlucoseUnit glucoseUnit) {
         if (logs == null || logs.isEmpty()) {
             return "Insulin-Rechner Tagebuch\nKeine Einträge für den ausgewählten Zeitraum (" + filterDescription + ") vorhanden.";
         }
@@ -77,35 +78,7 @@ public class LogbookExportHelper {
                 bgSum += log.getBloodGlucose();
                 bgCount++;
             }
-
-            sb.append("📅 ").append(dateFormat.format(new Date(log.getTimestamp()))).append(" - ").append(log.getTimeOfDay()).append("\n");
-            sb.append("🍽️ Mahlzeit: ").append(log.getMealTitle()).append("\n");
-            sb.append("🍞 Kohlenhydrate: ").append(log.getCarbGrams()).append(" g");
-            if (log.getBeValue() > 0) {
-                sb.append(" (").append(log.getBeValue()).append(" BE / ").append(log.getKeValue()).append(" KE)");
-            }
-            sb.append("\n");
-
-            if (log.getBloodGlucose() != null) {
-                sb.append("🩸 Blutzucker: ").append(log.getBloodGlucose()).append(" ").append(log.getCarbUnit());
-                if (log.getTargetGlucose() != null) {
-                    sb.append(" (Ziel: ").append(log.getTargetGlucose()).append(")");
-                }
-                sb.append("\n");
-            }
-
-            sb.append("💉 Insulin: ").append(log.getRoundedInsulin()).append(" IE");
-            Double corr = log.getCorrectionInsulin();
-            if (corr != null && corr != 0.0) {
-                sb.append(" (Mahlzeit: ").append(log.getMealInsulin()).append(" IE, Korrektur: ")
-                        .append(corr > 0 ? "+" : "")
-                        .append(corr).append(" IE)");
-            }
-            sb.append("\n");
-
-            if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
-                sb.append("📝 Notiz: ").append(log.getNotes()).append("\n");
-            }
+            appendLogEntry(sb, log, glucoseUnit);
             sb.append("\n");
         }
 
@@ -125,55 +98,10 @@ public class LogbookExportHelper {
     /**
      * Formats a single log entry with full details, breakdown, correction bolus and symbols for sharing.
      */
-    public String formatSingleLogShare(CalculationLog log) {
+    public String formatSingleLogShare(CalculationLog log, GlucoseUnit glucoseUnit) {
         if (log == null) return "";
         StringBuilder sb = new StringBuilder();
-        sb.append("📋 Insulin-Berechnung: ").append(log.getMealTitle()).append("\n");
-        sb.append("📅 ").append(dateFormat.format(new Date(log.getTimestamp()))).append(" (").append(log.getTimeOfDay()).append(")\n");
-        sb.append("----------------------------------------\n");
-
-        // Kohlenhydrate & Mahlzeitenbolus
-        sb.append("🍞 Kohlenhydrate: ").append(log.getCarbGrams()).append(" g");
-        if (log.getBeValue() > 0 || log.getKeValue() > 0) {
-            sb.append(" (").append(log.getBeValue()).append(" BE / ").append(log.getKeValue()).append(" KE)");
-        }
-        sb.append("\n");
-        sb.append("⏱️ Faktor (").append(log.getTimeOfDay()).append("): ").append(log.getInsulinFactor()).append(" IE/KE\n");
-        sb.append("🍽️ Mahlzeiten-Bolus: ").append(log.getMealInsulin()).append(" IE\n");
-
-        // Blutzucker & Korrektur
-        if (log.getBloodGlucose() != null) {
-            sb.append("🩸 Gemessener BZ: ").append(log.getBloodGlucose());
-            if (log.getTargetGlucose() != null) {
-                sb.append(" (Ziel: ").append(log.getTargetGlucose()).append(")");
-            }
-            sb.append("\n");
-
-            if (log.getCorrectionFactor() != null && log.getCorrectionFactor() > 0) {
-                sb.append("🎯 Korrekturfaktor: 1 IE / ").append(log.getCorrectionFactor()).append("\n");
-            }
-
-            Double corr = log.getCorrectionInsulin();
-            if (corr != null && corr != 0.0) {
-                sb.append("⚡ Korrektur-Bolus: ")
-                        .append(corr > 0 ? "+" : "")
-                        .append(corr).append(" IE\n");
-            }
-        }
-
-        // Gesamtdosis
-        sb.append("----------------------------------------\n");
-        sb.append("💉 Gesamtdosis: ").append(log.getRoundedInsulin()).append(" IE");
-        if (Math.abs(log.getTotalInsulin() - log.getRoundedInsulin()) > 0.01) {
-            sb.append(" (exakt: ").append(Math.round(log.getTotalInsulin() * 100.0) / 100.0).append(" IE)");
-        }
-        sb.append("\n");
-
-        // Notiz
-        if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
-            sb.append("📝 Notiz: ").append(log.getNotes().trim()).append("\n");
-        }
-
+        appendLogEntry(sb, log, glucoseUnit);
         sb.append("----------------------------------------\n");
         sb.append("ℹ️ Erstellt mit InsulinRechner");
         return sb.toString();
@@ -210,37 +138,75 @@ public class LogbookExportHelper {
         return sb.toString();
     }
 
-    public record LogbookMetrics(int totalEntries, double totalCarbsGrams, double totalInsulinUnits,
-                                 Double averageBloodGlucose) {
-    }
-
-    public LogbookMetrics calculateMetrics(List<CalculationLog> logs) {
-        if (logs == null || logs.isEmpty()) {
-            return new LogbookMetrics(0, 0.0, 0.0, null);
-        }
-        double totalCarbs = 0;
-        double totalInsulin = 0;
-        double bgSum = 0;
-        int bgCount = 0;
-
-        for (CalculationLog log : logs) {
-            totalCarbs += log.getCarbGrams();
-            totalInsulin += log.getRoundedInsulin();
-            if (log.getBloodGlucose() != null) {
-                bgSum += log.getBloodGlucose();
-                bgCount++;
-            }
-        }
-        Double avgBg = bgCount > 0 ? (bgSum / bgCount) : null;
-        return new LogbookMetrics(logs.size(), totalCarbs, totalInsulin, avgBg);
-    }
-
-    private static String escapeCsv(String text) {
+    private String escapeCsv(String text) {
         if (text == null) return "";
         String escaped = text.replace("\"", "\"\"");
         if (escaped.contains(";") || escaped.contains("\n") || escaped.contains("\"")) {
             return "\"" + escaped + "\"";
         }
         return escaped;
+    }
+
+    /**
+     * Appends one calculation log using the common format shared by  the single-log view and the complete export.
+     *
+     * @param glucoseUnit glucose unit to display for blood glucose, e.g. "mg/dl" or "mmol/l".
+     *                    May be null when the unit should not be appended.
+     */
+    private void appendLogEntry(StringBuilder sb, CalculationLog log, GlucoseUnit glucoseUnit  ) {
+        sb.append("📋 Insulin-Berechnung: ").append(log.getMealTitle()).append("\n")
+
+            .append("📅 ")
+            .append(dateFormat.format(new Date(log.getTimestamp())))
+            .append(" (").append(log.getTimeOfDay()).append(")\n")
+
+            .append("----------------------------------------\n")
+
+            // Carbohydrates and meal bolus
+            .append("🍞 Kohlenhydrate: ").append(log.getCarbGrams()).append(" g");
+
+        if (log.getBeValue() > 0 || log.getKeValue() > 0) {
+            sb.append(" (").append(log.getBeValue()).append(" BE / ").append(log.getKeValue()).append(" KE)");
+        }
+
+        // Insulin factor and meal bolus
+        sb.append("\n")
+            .append("⏱️ Faktor (").append(log.getTimeOfDay().getTitle()).append("): ").append(log.getInsulinFactor()).append(" IE/KE\n")
+            .append("🍽️ Mahlzeiten-Bolus: ").append(log.getMealInsulin()).append(" IE\n");
+
+        // Blood glucose and correction
+        if (log.getBloodGlucose() != null) {
+            sb.append("🩸 Gemessener BZ: ").append(log.getBloodGlucose()).append(" ").append(glucoseUnit.getShortName());
+
+            if (log.getTargetGlucose() != null) {
+                sb.append(" (Ziel: ").append(log.getTargetGlucose()).append(" ").append(glucoseUnit.getShortName()).append(")");
+            }
+
+            sb.append("\n");
+
+            if (log.getCorrectionFactor() != null && log.getCorrectionFactor() > 0) {
+                sb.append("🎯 Korrekturfaktor: 1 IE / ").append(log.getCorrectionFactor()).append("\n");
+            }
+
+            Double corr = log.getCorrectionInsulin();
+            if (corr != null && corr != 0.0) {
+                sb.append("⚡ Korrektur-Bolus: ").append(corr > 0 ? "+" : "").append(corr).append(" IE\n");
+            }
+        }
+
+        // Total insulin dose
+        sb.append("----------------------------------------\n");
+        sb.append("💉 Gesamtdosis: ").append(log.getRoundedInsulin()).append(" IE");
+
+        if (Math.abs(log.getTotalInsulin() - log.getRoundedInsulin()) > 0.01) {
+            sb.append(" (exakt: ").append(Math.round(log.getTotalInsulin() * 100.0) / 100.0).append(" IE)");
+        }
+
+        sb.append("\n");
+
+        // Note
+        if (log.getNotes() != null && !log.getNotes().trim().isEmpty()) {
+            sb.append("📝 Notiz: ").append(log.getNotes().trim()).append("\n");
+        }
     }
 }
