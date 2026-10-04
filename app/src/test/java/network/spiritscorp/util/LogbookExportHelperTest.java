@@ -115,10 +115,10 @@ public class LogbookExportHelperTest {
 
     @Test
     public void testGenerateExportTextWithEmptyList() {
-        String textNull = exportHelper.generateExportText(null, "Heute");
+        String textNull = exportHelper.generateExportText(null, "Heute", GlucoseUnit.MG_DL);
         assertTrue(textNull.contains("Keine Einträge"));
 
-        String textEmpty = exportHelper.generateExportText(Collections.emptyList(), "Letzte 7 Tage");
+        String textEmpty = exportHelper.generateExportText(Collections.emptyList(), "Letzte 7 Tage", GlucoseUnit.MG_DL);
         assertTrue(textEmpty.contains("Keine Einträge"));
         assertTrue(textEmpty.contains("Letzte 7 Tage"));
     }
@@ -126,7 +126,7 @@ public class LogbookExportHelperTest {
     @Test
     public void testGenerateExportTextWithLogs() {
         List<CalculationLog> logs = createSampleLogs();
-        String report = exportHelper.generateExportText(logs, "Alle Einträge");
+        String report = exportHelper.generateExportText(logs, "Alle Einträge", GlucoseUnit.MG_DL);
 
         assertNotNull(report);
         assertTrue(report.contains("Insulin-Rechner Tagebuch-Export"));
@@ -141,14 +141,14 @@ public class LogbookExportHelperTest {
     @Test
     public void testFormatSingleLogShare() {
         CalculationLog log = createSampleLogs().getFirst();
-        String singleShare = exportHelper.formatSingleLogShare(log);
+        String singleShare = exportHelper.formatSingleLogShare(log, GlucoseUnit.MG_DL);
 
         assertNotNull(singleShare);
         assertTrue(singleShare.contains("Insulin-Berechnung: Frühstück"));
         assertTrue(singleShare.contains("Kohlenhydrate: 40.0 g"));
         assertTrue(singleShare.contains("Faktor (Morgens): 1.5 IE/KE"));
         assertTrue(singleShare.contains("Mahlzeiten-Bolus: 6.0 IE"));
-        assertTrue(singleShare.contains("Gemessener BZ: 130.0"));
+        assertTrue(singleShare.contains("Gemessener BZ: 130.0 mg/dl"));
         assertTrue(singleShare.contains("Korrektur-Bolus: +0.75 IE"));
         assertTrue(singleShare.contains("Gesamtdosis: 7.0 IE"));
         assertTrue(singleShare.contains("Notiz: Haferflocken"));
