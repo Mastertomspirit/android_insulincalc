@@ -26,8 +26,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import network.spiritscorp.ui.theme.AppTheme;
 
 /**
  * Unit tests verifying {@link ThemePreferences} instantiable object behavior,
@@ -50,28 +54,29 @@ public class ThemePreferencesTest {
 
     @Test
     public void testDefaultPreferences() {
-        assertEquals("MEDICAL_TEAL", themePreferences.getSelectedTheme());
-        assertEquals("SYSTEM", themePreferences.getThemeMode());
+        assertNull("Default selected theme should be null when no preferences are set", themePreferences.getSelectedTheme());
+        assertNull("Default theme mode should be null when no preferences are set", themePreferences.getThemeMode());
     }
 
     @Test
     public void testSaveAndRetrievePreferences() {
-        themePreferences.savePreferences("SUNSET_ORANGE", "DARK");
+        themePreferences.savePreferences(AppTheme.SUNSET_AMBER, AppTheme.Mode.DARK);
 
-        assertEquals("SUNSET_ORANGE", themePreferences.getSelectedTheme());
-        assertEquals("DARK", themePreferences.getThemeMode());
+        assertEquals("Selected theme should match the saved value", AppTheme.SUNSET_AMBER, themePreferences.getSelectedTheme());
+        assertEquals("Theme mode should match the saved value", AppTheme.Mode.DARK, themePreferences.getThemeMode());
 
         // Create new instance pointing to same preferences to verify persistence
         ThemePreferences anotherInstance = new ThemePreferences(mockPrefs);
-        assertEquals("SUNSET_ORANGE", anotherInstance.getSelectedTheme());
-        assertEquals("DARK", anotherInstance.getThemeMode());
+        assertEquals("Persisted selected theme should be retrieved correctly by a new instance", AppTheme.SUNSET_AMBER, anotherInstance.getSelectedTheme());
+        assertEquals("Persisted theme mode should be retrieved correctly by a new instance", AppTheme.Mode.DARK, anotherInstance.getThemeMode());
     }
 
     @Test
     public void testContextConstructor() {
         Context context = ApplicationProvider.getApplicationContext();
         ThemePreferences prefsFromContext = new ThemePreferences(context);
-        assertNotNull(prefsFromContext.getSelectedTheme());
-        assertNotNull(prefsFromContext.getThemeMode());
+        prefsFromContext.savePreferences(AppTheme.EMERALD_GREEN, AppTheme.Mode.LIGHT);
+        assertEquals("Context-initialized preferences should retrieve saved selected theme", AppTheme.EMERALD_GREEN, prefsFromContext.getSelectedTheme());
+        assertEquals("Context-initialized preferences should retrieve saved theme mode", AppTheme.Mode.LIGHT, prefsFromContext.getThemeMode());
     }
 }

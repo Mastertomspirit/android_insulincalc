@@ -18,13 +18,17 @@ package network.spiritscorp;
  */
 
 import kotlin.Pair;
+import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.data.DatabaseBackupManager;
 import network.spiritscorp.data.ImportResult;
 import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
 import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.theme.AppTheme;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,17 +72,17 @@ public class InsulinCalculatorSystemScenarioTest {
                 1.0,
                 1.3,
                 0.8,
-                "g KH",
+                CarbUnit.GRAMS,
                 12,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 100.0,
                 40.0,
                 0.5,
                 true,
-                "SLATE_CALM",
-                "SYSTEM",
+                AppTheme.MEDICAL_TEAL,
+                AppTheme.Mode.SYSTEM,
                 "",
-                "gemini-3.9"
+                GeminiAiModel.GEMINI_FLASH_LATEST
         );
         repository.saveSettings(userSettings);
 
@@ -91,11 +95,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 now - (10 * 3600 * 1000),
                 "Frühstück: Haferflocken mit Beeren",
                 50.0,
-                "g KH",
+                CarbUnit.GRAMS,
                 50.0,
                 4.17,
                 5.0,
-                TimeOfDay.MORNING.getTitle(),
+                TimeOfDay.MORNING,
                 1.6,
                 6.67,
                 110.0,
@@ -115,11 +119,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 now - (5 * 3600 * 1000),
                 "Mittagessen: Reisgericht",
                 4.0,
-                "BE",
+                CarbUnit.BE,
                 48.0,
                 4.0,
                 4.8,
-                TimeOfDay.NOON.getTitle(),
+                TimeOfDay.NOON,
                 1.0,
                 4.0,
                 180.0,
@@ -139,11 +143,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 now - (3600 * 1000),
                 "Abendessen: Vollkornbrot & Salat",
                 30.0,
-                "g KH",
+                CarbUnit.GRAMS,
                 30.0,
                 2.5,
                 3.0,
-                TimeOfDay.EVENING.getTitle(),
+                TimeOfDay.EVENING,
                 1.3,
                 3.25,
                 95.0,
@@ -226,11 +230,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 System.currentTimeMillis(),
                 estimatedMealName,
                 rawUnitsInput,
-                unit.getShortName(),
+                unit,
                 estimatedCarbsGrams,
                 estimatedCarbsGrams / 12.0,
                 estimatedCarbsGrams / 10.0,
-                "Abends",
+                TimeOfDay.EVENING,
                 factor,
                 mealInsulin,
                 160.0,
@@ -276,11 +280,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 System.currentTimeMillis(),
                 "Abendessen im Restaurant",
                 60.0,
-                "g KH",
+                CarbUnit.GRAMS,
                 60.0,
                 5.0,
                 6.0,
-                TimeOfDay.EVENING.getTitle(),
+                TimeOfDay.EVENING,
                 1.2,
                 6.0,
                 140.0,
@@ -311,17 +315,17 @@ public class InsulinCalculatorSystemScenarioTest {
                 1.0,
                 1.2,
                 0.8,
-                "GRAMS",
+                CarbUnit.GRAMS,
                 12,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 120.0,
                 50.0,
                 0.5,
                 true,
-                "MEDICAL_TEAL",
-                "SYSTEM",
+                AppTheme.MEDICAL_TEAL,
+                AppTheme.Mode.SYSTEM,
                 "AIzaSyTestCustomKey12345",
-                "gemini-3.7-flash"
+                GeminiAiModel.GEMINI_3_7_FLASH
         );
 
         repository.saveSettings(customAiSettings);
@@ -329,19 +333,19 @@ public class InsulinCalculatorSystemScenarioTest {
         UserSettings retrieved = repository.getSettings();
         assertNotNull(retrieved);
         assertEquals("AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
-        assertEquals("gemini-3.7-flash", retrieved.getSelectedAiModel());
+        assertEquals(GeminiAiModel.GEMINI_3_7_FLASH, retrieved.getSelectedAiModel());
 
         // Test export & restore of AI settings
         DatabaseBackupManager backupManager = new DatabaseBackupManager();
         String json = backupManager.exportToJson(retrieved, java.util.Collections.emptyList());
         assertFalse(json.contains("AIzaSyTestCustomKey12345"));
-        assertTrue(json.contains("gemini-3.7-flash"));
+        assertTrue(json.contains(GeminiAiModel.GEMINI_3_7_FLASH.name()));
 
         Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(json);
         assertNotNull(parsed);
         assertNotNull(parsed.getFirst());
         assertTrue(parsed.getFirst().getGeminiApiKey().isBlank());
-        assertEquals("gemini-3.7-flash", parsed.getFirst().getSelectedAiModel());
+        assertEquals(GeminiAiModel.GEMINI_3_7_FLASH, parsed.getFirst().getSelectedAiModel());
     }
 
     @Test
@@ -357,11 +361,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 System.currentTimeMillis(),
                 mealTitle,
                 Double.parseDouble(carbInput),
-                "g KH",
+                CarbUnit.GRAMS,
                 60.0,
                 5.0,
                 6.0,
-                "Abends",
+                TimeOfDay.EVENING,
                 1.2,
                 6.0,
                 Double.parseDouble(currentGlucose),
@@ -382,11 +386,6 @@ public class InsulinCalculatorSystemScenarioTest {
 
     @Test
     public void testKeyboardInputPersistenceDuringSaveScenario() {
-        // Given user sets morning factor of 1.75
-        UserSettings settings = new UserSettings(
-                1, 1.75, 1.0, 1.2, 0.8, "GRAMS", 12, "mg/dl", 100.0, 40.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM", "", "gemini-3.9"
-        );
-        repository.saveSettings(settings);
 
         // Simulate user typing "48" in the carb input field and "140" in glucose field while keyboard is open
         String liveCarbInput = "48";
@@ -399,7 +398,7 @@ public class InsulinCalculatorSystemScenarioTest {
         double carbGrams = Double.parseDouble(liveCarbInput);
         double be = carbGrams / 12.0; // 4.0 BE
         double ke = carbGrams / 10.0; // 4.8 KE
-        double mealInsulin = be * settings.getMorningFactor(); // 4.0 * 1.75 = 7.0 IE
+        double mealInsulin = be * 1.75; // 4.0 * 1.75 = 7.0 IE
         double corrInsulin = (bg - 100.0) / 40.0; // +1.0 IE
         double totalInsulin = mealInsulin + corrInsulin; // 8.0 IE
 
@@ -408,12 +407,12 @@ public class InsulinCalculatorSystemScenarioTest {
                 System.currentTimeMillis(),
                 mealTitle,
                 carbGrams,
-                "g KH",
+                CarbUnit.GRAMS,
                 carbGrams,
                 be,
                 ke,
-                TimeOfDay.MORNING.getTitle(),
-                settings.getMorningFactor(),
+                TimeOfDay.MORNING,
+                1.75,
                 mealInsulin,
                 bg,
                 100.0,
@@ -444,7 +443,22 @@ public class InsulinCalculatorSystemScenarioTest {
     @Test
     public void testFullJsonBackupAndRestoreE2E() {
         UserSettings initialSettings = new UserSettings(
-                1, 1.8, 1.1, 1.4, 0.7, "KE", 10, "mmol/l", 6.5, 2.5, 0.5, true, "OCEAN_BREEZE", "LIGHT", "key-xyz", "gemini-2.5-pro"
+                1,
+                1.8,
+                1.1,
+                1.4,
+                0.7,
+                CarbUnit.KE,
+                10,
+                GlucoseUnit.MMOL_L,
+                6.5,
+                2.5,
+                0.5,
+                true,
+                AppTheme.OCEAN_BLUE,
+                AppTheme.Mode.LIGHT,
+                "key-xyz",
+                GeminiAiModel.GEMINI_3_7_FLASH
         );
         repository.saveSettings(initialSettings);
 
@@ -453,11 +467,11 @@ public class InsulinCalculatorSystemScenarioTest {
                 1700000000000L,
                 "Haferflocken & Heidelbeeren",
                 4.0,
-                "KE",
+                CarbUnit.KE,
                 40.0,
                 3.33,
                 4.0,
-                "Morgens",
+                TimeOfDay.MORNING,
                 1.8,
                 7.2,
                 7.8,
@@ -473,7 +487,7 @@ public class InsulinCalculatorSystemScenarioTest {
         DatabaseBackupManager backupManager = new DatabaseBackupManager(fakeSettingsDao, fakeLogDao);
         String exportedJson = backupManager.exportToJson();
         assertNotNull(exportedJson);
-        assertTrue(exportedJson.contains("OCEAN_BREEZE"));
+        assertTrue(exportedJson.contains("OCEAN_BLUE"));
         assertTrue(exportedJson.contains("Haferflocken & Heidelbeeren"));
         assertFalse(exportedJson.contains("key-xyz"));
 
@@ -487,8 +501,8 @@ public class InsulinCalculatorSystemScenarioTest {
         assertTrue(result.isSuccess());
 
         UserSettings restoredSettings = repository.getSettings();
-        assertEquals("OCEAN_BREEZE", restoredSettings.getSelectedTheme());
-        assertEquals("mmol/l", restoredSettings.getGlucoseUnit());
+        assertEquals(AppTheme.OCEAN_BLUE, restoredSettings.getSelectedTheme());
+        assertEquals("mmol/l", restoredSettings.getGlucoseUnit().getShortName());
         assertTrue(restoredSettings.getGeminiApiKey().isBlank());
 
         List<CalculationLog> restoredLogs = repository.getAllLogsDirect();

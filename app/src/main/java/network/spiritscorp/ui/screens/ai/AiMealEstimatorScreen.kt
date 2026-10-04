@@ -159,7 +159,7 @@ fun AiMealEstimatorScreen(
         AiConfigCard(
             userSettings = userSettings,
             onSaveConfig = { apiKey, modelId ->
-                viewModel.saveAiConfiguration(apiKey, modelId)
+                viewModel.saveAiConfiguration(apiKey, GeminiAiModel.fromModelId(modelId))
             }
         )
 
@@ -217,8 +217,8 @@ fun AiMealEstimatorScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        val activeModel = GeminiAiModel.fromModelId(userSettings.selectedAiModel)
                         Text("Analysiere mit ${activeModel.displayName}...")
+                        val activeModel = userSettings.selectedAiModel
                     } else {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,

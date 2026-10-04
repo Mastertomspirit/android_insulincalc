@@ -192,7 +192,7 @@ public class LogbookExportHelper {
         for (CalculationLog log : logs) {
             sb.append(log.getId()).append(";")
                     .append(csvDateFormat.format(new Date(log.getTimestamp()))).append(";")
-                    .append(escapeCsv(log.getTimeOfDay())).append(";")
+                    .append(escapeCsv(log.getTimeOfDay().getTitle())).append(";")
                     .append(escapeCsv(log.getMealTitle())).append(";")
                     .append(log.getCarbGrams()).append(";")
                     .append(log.getBeValue()).append(";")

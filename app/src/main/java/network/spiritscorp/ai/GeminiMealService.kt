@@ -59,7 +59,7 @@ class GeminiMealService {
     suspend fun estimateCarbsFromDescription(
         foodDescription: String,
         customApiKey: String? = null,
-        modelId: String? = null
+        selectedModel: GeminiAiModel
     ): Result<MealEstimateResult> = withContext(Dispatchers.IO) {
         val devKey = try {
             BuildConfig.GEMINI_API_KEY
@@ -85,7 +85,7 @@ class GeminiMealService {
         }
 
         // Always resolve to a valid Gemini model ID
-        val effectiveModel = GeminiAiModel.fromModelId(modelId).modelId
+        val effectiveModel = selectedModel.modelId
 
         try {
             val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent"

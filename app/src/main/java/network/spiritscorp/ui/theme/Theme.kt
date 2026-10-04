@@ -266,7 +266,6 @@ fun MyApplicationTheme(
             AppTheme.EMERALD_GREEN -> if (darkTheme) EmeraldDarkColorScheme else EmeraldLightColorScheme
             AppTheme.SUNSET_AMBER -> if (darkTheme) SunsetDarkColorScheme else SunsetLightColorScheme
             AppTheme.BERRY_VIOLET -> if (darkTheme) BerryDarkColorScheme else BerryLightColorScheme
-            AppTheme.MIDNIGHT_DARK -> MidnightColorScheme
         }
     }
 

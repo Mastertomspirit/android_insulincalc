@@ -57,8 +57,8 @@ import network.spiritscorp.model.CarbUnit
 
 @Composable
 fun CarbUnitSection(
-    defaultCarbUnit: String,
-    onDefaultCarbUnitChange: (String) -> Unit,
+    defaultCarbUnit: CarbUnit,
+    onDefaultCarbUnitChange: (CarbUnit) -> Unit,
     beDivisor: Int,
     onBeDivisorChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -105,15 +105,13 @@ fun CarbUnitSection(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CarbUnit.entries.forEach { unit ->
-                            val isSelected = defaultCarbUnit.equals(unit.name, ignoreCase = true) ||
-                                    defaultCarbUnit.equals(unit.shortName, ignoreCase = true) ||
-                                    (unit == CarbUnit.GRAMS && (defaultCarbUnit.equals("GRAMS", ignoreCase = true) || defaultCarbUnit.startsWith("g", ignoreCase = true)))
+                            val isSelected = defaultCarbUnit == unit
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(10.dp))
-                                    .clickable { onDefaultCarbUnitChange(unit.name) }
+                                    .clickable { onDefaultCarbUnitChange(unit) }
                                     .testTag("unit_setting_${unit.name.lowercase()}"),
                                 shape = RoundedCornerShape(10.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
@@ -150,8 +148,8 @@ fun CarbUnitSection(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     val beOptions = listOf(
-                        12 to "1 BE = 12g Kohlenhydrate (Deutschland Standard)",
-                        10 to "1 BE = 10g Kohlenhydrate (Österreich / Schweiz / KE)"
+                        12 to "1 BE = 12g Kohlenhydrate",
+                        10 to "1 BE = 10g Kohlenhydrate"
                     )
 
                     beOptions.forEach { (divisor, label) ->

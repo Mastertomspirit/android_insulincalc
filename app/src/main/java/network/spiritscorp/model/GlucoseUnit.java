@@ -17,6 +17,8 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import java.util.Locale;
+
 public enum GlucoseUnit {
     MG_DL("Milligramm pro Deziliter", "mg/dl"),
     MMOL_L("Millimol pro Liter", "mmol/l");
@@ -47,7 +49,7 @@ public enum GlucoseUnit {
 
     public static GlucoseUnit fromString(String str) {
         if (str == null) return MG_DL;
-        String normalized = str.trim().toLowerCase();
+        String normalized = str.trim().toLowerCase(Locale.getDefault());
         if (normalized.equals("mmol/l") || normalized.equals("mmol") || normalized.equals("mmol_l")) {
             return MMOL_L;
         }

@@ -24,11 +24,16 @@ import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.flow.FlowKt;
 import kotlinx.coroutines.flow.MutableStateFlow;
 import kotlinx.coroutines.flow.StateFlowKt;
+import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.data.CalculationLogDao;
 import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.data.UserSettingsDao;
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
+import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.theme.AppTheme;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,7 +69,7 @@ public class InsulinRepositoryIntegrationTest {
         UserSettings settings = repository.getSettings();
         assertNotNull(settings);
         assertEquals(1.50, settings.getMorningFactor(), DELTA);
-        assertEquals("GRAMS", settings.getDefaultCarbUnit());
+        assertEquals(CarbUnit.GRAMS, settings.getDefaultCarbUnit());
         assertEquals(120.0, settings.getTargetGlucoseMgDl(), DELTA);
         assertEquals(50.0, settings.getCorrectionFactorMgDl(), DELTA);
 
@@ -82,29 +87,29 @@ public class InsulinRepositoryIntegrationTest {
                 1.15,
                 1.40,
                 0.85,
-                "BE",
+                CarbUnit.BE,
                 12,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 105.0,
                 45.0,
                 0.5,
                 true,
-                "AMBER_WARM",
-                "SYSTEM",
+                AppTheme.SUNSET_AMBER,
+                AppTheme.Mode.SYSTEM,
                 "",
-                "gemini-3.9"
+                GeminiAiModel.GEMINI_3_1_PRO
         );
 
         repository.saveSettings(custom);
 
         UserSettings retrieved = repository.getSettings();
         assertEquals(1.75, retrieved.getMorningFactor(), DELTA);
-        assertEquals("BE", retrieved.getDefaultCarbUnit());
-        assertEquals("AMBER_WARM", retrieved.getSelectedTheme());
+        assertEquals(CarbUnit.BE, retrieved.getDefaultCarbUnit());
+        assertEquals(AppTheme.SUNSET_AMBER, retrieved.getSelectedTheme());
 
         UserSettings flowValue = firstFromFlow(repository.getSettingsFlow());
         assertNotNull(flowValue);
-        assertEquals("AMBER_WARM", flowValue.getSelectedTheme());
+        assertEquals(AppTheme.SUNSET_AMBER, flowValue.getSelectedTheme());
     }
 
     @Test
@@ -114,11 +119,11 @@ public class InsulinRepositoryIntegrationTest {
                 System.currentTimeMillis(),
                 "Mittagessen (Reis mit Hühnchen)",
                 60.0,
-                "g KH",
+                CarbUnit.GRAMS,
                 60.0,
                 5.0,
                 6.0,
-                "Mittags",
+                TimeOfDay.NOON,
                 1.0,
                 5.0,
                 125.0,
@@ -145,9 +150,9 @@ public class InsulinRepositoryIntegrationTest {
 
     @Test
     public void testSaveMultipleLogsBatchAndOrdering() {
-        CalculationLog log1 = new CalculationLog(1L, 1000L, "Mahlzeit 1", 0.0, "g KH", 0.0, 0.0, 0.0, "Morgens", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
-        CalculationLog log2 = new CalculationLog(2L, 2000L, "Mahlzeit 2", 0.0, "g KH", 0.0, 0.0, 0.0, "Mittags", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
-        CalculationLog log3 = new CalculationLog(3L, 3000L, "Mahlzeit 3", 0.0, "g KH", 0.0, 0.0, 0.0, "Abends", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log1 = new CalculationLog(1L, 1000L, "Mahlzeit 1", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log2 = new CalculationLog(2L, 2000L, "Mahlzeit 2", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.NOON, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log3 = new CalculationLog(3L, 3000L, "Mahlzeit 3", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.EVENING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
 
         long[] insertedIds = repository.saveLogs(Arrays.asList(log1, log2, log3));
         assertEquals(3, insertedIds.length);
@@ -162,8 +167,8 @@ public class InsulinRepositoryIntegrationTest {
 
     @Test
     public void testDeleteLogById() {
-        CalculationLog log1 = new CalculationLog(10L, 1000L, "Frühstück", 0.0, "g KH", 0.0, 0.0, 0.0, "Morgens", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
-        CalculationLog log2 = new CalculationLog(20L, 2000L, "Abendessen", 0.0, "g KH", 0.0, 0.0, 0.0, "Abends", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log1 = new CalculationLog(10L, 1000L, "Frühstück", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log2 = new CalculationLog(20L, 2000L, "Abendessen", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.EVENING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
 
         repository.saveLogs(Arrays.asList(log1, log2));
         List<CalculationLog> initialLogs = repository.getAllLogsDirect();
@@ -177,8 +182,8 @@ public class InsulinRepositoryIntegrationTest {
 
     @Test
     public void testClearAllLogs() {
-        CalculationLog log1 = new CalculationLog(1L, 1000L, "Eintrag 1", 0.0, "g KH", 0.0, 0.0, 0.0, "Morgens", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
-        CalculationLog log2 = new CalculationLog(2L, 2000L, "Eintrag 2", 0.0, "g KH", 0.0, 0.0, 0.0, "Mittags", 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log1 = new CalculationLog(1L, 1000L, "Eintrag 1", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
+        CalculationLog log2 = new CalculationLog(2L, 2000L, "Eintrag 2", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.NOON, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
         repository.saveLogs(Arrays.asList(log1, log2));
 
         List<CalculationLog> initialLogs = repository.getAllLogsDirect();

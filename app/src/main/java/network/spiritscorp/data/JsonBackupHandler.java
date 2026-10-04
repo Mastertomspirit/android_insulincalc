@@ -20,8 +20,13 @@ package network.spiritscorp.data;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import kotlin.Pair;
+import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
+import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.theme.AppTheme;
 import network.spiritscorp.util.AppConstants;
 import network.spiritscorp.util.DateTimeUtils;
 import org.json.JSONArray;
@@ -78,7 +83,7 @@ public class JsonBackupHandler {
                 settingsObj.put("showDisclaimer", settings.isShowDisclaimer());
                 settingsObj.put("selectedTheme", settings.getSelectedTheme());
                 settingsObj.put("themeMode", settings.getThemeMode());
-                settingsObj.put("selectedAiModel", settings.getSelectedAiModel() != null ? settings.getSelectedAiModel() : "gemini-3.5-flash");
+                settingsObj.put("selectedAiModel", settings.getSelectedAiModel());
                 root.put("settings", settingsObj);
             }
 
@@ -90,44 +95,6 @@ public class JsonBackupHandler {
             Log.e(TAG, "Error serializing backup to JSON: " + e.getMessage(), e);
             return "{}";
         }
-    }
-
-    @NonNull
-    private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
-        JSONArray logsArray = new JSONArray();
-        if (logs != null) {
-            for (CalculationLog log : logs) {
-                JSONObject logObj = new JSONObject();
-                logObj.put("id", log.getId());
-                logObj.put("timestamp", log.getTimestamp());
-                logObj.put("mealTitle", log.getMealTitle());
-                logObj.put("rawCarbInput", log.getRawCarbInput());
-                logObj.put("carbUnit", log.getCarbUnit());
-                logObj.put("carbGrams", log.getCarbGrams());
-                logObj.put("beValue", log.getBeValue());
-                logObj.put("keValue", log.getKeValue());
-                logObj.put("timeOfDay", log.getTimeOfDay());
-                logObj.put("insulinFactor", log.getInsulinFactor());
-                logObj.put("mealInsulin", log.getMealInsulin());
-                if (log.getBloodGlucose() != null) {
-                    logObj.put("bloodGlucose", log.getBloodGlucose());
-                }
-                if (log.getTargetGlucose() != null) {
-                    logObj.put("targetGlucose", log.getTargetGlucose());
-                }
-                if (log.getCorrectionFactor() != null) {
-                    logObj.put("correctionFactor", log.getCorrectionFactor());
-                }
-                if (log.getCorrectionInsulin() != null) {
-                    logObj.put("correctionInsulin", log.getCorrectionInsulin());
-                }
-                logObj.put("totalInsulin", log.getTotalInsulin());
-                logObj.put("roundedInsulin", log.getRoundedInsulin());
-                logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
-                logsArray.put(logObj);
-            }
-        }
-        return logsArray;
     }
 
     /**
@@ -171,22 +138,60 @@ public class JsonBackupHandler {
         }
     }
 
+    @NonNull
+    private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
+        JSONArray logsArray = new JSONArray();
+        if (logs != null) {
+            for (CalculationLog log : logs) {
+                JSONObject logObj = new JSONObject();
+                logObj.put("id", log.getId());
+                logObj.put("timestamp", log.getTimestamp());
+                logObj.put("mealTitle", log.getMealTitle());
+                logObj.put("rawCarbInput", log.getRawCarbInput());
+                logObj.put("carbUnit", log.getCarbUnit().getShortName());
+                logObj.put("carbGrams", log.getCarbGrams());
+                logObj.put("beValue", log.getBeValue());
+                logObj.put("keValue", log.getKeValue());
+                logObj.put("timeOfDay", log.getTimeOfDay().getTitle());
+                logObj.put("insulinFactor", log.getInsulinFactor());
+                logObj.put("mealInsulin", log.getMealInsulin());
+                if (log.getBloodGlucose() != null) {
+                    logObj.put("bloodGlucose", log.getBloodGlucose());
+                }
+                if (log.getTargetGlucose() != null) {
+                    logObj.put("targetGlucose", log.getTargetGlucose());
+                }
+                if (log.getCorrectionFactor() != null) {
+                    logObj.put("correctionFactor", log.getCorrectionFactor());
+                }
+                if (log.getCorrectionInsulin() != null) {
+                    logObj.put("correctionInsulin", log.getCorrectionInsulin());
+                }
+                logObj.put("totalInsulin", log.getTotalInsulin());
+                logObj.put("roundedInsulin", log.getRoundedInsulin());
+                logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
+                logsArray.put(logObj);
+            }
+        }
+        return logsArray;
+    }
+
     private UserSettings parseUserSettingsJson(JSONObject obj) {
         UserSettings settings = new UserSettings();
-        settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor", "morning_factor", "morgenFaktor", "morgen_faktor", "factorMorning"));
-        settings.setNoonFactor(getDoubleFlexible(obj, 1.0, "noonFactor", "noon_factor", "mittagFaktor", "mittag_faktor", "factorNoon"));
-        settings.setEveningFactor(getDoubleFlexible(obj, 1.2, "eveningFactor", "evening_factor", "abendFaktor", "abend_faktor", "factorEvening"));
-        settings.setNightFactor(getDoubleFlexible(obj, 0.8, "nightFactor", "night_factor", "nachtFaktor", "nacht_faktor", "factorNight"));
-        settings.setDefaultCarbUnit(getStringFlexible(obj, "g KH", "defaultCarbUnit", "default_carb_unit", "carbUnit", "carb_unit", "kohlenhydrateEinheit", "einheit"));
-        settings.setBeGramsDivisor(getIntFlexible(obj, 12, "beGramsDivisor", "be_grams_divisor", "gramsPerBe", "grams_per_be", "beDivisor", "beTeiler", "grams_per_be"));
-        settings.setGlucoseUnit(getStringFlexible(obj, "mg/dl", "glucoseUnit", "glucose_unit", "blutzuckerEinheit", "bgUnit"));
-        settings.setTargetGlucoseMgDl(getDoubleFlexible(obj, 120.0, "targetGlucoseMgDl", "target_glucose_mg_dl", "targetGlucose", "target_glucose", "zielwert"));
-        settings.setCorrectionFactorMgDl(getDoubleFlexible(obj, 50.0, "correctionFactorMgDl", "correction_factor_mg_dl", "correctionFactor", "correction_factor", "korrekturFaktor"));
-        settings.setRoundingStep(getDoubleFlexible(obj, 0.5, "roundingStep", "rounding_step", "rundungsSchritt", "rundung"));
-        settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer", "show_disclaimer", "disclaimer", "autoTimeDetection", "auto_time_detection"));
-        settings.setSelectedTheme(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme", "selected_theme", "theme", "farbDesign", "farbschema"));
-        settings.setThemeMode(getStringFlexible(obj, "SYSTEM", "themeMode", "theme_mode", "darkMode", "dark_mode"));
-        settings.setSelectedAiModel(getStringFlexible(obj, "gemini-2.5-flash", "selectedAiModel", "selected_ai_model", "aiModel", "ai_model", "model"));
+        settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor"));
+        settings.setNoonFactor(getDoubleFlexible(obj, 1.0, "noonFactor"));
+        settings.setEveningFactor(getDoubleFlexible(obj, 1.2, "eveningFactor"));
+        settings.setNightFactor(getDoubleFlexible(obj, 0.8, "nightFactor"));
+        settings.setDefaultCarbUnit(CarbUnit.valueOf(getStringFlexible(obj, "G_KH", "defaultCarbUnit")));
+        settings.setBeGramsDivisor(getIntFlexible(obj, 12, "beGramsDivisor"));
+        settings.setGlucoseUnit(GlucoseUnit.valueOf(getStringFlexible(obj, "MG_DL", "glucoseUnit")));
+        settings.setTargetGlucoseMgDl(getDoubleFlexible(obj, 120.0, "targetGlucoseMgDl"));
+        settings.setCorrectionFactorMgDl(getDoubleFlexible(obj, 50.0, "correctionFactorMgDl"));
+        settings.setRoundingStep(getDoubleFlexible(obj, 0.5, "roundingStep"));
+        settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer"));
+        settings.setSelectedTheme(AppTheme.valueOf(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme")));
+        settings.setThemeMode(AppTheme.Mode.valueOf(getStringFlexible(obj, "SYSTEM", "themeMode")));
+        settings.setSelectedAiModel(GeminiAiModel.valueOf(getStringFlexible(obj, "GEMINI_FLASH_LITE_LATEST", "selectedAiModel")));
         return settings;
     }
 
@@ -258,11 +263,11 @@ public class JsonBackupHandler {
                     obj.optLong("timestamp", System.currentTimeMillis()),
                     obj.optString("mealTitle", "Mahlzeit"),
                     obj.optDouble("rawCarbInput", 0.0),
-                    obj.optString("carbUnit", "g KH"),
+                    CarbUnit.fromString(obj.optString("carbUnit", "g KH")),
                     obj.optDouble("carbGrams", 0.0),
                     obj.optDouble("beValue", 0.0),
                     obj.optDouble("keValue", 0.0),
-                    obj.optString("timeOfDay", "Morgens"),
+                    TimeOfDay.fromString(obj.optString("timeOfDay", "Morgens")),
                     obj.optDouble("insulinFactor", 1.0),
                     obj.optDouble("mealInsulin", 0.0),
                     obj.has("bloodGlucose") && !obj.isNull("bloodGlucose") ? obj.optDouble("bloodGlucose") : null,

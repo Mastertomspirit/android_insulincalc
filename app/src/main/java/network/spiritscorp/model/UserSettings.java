@@ -22,6 +22,9 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import java.util.Objects;
 
+import network.spiritscorp.ai.GeminiAiModel;
+import network.spiritscorp.ui.theme.AppTheme;
+
 /**
  * Room Entity representing user preferences and therapy factor settings.
  */
@@ -34,17 +37,17 @@ public class UserSettings {
     private double noonFactor;
     private double eveningFactor;
     private double nightFactor;
-    private String defaultCarbUnit;
+    private CarbUnit defaultCarbUnit;
     private int beGramsDivisor;
-    private String glucoseUnit;
+    private GlucoseUnit glucoseUnit;
     private double targetGlucoseMgDl;
     private double correctionFactorMgDl;
     private double roundingStep;
     private boolean showDisclaimer;
-    private String selectedTheme;
-    private String themeMode;
+    private AppTheme selectedTheme;
+    private AppTheme.Mode themeMode;
     private String geminiApiKey;
-    private String selectedAiModel;
+    private GeminiAiModel selectedAiModel;
 
     public UserSettings() {
         this.id = 1;
@@ -52,9 +55,9 @@ public class UserSettings {
         this.noonFactor = 1.00;
         this.eveningFactor = 1.20;
         this.nightFactor = 0.80;
-        this.defaultCarbUnit = "GRAMS";
+        this.defaultCarbUnit = CarbUnit.GRAMS;
         this.beGramsDivisor = 12;
-        this.glucoseUnit = "mg/dl";
+        this.glucoseUnit = GlucoseUnit.MG_DL;
         this.targetGlucoseMgDl = 120.0;
         this.correctionFactorMgDl = 50.0;
         this.roundingStep = 0.5;
@@ -62,7 +65,7 @@ public class UserSettings {
         this.selectedTheme = null;
         this.themeMode = null;
         this.geminiApiKey = "";
-        this.selectedAiModel = "gemini-3.5-flash";
+        this.selectedAiModel = GeminiAiModel.GEMINI_FLASH_LITE_LATEST;
     }
 
     @Ignore
@@ -72,34 +75,34 @@ public class UserSettings {
             double noonFactor,
             double eveningFactor,
             double nightFactor,
-            String defaultCarbUnit,
+            CarbUnit defaultCarbUnit,
             int beGramsDivisor,
-            String glucoseUnit,
+            GlucoseUnit glucoseUnit,
             double targetGlucoseMgDl,
             double correctionFactorMgDl,
             double roundingStep,
             boolean showDisclaimer,
-            String selectedTheme,
-            String themeMode,
+            AppTheme selectedTheme,
+            AppTheme.Mode themeMode,
             String geminiApiKey,
-            String selectedAiModel
+            GeminiAiModel selectedAiModel
     ) {
         this.id = id;
         this.morningFactor = morningFactor;
         this.noonFactor = noonFactor;
         this.eveningFactor = eveningFactor;
         this.nightFactor = nightFactor;
-        this.defaultCarbUnit = defaultCarbUnit != null ? defaultCarbUnit : "GRAMS";
+        this.defaultCarbUnit = defaultCarbUnit;
         this.beGramsDivisor = beGramsDivisor;
-        this.glucoseUnit = glucoseUnit != null ? glucoseUnit : "mg/dl";
+        this.glucoseUnit = glucoseUnit;
         this.targetGlucoseMgDl = targetGlucoseMgDl;
         this.correctionFactorMgDl = correctionFactorMgDl;
         this.roundingStep = roundingStep;
         this.showDisclaimer = showDisclaimer;
         this.selectedTheme = selectedTheme;
         this.themeMode = themeMode;
-        this.geminiApiKey = geminiApiKey != null ? geminiApiKey : "";
-        this.selectedAiModel = selectedAiModel != null ? selectedAiModel : "gemini-3.5-flash";
+        this.geminiApiKey = geminiApiKey;
+        this.selectedAiModel = selectedAiModel;
     }
 
     public int getId() {
@@ -142,11 +145,11 @@ public class UserSettings {
         this.nightFactor = nightFactor;
     }
 
-    public String getDefaultCarbUnit() {
+    public CarbUnit getDefaultCarbUnit() {
         return defaultCarbUnit;
     }
 
-    public void setDefaultCarbUnit(String defaultCarbUnit) {
+    public void setDefaultCarbUnit(CarbUnit defaultCarbUnit) {
         this.defaultCarbUnit = defaultCarbUnit;
     }
 
@@ -158,11 +161,11 @@ public class UserSettings {
         this.beGramsDivisor = beGramsDivisor;
     }
 
-    public String getGlucoseUnit() {
+    public GlucoseUnit getGlucoseUnit() {
         return glucoseUnit;
     }
 
-    public void setGlucoseUnit(String glucoseUnit) {
+    public void setGlucoseUnit(GlucoseUnit glucoseUnit) {
         this.glucoseUnit = glucoseUnit;
     }
 
@@ -198,19 +201,19 @@ public class UserSettings {
         this.showDisclaimer = showDisclaimer;
     }
 
-    public String getSelectedTheme() {
+    public AppTheme getSelectedTheme() {
         return selectedTheme;
     }
 
-    public void setSelectedTheme(String selectedTheme) {
+    public void setSelectedTheme(AppTheme selectedTheme) {
         this.selectedTheme = selectedTheme;
     }
 
-    public String getThemeMode() {
+    public AppTheme.Mode getThemeMode() {
         return themeMode;
     }
 
-    public void setThemeMode(String themeMode) {
+    public void setThemeMode(AppTheme.Mode themeMode) {
         this.themeMode = themeMode;
     }
 
@@ -222,11 +225,11 @@ public class UserSettings {
         this.geminiApiKey = geminiApiKey;
     }
 
-    public String getSelectedAiModel() {
+    public GeminiAiModel getSelectedAiModel() {
         return selectedAiModel;
     }
 
-    public void setSelectedAiModel(String selectedAiModel) {
+    public void setSelectedAiModel(GeminiAiModel selectedAiModel) {
         this.selectedAiModel = selectedAiModel;
     }
 
