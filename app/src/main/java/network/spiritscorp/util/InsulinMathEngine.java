@@ -19,6 +19,7 @@ package network.spiritscorp.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import network.spiritscorp.model.CarbUnit;
 
 /**
  * Pure Java calculation engine for diabetic insulin dosages, carbohydrate conversions,
@@ -28,20 +29,22 @@ public final class InsulinMathEngine {
 
     private static final double HYPO_THRESHOLD_MG_DL = 70.0;
     private static final double HYPO_THRESHOLD_MMOL_L = 3.9;
-    private static final double MMOL_CONVERSION_FACTOR = 18.0182;
+    private static final double MIN_PLAUSIBLE_MMOL = 0;
+    private static final double MIN_PLAUSIBLE_MG_DL = 30;
 
     private InsulinMathEngine() {
         // Utility class
     }
 
     /**
-     * Converts a raw carbohydrate input value to grams based on the selected unit.
+     * Converts a raw carbohydrate input value to grams based on the selected CarbUnit.
      */
-    public static double convertToGrams(double rawInput, String unitShortName) {
-        if (rawInput <= 0) return 0.0;
-        if ("BE".equalsIgnoreCase(unitShortName)) {
-            return rawInput * 12.0;
-        } else if ("KE".equalsIgnoreCase(unitShortName)) {
+    public static double convertToGrams(double rawInput, CarbUnit unit, int beGramsDivisor) {
+        if (rawInput <= 0 || unit == null) return 0.0;
+        if (unit == CarbUnit.BE) {
+            double divisor = beGramsDivisor > 0 ? beGramsDivisor : 12.0;
+            return rawInput * divisor;
+        } else if (unit == CarbUnit.KE) {
             return rawInput * 10.0;
         }
         return rawInput;
@@ -56,23 +59,28 @@ public final class InsulinMathEngine {
     }
 
     /**
-     * Calculates Broteinheiten (1 BE = 12g KH).
+     * Calculates Broteinheiten based on custom BE divisor.
      */
-    public static double calculateBe(double carbGrams) {
+    public static double calculateBe(double carbGrams, int beGramsDivisor) {
         if (carbGrams <= 0) return 0.0;
-        return carbGrams / 12.0;
+        double divisor = beGramsDivisor > 0 ? beGramsDivisor : 12.0;
+        return carbGrams / divisor;
     }
 
     /**
-     * Calculates meal insulin based on unit, input, grams and user factor.
+     * Calculates meal insulin based on CarbUnit, input, grams, user factor, and BE divisor.
      */
-    public static double calculateMealInsulin(double rawInput, String unitShortName, double carbGrams, double insulinFactor) {
-        if (rawInput <= 0 || carbGrams <= 0 || insulinFactor <= 0) return 0.0;
+    public static double calculateMealInsulin(double rawInput, CarbUnit unit, double carbGrams, double insulinFactor, int beGramsDivisor) {
+        if (rawInput <= 0 || carbGrams <= 0 || insulinFactor <= 0 || unit == null) return 0.0;
         double unitsCount;
-        if ("BE".equalsIgnoreCase(unitShortName) || "KE".equalsIgnoreCase(unitShortName)) {
-            unitsCount = rawInput;
+        if (unit == CarbUnit.BE) {
+            double divisor = beGramsDivisor > 0 ? beGramsDivisor : 12.0;
+            unitsCount = carbGrams / divisor;
+        } else if (unit == CarbUnit.KE) {
+            unitsCount = carbGrams / 10.0;
         } else {
-            unitsCount = carbGrams / 12.0;
+            double divisor = beGramsDivisor > 0 ? beGramsDivisor : 12.0;
+            unitsCount = carbGrams / divisor;
         }
         return unitsCount * insulinFactor;
     }
@@ -80,7 +88,7 @@ public final class InsulinMathEngine {
     /**
      * Calculates correction insulin dose (positive or negative).
      */
-    static double calculateCorrectionInsulin(boolean showCorrection, Double currentBg, Double targetBg, Double corrFactor) {
+    public static double calculateCorrectionInsulin(boolean showCorrection, Double currentBg, Double targetBg, Double corrFactor) {
         if (!showCorrection || currentBg == null || targetBg == null || corrFactor == null || corrFactor <= 0) {
             return 0.0;
         }
@@ -99,8 +107,9 @@ public final class InsulinMathEngine {
      */
     public static boolean isHypoglycemia(Double currentBg, boolean isMmol) {
         if (currentBg == null) return false;
+        double minPlausible = isMmol ? MIN_PLAUSIBLE_MMOL : MIN_PLAUSIBLE_MG_DL;
         double threshold = isMmol ? HYPO_THRESHOLD_MMOL_L : HYPO_THRESHOLD_MG_DL;
-        return currentBg < threshold;
+        return currentBg >= minPlausible && currentBg < threshold;
     }
 
     /**
@@ -121,16 +130,5 @@ public final class InsulinMathEngine {
     public static double roundToDecimals(double value, int decimals) {
         if (Double.isNaN(value) || Double.isInfinite(value)) return 0.0;
         return BigDecimal.valueOf(value).setScale(decimals, RoundingMode.HALF_UP).doubleValue();
-    }
-
-    /**
-     * Converts blood glucose between mg/dL and mmol/L.
-     */
-    static double convertMgDlToMmol(double mgDl) {
-        return roundToDecimals(mgDl / MMOL_CONVERSION_FACTOR, 1);
-    }
-
-    static double convertMmolToMgDl(double mmol) {
-        return roundToDecimals(mmol * MMOL_CONVERSION_FACTOR, 0);
     }
 }

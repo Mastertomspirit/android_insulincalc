@@ -323,26 +323,21 @@ class InsulinCalculatorViewModel(
         val state = _uiState.value
         val rawInput = state.carbInput.toDoubleOrNull() ?: 0.0
         val settings = passedSettings ?: cachedSettings
-        val beDivisor = settings.beGramsDivisor.toDouble().let { if (it > 0.0) it else 12.0 }
         
-        val grams = when (state.selectedUnit) {
-            CarbUnit.GRAMS -> rawInput
-            CarbUnit.KE -> rawInput * 10.0
-            CarbUnit.BE -> rawInput * beDivisor
-        }
+        val grams = InsulinMathEngine.convertToGrams(rawInput, state.selectedUnit, settings.beGramsDivisor)
 
         val ke = InsulinMathEngine.calculateKe(grams)
-        val be = InsulinMathEngine.calculateBe(grams)
+        val be = InsulinMathEngine.calculateBe(grams, settings.beGramsDivisor)
 
         val factor = getEffectiveFactor(settings)
         val mealInsulin = InsulinMathEngine.calculateMealInsulin(
             rawInput,
             state.selectedUnit,
             grams,
-            factor
+            factor,
+            settings.beGramsDivisor
         )
 
-        var correctionInsulin = 0.0
         val currentBg = state.currentGlucoseInput.toDoubleOrNull()
         val targetBg = state.targetGlucoseInput.toDoubleOrNull()
         val corrFactor = state.correctionFactorInput.toDoubleOrNull()
@@ -352,7 +347,7 @@ class InsulinCalculatorViewModel(
         val gUnit = state.glucoseUnit
         val isMmol = (gUnit == GlucoseUnit.MMOL_L)
 
-        if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null && corrFactor > 0) {
+        if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null) {
             if (InsulinMathEngine.isHypoglycemia(currentBg, isMmol)) {
                 isHypoRisk = true
                 advisory = "Achtung: Niedriger Blutzucker (< ${if (isMmol) "3.9 mmol/l" else "70 mg/dl"})! Bitte zuerst 1-2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen."
@@ -366,10 +361,9 @@ class InsulinCalculatorViewModel(
                 advisory = "Erhöhter Blutzucker: Korrektur-Bolus addiert."
             }
         }
-
-        val rawTotal = (mealInsulin + correctionInsulin).coerceAtLeast(0.0)
+        val correctionInsulin = InsulinMathEngine.calculateCorrectionInsulin(true, currentBg, targetBg, corrFactor)
+        val rawTotal = (mealInsulin + correctionInsulin)
         val roundingStep = settings.roundingStep
-        val roundedTotal = InsulinMathEngine.roundToStep(rawTotal, roundingStep)
 
         _uiState.update {
             it.copy(
@@ -383,7 +377,7 @@ class InsulinCalculatorViewModel(
                     targetBg,
                     InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
                     InsulinMathEngine.roundToDecimals(rawTotal, 2),
-                    roundedTotal,
+                    InsulinMathEngine.roundToStep(rawTotal, roundingStep),
                     roundingStep,
                     isHypoRisk,
                     advisory
@@ -480,8 +474,8 @@ class InsulinCalculatorViewModel(
     }
 
     fun updateUserSettings(settings: UserSettings) {
+        cachedSettings = settings
         viewModelScope.launch(Dispatchers.IO) {
-            cachedSettings = settings
             repository.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
             themePreferences.savePreferences(
@@ -503,16 +497,16 @@ class InsulinCalculatorViewModel(
             settings.correctionFactorMgDl.toString().replace(".0", "")
         }
 
-            _uiState.update { current ->
-                current.copy(
-                    glucoseUnit = gUnit,
-                    targetGlucoseInput = targetStr,
-                    correctionFactorInput = corrStr,
                     snackbarMessage = "Einstellungen gespeichert!"
-                )
-            }
-            recalculate(settings)
+        _uiState.update { current ->
+            current.copy(
+                selectedUnit = settings.defaultCarbUnit,
+                glucoseUnit = gUnit,
+                targetGlucoseInput = targetStr,
+                correctionFactorInput = corrStr,
+            )
         }
+        recalculate(settings)
     }
 
     // Gemini AI Meal Estimation
