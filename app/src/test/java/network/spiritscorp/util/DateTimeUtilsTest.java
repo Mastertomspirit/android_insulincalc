@@ -63,7 +63,7 @@ public class DateTimeUtilsTest {
 
     @Test
     public void testAppConstantsVersions() {
-        assertEquals(1, AppConstants.DATABASE_VERSION);
+        assertEquals(2, AppConstants.DATABASE_VERSION);
         assertEquals(2, AppConstants.JSON_BACKUP_VERSION);
         assertEquals(1, AppConstants.CSV_BACKUP_VERSION);
         assertEquals(2, AppConstants.SECURITY_KEY_VERSION);

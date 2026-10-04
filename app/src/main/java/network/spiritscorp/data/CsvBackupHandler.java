@@ -18,16 +18,18 @@ package network.spiritscorp.data;
  */
 
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.util.AppConstants;
 import network.spiritscorp.util.DateTimeUtils;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Handles CSV export formatting and parsing for insulin calculation logs.
@@ -43,16 +45,6 @@ public class CsvBackupHandler {
 
     private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
 
-    private final SimpleDateFormat isoDateFormat;
-
-    public CsvBackupHandler() {
-        this(DateTimeUtils.getIsoDateTimeFormatter());
-    }
-
-    public CsvBackupHandler(SimpleDateFormat dateFormat) {
-        this.isoDateFormat = dateFormat;
-    }
-
     /**
      * Exports a list of calculation logs to standard CSV format.
      */
@@ -67,14 +59,14 @@ public class CsvBackupHandler {
         for (CalculationLog log : logs) {
             sb.append(log.getId()).append(",");
             sb.append(log.getTimestamp()).append(",");
-            sb.append("\"").append(isoDateFormat.format(new Date(log.getTimestamp()))).append("\",");
+            sb.append(escapeCsv(DateTimeUtils.formatIsoDateTime(log.getTimestamp()))).append(",");
             sb.append(escapeCsv(log.getMealTitle())).append(",");
             sb.append(log.getRawCarbInput()).append(",");
-            sb.append(escapeCsv(log.getCarbUnit())).append(",");
+            sb.append(escapeCsv(log.getCarbUnit().getShortName())).append(",");
             sb.append(log.getCarbGrams()).append(",");
             sb.append(log.getBeValue()).append(",");
             sb.append(log.getKeValue()).append(",");
-            sb.append(escapeCsv(log.getTimeOfDay())).append(",");
+            sb.append(escapeCsv(log.getTimeOfDay().getTitle())).append(",");
             sb.append(log.getInsulinFactor()).append(",");
             sb.append(log.getMealInsulin()).append(",");
             sb.append(log.getBloodGlucose() != null ? log.getBloodGlucose() : "").append(",");
@@ -83,7 +75,7 @@ public class CsvBackupHandler {
             sb.append(log.getCorrectionInsulin() != null ? log.getCorrectionInsulin() : "").append(",");
             sb.append(log.getTotalInsulin()).append(",");
             sb.append(log.getRoundedInsulin()).append(",");
-            sb.append(escapeCsv(log.getNotes() != null ? log.getNotes() : ""));
+            sb.append(escapeCsv(log.getNotes()));
             sb.append("\n");
         }
 
@@ -93,59 +85,50 @@ public class CsvBackupHandler {
     /**
      * Parses a CSV string into a list of CalculationLog entries.
      */
-    public List<CalculationLog> parseCsv(String csvContent) {
-        if (csvContent == null || csvContent.trim().isEmpty()) {
+    public List<CalculationLog> parseCsv(@NonNull String csvContent) {
+        if (csvContent.trim().isEmpty()) {
             return Collections.emptyList();
         }
 
         List<CalculationLog> logs = new ArrayList<>();
-        String[] lines = csvContent.split("\r?\n");
-
         boolean isFirstLine = true;
-        for (String line : lines) {
+
+        for (String line : csvContent.split("\r?\n")) {
             String trimmedLine = line.trim();
             if (trimmedLine.isEmpty()) continue;
+            List<String> tokens = splitCsvLine(line);
 
-            if (isFirstLine) {
+            if (isFirstLine && !tokens.isEmpty() && tokens.get(0).equals("ID")) {
                 isFirstLine = false;
-                if (trimmedLine.toUpperCase(Locale.ROOT).startsWith("ID") || trimmedLine.contains("MealTitle")) {
-                    continue; // Skip header row
+                continue; // Skip header row
+            }
+
+                if (tokens.size() < 18){
+                    Log.w(TAG, "Skipping malformed CSV line (" + tokens.size() + " fields): " + line);
+                    continue; // Fields 0-17 mandatory, field 18 (notes) optional
                 }
-            }
 
-            try {
-                List<String> tokens = splitCsvLine(line);
-                if (tokens.size() < 10) continue;
-
-                long id = parseLongSafe(tokens.get(0), 0L);
-                long timestamp = parseLongSafe(tokens.get(1), System.currentTimeMillis());
-                // tokens[2] is human readable date string
-                String mealTitle = tokens.size() > 3 ? tokens.get(3) : "Mahlzeit";
-                double rawCarbInput = tokens.size() > 4 ? parseDoubleSafe(tokens.get(4), 0.0) : 0.0;
-                String carbUnit = tokens.size() > 5 ? tokens.get(5) : "g KH";
-                double carbGrams = tokens.size() > 6 ? parseDoubleSafe(tokens.get(6), 0.0) : 0.0;
-                double beValue = tokens.size() > 7 ? parseDoubleSafe(tokens.get(7), 0.0) : 0.0;
-                double keValue = tokens.size() > 8 ? parseDoubleSafe(tokens.get(8), 0.0) : 0.0;
-                String timeOfDay = tokens.size() > 9 ? tokens.get(9) : "Morgens";
-                double insulinFactor = tokens.size() > 10 ? parseDoubleSafe(tokens.get(10), 1.0) : 1.0;
-                double mealInsulin = tokens.size() > 11 ? parseDoubleSafe(tokens.get(11), 0.0) : 0.0;
-                Double bloodGlucose = tokens.size() > 12 ? parseNullableDouble(tokens.get(12)) : null;
-                Double targetGlucose = tokens.size() > 13 ? parseNullableDouble(tokens.get(13)) : null;
-                Double correctionFactor = tokens.size() > 14 ? parseNullableDouble(tokens.get(14)) : null;
-                Double correctionInsulin = tokens.size() > 15 ? parseNullableDouble(tokens.get(15)) : null;
-                double totalInsulin = tokens.size() > 16 ? parseDoubleSafe(tokens.get(16), 0.0) : 0.0;
-                double roundedInsulin = tokens.size() > 17 ? parseDoubleSafe(tokens.get(17), 0.0) : 0.0;
-                String notes = tokens.size() > 18 ? tokens.get(18) : "";
-
-                logs.add(new CalculationLog(
-                        id, timestamp, mealTitle, rawCarbInput, carbUnit, carbGrams,
-                        beValue, keValue, timeOfDay, insulinFactor, mealInsulin,
-                        bloodGlucose, targetGlucose, correctionFactor, correctionInsulin,
-                        totalInsulin, roundedInsulin, notes
-                ));
-            } catch (Exception e) {
-                Log.w(TAG, "Skipping malformed CSV line: " + line, e);
-            }
+            logs.add(new CalculationLog(
+                    parseLongSafe(tokens.get(0), 0L),                          // 0: entry id
+                    parseLongSafe(tokens.get(1), System.currentTimeMillis()),   // 1: epoch timestamp (ms)
+                    // 2 is a human-readable date, not used here
+                    tokens.get(3),                                              // 3: meal title
+                    parseDoubleSafe(tokens.get(4), 0.0),              // 4: raw carb input (as entered)
+                    CarbUnit.fromString(tokens.get(5)),                         // 5: carb unit of the raw input
+                    parseDoubleSafe(tokens.get(6), 0.0),              // 6: carbs in grams
+                    parseDoubleSafe(tokens.get(7), 0.0),              // 7: BE value
+                    parseDoubleSafe(tokens.get(8), 0.0),              // 8: KE value
+                    TimeOfDay.fromString(tokens.get(9)),                        // 9: time of day (breakfast etc.)
+                    parseDoubleSafe(tokens.get(10), 1.0),             // 10: insulin factor (IE per BE/KE)
+                    parseDoubleSafe(tokens.get(11), 0.0),             // 11: meal insulin dose
+                    parseNullableDouble(tokens.get(12)),                        // 12: measured blood glucose (mg/dL)
+                    parseNullableDouble(tokens.get(13)),                        // 13: target glucose value
+                    parseNullableDouble(tokens.get(14)),                        // 14: correction factor
+                    parseNullableDouble(tokens.get(15)),                        // 15: correction insulin dose
+                    parseDoubleSafe(tokens.get(16), 0.0),             // 16: total insulin (meal + correction)
+                    parseDoubleSafe(tokens.get(17), 0.0),             // 17: rounded insulin dose
+                    tokens.size() > 18 ? tokens.get(18) : ""                    // 18: free-text notes (optional)
+            ));
         }
 
         return logs;
@@ -179,7 +162,7 @@ public class CsvBackupHandler {
         return tokens;
     }
 
-    private String escapeCsv(String input) {
+    String escapeCsv(String input) {
         if (input == null) return "\"\"";
         return "\"" + input.replace("\"", "\"\"") + "\"";
     }

@@ -19,6 +19,8 @@ package network.spiritscorp.viewmodel;
 
 import network.spiritscorp.model.CalculationSummary;
 import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.CalculationSummary;
+import network.spiritscorp.model.GlucoseUnit;
 import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import network.spiritscorp.ui.theme.AppTheme;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -155,7 +158,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testMorningCalculationWithGrams() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         CalculationSummary summary = calculateSummary(
@@ -183,7 +187,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testNoonCalculationWithBEAndFactorOverride() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         // User overrides factor from 1.0 to 1.3
@@ -210,7 +215,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testEveningCalculationWithHighGlucoseCorrection() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         // 3.0 BE (36g KH) -> 3.0 * 1.2 = 3.6 IE
@@ -239,7 +245,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testLowBloodGlucoseWarningAndDoseReduction() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         // Current BG = 65 (Hypo risk < 70)
@@ -262,7 +269,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testNegativeCorrectionDoseReduction() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.20, 0.80, "GRAMS", 12, "mg/dl", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         // 2 BE = 2.0 IE meal insulin. BG = 80, Target = 100, Corr = 40
@@ -291,7 +299,8 @@ public class CalculatorEngineStateTest {
     @Test
     public void testMmolLCorrectionCalculation() {
         UserSettings settings = new UserSettings(
-                1, 1.50, 1.00, 1.00, 0.80, "GRAMS", 12, "mmol/l", 120.0, 50.0, 0.5, true, "MEDICAL_TEAL", "SYSTEM","", "gemini-3.9"
+                1, 1.50, 1.00, 1.55, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MMOL_L,
+                6.7, 2.8, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
         );
 
         // 3 KE = 3.0 IE meal insulin

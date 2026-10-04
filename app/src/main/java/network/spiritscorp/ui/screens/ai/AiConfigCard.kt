@@ -94,7 +94,7 @@ fun AiConfigCard(
     val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH.modelId
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
-    var selectedModel by remember { mutableStateOf(GeminiAiModel.fromModelId(savedModelId)) }
+    var selectedModel by remember { mutableStateOf(savedModelId) }
     var showApiKey by remember { mutableStateOf(false) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
@@ -102,7 +102,7 @@ fun AiConfigCard(
     LaunchedEffect(userSettings) {
         if (userSettings != null) {
             apiKeyInput = userSettings.geminiApiKey
-            selectedModel = GeminiAiModel.fromModelId(userSettings.selectedAiModel)
+            selectedModel = userSettings.selectedAiModel
         }
     }
 

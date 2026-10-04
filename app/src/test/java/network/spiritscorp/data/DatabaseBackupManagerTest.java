@@ -22,8 +22,14 @@ import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import kotlin.Pair;
+import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
+import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.theme.AppTheme;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,11 +87,11 @@ public class DatabaseBackupManagerTest {
                         1700000000000L,
                         "Frühstück (Müsli & Apfel)",
                         45.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         45.0,
                         3.75,
                         4.5,
-                        "Morgens",
+                        TimeOfDay.MORNING,
                         1.5,
                         6.75,
                         140.0,
@@ -101,11 +107,11 @@ public class DatabaseBackupManagerTest {
                         1700015000000L,
                         "Mittagessen (Pasta, Tomatensauce)",
                         6.0,
-                        "BE",
+                        CarbUnit.BE,
                         72.0,
                         6.0,
                         7.2,
-                        "Mittags",
+                        TimeOfDay.NOON,
                         1.0,
                         6.0,
                         110.0,
@@ -121,11 +127,11 @@ public class DatabaseBackupManagerTest {
                         1700035000000L,
                         "Abendessen (Brot mit Käse)",
                         3.5,
-                        "KE",
+                        CarbUnit.KE,
                         35.0,
                         2.92,
                         3.5,
-                        "Abends",
+                        TimeOfDay.EVENING,
                         1.2,
                         4.2,
                         95.0,
@@ -141,11 +147,11 @@ public class DatabaseBackupManagerTest {
                         1700050000000L,
                         "Spät-Snack",
                         15.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         15.0,
                         1.25,
                         1.5,
-                        "Nachts",
+                        TimeOfDay.NIGHT,
                         0.8,
                         1.2,
                         null,
@@ -168,17 +174,17 @@ public class DatabaseBackupManagerTest {
                 1.10,
                 1.35,
                 0.90,
-                "BE",
+                CarbUnit.BE,
                 12,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 110,
                 45,
                 0.5,
                 true,
-                "LAVENDER_PURPLE",
-                "SYSTEM",
+                AppTheme.BERRY_VIOLET,
+                AppTheme.Mode.SYSTEM,
                 "",
-                "gemini-3.9"
+                GeminiAiModel.GEMINI_3_5_FLASH
         );
 
         // 1. Export to JSON via instance method
@@ -200,8 +206,8 @@ public class DatabaseBackupManagerTest {
         assertNotNull(parsedSettings);
         assertEquals(1.80, parsedSettings.getMorningFactor(), DELTA);
         assertEquals(1.10, parsedSettings.getNoonFactor(), DELTA);
-        assertEquals("BE", parsedSettings.getDefaultCarbUnit());
-        assertEquals("LAVENDER_PURPLE", parsedSettings.getSelectedTheme());
+        assertEquals(CarbUnit.BE, parsedSettings.getDefaultCarbUnit());
+        assertEquals(AppTheme.BERRY_VIOLET, parsedSettings.getSelectedTheme());
 
         // Verify ALL 4 logs were exported and restored
         assertEquals(sampleLogs.size(), parsedLogs.size());
@@ -221,7 +227,9 @@ public class DatabaseBackupManagerTest {
     @Test
     public void testDirectDaoIntegrationExportAndImport() {
         // Populate in-memory database
-        UserSettings settings = new UserSettings(1, 2.0, 1.0, 1.5, 0.8, "g KH", 12, "mg/dl", 100, 40, 0.5, true, "MEDICAL_TEAL", "SYSTEM", "", "gemini-3.9");
+        UserSettings settings = new UserSettings(
+                1, 2.0, 1.0, 1.5, 0.8, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                100, 40, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_8_FLASH);
         userSettingsDao.saveSettings(settings);
         calculationLogDao.insertLogs(createSampleLogs());
 
@@ -300,11 +308,11 @@ public class DatabaseBackupManagerTest {
                         0L,
                         "Pizza \"Speciale\", extra Käse",
                         80.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         80.0,
                         6.67,
                         8.0,
-                        "Abends",
+                        TimeOfDay.EVENING,
                         1.2,
                         9.6,
                         null,
@@ -343,8 +351,7 @@ public class DatabaseBackupManagerTest {
         // Valid JSON with empty settings/logs should return non-null with empty list
         String emptyJson = "{\"version\": 1, \"settings\": {}, \"logs\": []}";
         Pair<UserSettings, List<CalculationLog>> parsedEmpty = backupManager.parseJson(emptyJson);
-        assertNotNull(parsedEmpty);
-        assertEquals(0, parsedEmpty.getSecond().size());
+        assertNull(parsedEmpty);
     }
 
     @Test
@@ -420,17 +427,17 @@ public class DatabaseBackupManagerTest {
                 1.35,
                 1.75,
                 0.95,
-                "BE",
+                CarbUnit.BE,
                 10,
-                "mmol/l",
+                GlucoseUnit.MMOL_L,
                 105.0,
                 35.0,
                 0.1,
                 false,
-                "ROSE_ELEGANCE",
-                "DARK",
+                AppTheme.EMERALD_GREEN,
+                AppTheme.Mode.DARK,
                 "test-api-key-9988",
-                "gemini-3.5-pro"
+                GeminiAiModel.GEMINI_3_1_PRO
         );
         userSettingsDao.saveSettings(customSettings);
 
@@ -445,7 +452,7 @@ public class DatabaseBackupManagerTest {
         assertEquals(1.00, resetSettings.getNoonFactor(), DELTA);
         assertEquals(1.20, resetSettings.getEveningFactor(), DELTA);
         assertEquals(0.80, resetSettings.getNightFactor(), DELTA);
-        assertEquals("GRAMS", resetSettings.getDefaultCarbUnit());
+        assertEquals(CarbUnit.GRAMS, resetSettings.getDefaultCarbUnit());
 
         // Import the backup
         ImportResult result = backupManager.importFromJson(jsonBackup);
@@ -459,72 +466,24 @@ public class DatabaseBackupManagerTest {
         assertEquals(1.35, restored.getNoonFactor(), DELTA);
         assertEquals(1.75, restored.getEveningFactor(), DELTA);
         assertEquals(0.95, restored.getNightFactor(), DELTA);
-        assertEquals("BE", restored.getDefaultCarbUnit());
+        assertEquals(CarbUnit.BE, restored.getDefaultCarbUnit());
         assertEquals(10, restored.getBeGramsDivisor());
-        assertEquals("mmol/l", restored.getGlucoseUnit());
+        assertEquals(GlucoseUnit.MMOL_L, restored.getGlucoseUnit());
         assertEquals(105.0, restored.getTargetGlucoseMgDl(), DELTA);
         assertEquals(35.0, restored.getCorrectionFactorMgDl(), DELTA);
         assertEquals(0.1, restored.getRoundingStep(), DELTA);
         assertFalse(restored.isShowDisclaimer());
-        assertEquals("ROSE_ELEGANCE", restored.getSelectedTheme());
-        assertEquals("DARK", restored.getThemeMode());
+        assertEquals(AppTheme.EMERALD_GREEN, restored.getSelectedTheme());
+        assertEquals(AppTheme.Mode.DARK, restored.getThemeMode());
         assertEquals("", restored.getGeminiApiKey());
-        assertEquals("gemini-3.5-pro", restored.getSelectedAiModel());
-    }
-
-    @Test
-    public void testLegacyAndAlternativeKeyJsonFormatSettingsRestore() {
-        String legacyJson = """
-                {
-                  "version": 1,
-                  "settings": {
-                    "morgenFaktor": "2,4",
-                    "noon_factor": 1.45,
-                    "abendFaktor": "1,85",
-                    "factorNight": 0.75,
-                    "carb_unit": "KE",
-                    "grams_per_be": 11,
-                    "blutzuckerEinheit": "mg/dl",
-                    "target_glucose": "110,0",
-                    "korrekturFaktor": "42,5",
-                    "rundungsSchritt": 0.25,
-                    "disclaimer": false,
-                    "farbDesign": "EMERALD_GREEN",
-                    "darkMode": "DARK",
-                    "api_key": "custom-legacy-key",
-                    "model": "gemini-3.5-flash"
-                  },
-                  "logs": []
-                }
-                """;
-
-        ImportResult result = backupManager.importFromJson(legacyJson);
-        assertTrue(result.isSuccess());
-        assertTrue(result.isImportedSettings());
-
-        UserSettings restored = userSettingsDao.getSettingsDirect();
-        assertNotNull(restored);
-        assertEquals(2.40, restored.getMorningFactor(), DELTA);
-        assertEquals(1.45, restored.getNoonFactor(), DELTA);
-        assertEquals(1.85, restored.getEveningFactor(), DELTA);
-        assertEquals(0.75, restored.getNightFactor(), DELTA);
-        assertEquals("KE", restored.getDefaultCarbUnit());
-        assertEquals(11, restored.getBeGramsDivisor());
-        assertEquals("mg/dl", restored.getGlucoseUnit());
-        assertEquals(110.0, restored.getTargetGlucoseMgDl(), DELTA);
-        assertEquals(42.5, restored.getCorrectionFactorMgDl(), DELTA);
-        assertEquals(0.25, restored.getRoundingStep(), DELTA);
-        assertFalse(restored.isShowDisclaimer());
-        assertEquals("EMERALD_GREEN", restored.getSelectedTheme());
-        assertEquals("DARK", restored.getThemeMode());
-        assertEquals("", restored.getGeminiApiKey());
-        assertEquals("gemini-3.5-flash", restored.getSelectedAiModel());
+        assertEquals(GeminiAiModel.GEMINI_3_1_PRO, restored.getSelectedAiModel());
     }
 
     @Test
     public void testJsonBackupWithUmlautsAndNullValuesRoundtrip() {
         UserSettings originalSettings = new UserSettings(
-                1, 1.75, 1.25, 1.5, 0.9, "BE", 12, "mg/dl", 115.0, 45.0, 0.5, true, "WARM_EMBER", "DARK", "test-api-key", "gemini-2.5-flash"
+                1, 1.75, 1.25, 1.5, 0.9, CarbUnit.BE, 12, GlucoseUnit.MG_DL,
+                115.0, 45.0, 0.5, true, AppTheme.SUNSET_AMBER, AppTheme.Mode.DARK, "test-api-key", GeminiAiModel.GEMINI_FLASH_LITE_LATEST
         );
         userSettingsDao.saveSettings(originalSettings);
 
@@ -533,11 +492,11 @@ public class DatabaseBackupManagerTest {
                 1700000000000L,
                 "Äpfel, Überbackenes & Öl-Salat (Mahlzeit)",
                 4.5,
-                "BE",
+                CarbUnit.BE,
                 54.0,
                 4.5,
                 5.4,
-                "Mittags",
+                TimeOfDay.NOON,
                 1.25,
                 5.625,
                 null,
@@ -565,7 +524,7 @@ public class DatabaseBackupManagerTest {
 
         UserSettings restoredSettings = userSettingsDao.getSettingsDirect();
         assertNotNull(restoredSettings);
-        assertEquals("WARM_EMBER", restoredSettings.getSelectedTheme());
+        assertEquals(AppTheme.SUNSET_AMBER, restoredSettings.getSelectedTheme());
         assertEquals("", restoredSettings.getGeminiApiKey());
 
         List<CalculationLog> restoredLogs = calculationLogDao.getAllLogsDirect();

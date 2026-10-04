@@ -101,20 +101,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Collect user settings reactively from ViewModel
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-            val themeString = userSettings.selectedTheme ?: initialSavedTheme
+            val themeEnum = userSettings.selectedTheme ?: initialSavedTheme
             val modeString = userSettings.themeMode ?: initialSavedMode
 
-            // Resolve color theme enum from stored string value
-            val themeEnum = try {
-                AppTheme.valueOf(themeString)
-            } catch (_: Exception) {
-                AppTheme.MEDICAL_TEAL
-            }
-            
             // Resolve light/dark mode preference
             val isDark = when (modeString) {
-                "LIGHT" -> false
-                "DARK" -> true
+                AppTheme.Mode.LIGHT -> false
+                AppTheme.Mode.DARK -> true
                 else -> isSystemInDarkTheme()
             }
 

@@ -17,6 +17,7 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -33,16 +34,20 @@ public class CalculationLog {
     private long timestamp;
     private String mealTitle;
     private double rawCarbInput;
-    private String carbUnit;
+    private CarbUnit carbUnit;
     private double carbGrams;
     private double beValue;
     private double keValue;
-    private String timeOfDay;
+    private TimeOfDay timeOfDay;
     private double insulinFactor;
     private double mealInsulin;
+    @Nullable
     private Double bloodGlucose;
+    @Nullable
     private Double targetGlucose;
+    @Nullable
     private Double correctionFactor;
+    @Nullable
     private Double correctionInsulin;
     private double totalInsulin;
     private double roundedInsulin;
@@ -53,11 +58,11 @@ public class CalculationLog {
         this.timestamp = System.currentTimeMillis();
         this.mealTitle = "";
         this.rawCarbInput = 0.0;
-        this.carbUnit = "g KH";
+        this.carbUnit = CarbUnit.GRAMS;
         this.carbGrams = 0.0;
         this.beValue = 0.0;
         this.keValue = 0.0;
-        this.timeOfDay = "";
+        this.timeOfDay = TimeOfDay.current();
         this.insulinFactor = 1.0;
         this.mealInsulin = 0.0;
         this.bloodGlucose = null;
@@ -75,16 +80,20 @@ public class CalculationLog {
             long timestamp,
             String mealTitle,
             double rawCarbInput,
-            String carbUnit,
+            CarbUnit carbUnit,
             double carbGrams,
             double beValue,
             double keValue,
-            String timeOfDay,
+            TimeOfDay timeOfDay,
             double insulinFactor,
             double mealInsulin,
+            @Nullable
             Double bloodGlucose,
+            @Nullable
             Double targetGlucose,
+            @Nullable
             Double correctionFactor,
+            @Nullable
             Double correctionInsulin,
             double totalInsulin,
             double roundedInsulin,
@@ -140,11 +149,11 @@ public class CalculationLog {
         this.rawCarbInput = rawCarbInput;
     }
 
-    public String getCarbUnit() {
+    public CarbUnit getCarbUnit() {
         return carbUnit;
     }
 
-    public void setCarbUnit(String carbUnit) {
+    public void setCarbUnit(CarbUnit carbUnit) {
         this.carbUnit = carbUnit;
     }
 
@@ -172,11 +181,11 @@ public class CalculationLog {
         this.keValue = keValue;
     }
 
-    public String getTimeOfDay() {
+    public TimeOfDay getTimeOfDay() {
         return timeOfDay;
     }
 
-    public void setTimeOfDay(String timeOfDay) {
+    public void setTimeOfDay(TimeOfDay timeOfDay) {
         this.timeOfDay = timeOfDay;
     }
 
@@ -196,35 +205,39 @@ public class CalculationLog {
         this.mealInsulin = mealInsulin;
     }
 
+    @Nullable
     public Double getBloodGlucose() {
         return bloodGlucose;
     }
 
-    public void setBloodGlucose(Double bloodGlucose) {
+    public void setBloodGlucose(@Nullable Double bloodGlucose) {
         this.bloodGlucose = bloodGlucose;
     }
 
+    @Nullable
     public Double getTargetGlucose() {
         return targetGlucose;
     }
 
-    public void setTargetGlucose(Double targetGlucose) {
+    public void setTargetGlucose(@Nullable Double targetGlucose) {
         this.targetGlucose = targetGlucose;
     }
 
+    @Nullable
     public Double getCorrectionFactor() {
         return correctionFactor;
     }
 
-    public void setCorrectionFactor(Double correctionFactor) {
+    public void setCorrectionFactor(@Nullable Double correctionFactor) {
         this.correctionFactor = correctionFactor;
     }
 
+    @Nullable
     public Double getCorrectionInsulin() {
         return correctionInsulin;
     }
 
-    public void setCorrectionInsulin(Double correctionInsulin) {
+    public void setCorrectionInsulin(@Nullable Double correctionInsulin) {
         this.correctionInsulin = correctionInsulin;
     }
 

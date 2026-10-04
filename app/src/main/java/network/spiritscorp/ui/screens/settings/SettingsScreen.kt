@@ -85,7 +85,7 @@ fun SettingsScreen(
     var beDivisor by remember(settings) { mutableIntStateOf(settings.beGramsDivisor) }
 
     var glucoseUnit by remember(settings) {
-        mutableStateOf(GlucoseUnit.fromString(settings.glucoseUnit))
+        mutableStateOf(settings.glucoseUnit)
     }
 
     var targetGlucose by remember(settings, glucoseUnit) {
@@ -107,7 +107,7 @@ fun SettingsScreen(
     }
 
     var roundingStep by remember(settings) { mutableDoubleStateOf(settings.roundingStep) }
-    var selectedThemeName by remember(settings) { mutableStateOf(settings.selectedTheme) }
+    var selectedTheme by remember(settings) { mutableStateOf(settings.selectedTheme) }
     var themeMode by remember(settings) { mutableStateOf(settings.themeMode) }
 
     var isFactorsExpanded by remember { mutableStateOf(false) }
@@ -182,8 +182,8 @@ fun SettingsScreen(
             glucoseUnit = glucoseUnit,
             onGlucoseUnitChange = { newUnit ->
                 if (newUnit != glucoseUnit) {
-                    val currentTarget = targetGlucose.toDoubleOrNull() ?: 120.0
-                    val currentCorr = correctionFactor.toDoubleOrNull() ?: 50.0
+                    val currentTarget = targetGlucose.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                    val currentCorr = correctionFactor.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
                     if (newUnit == GlucoseUnit.MMOL_L) {
                         targetGlucose = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentTarget))
                         correctionFactor = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentCorr))
@@ -214,9 +214,9 @@ fun SettingsScreen(
 
         // SECTION 4: Farbdesign & Erscheinungsbild
         AppearanceSection(
-            selectedThemeName = selectedThemeName ?: AppTheme.MEDICAL_TEAL.name,
-            onThemeSelected = { selectedThemeName = it },
-            themeMode = themeMode ?: AppTheme.Mode.SYSTEM.name,
+            selectedTheme = selectedTheme,
+            onThemeSelected = { selectedTheme = it },
+            themeMode = themeMode,
             onThemeModeSelected = { themeMode = it },
             isExpanded = isAppearanceExpanded,
             onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
@@ -246,11 +246,11 @@ fun SettingsScreen(
                 updated.nightFactor = nightFactor
                 updated.defaultCarbUnit = defaultCarbUnit
                 updated.beGramsDivisor = beDivisor
-                updated.glucoseUnit = glucoseUnit.shortName
+                updated.glucoseUnit = glucoseUnit
                 updated.targetGlucoseMgDl = targetMgDl
                 updated.correctionFactorMgDl = corrMgDl
                 updated.roundingStep = roundingStep
-                updated.selectedTheme = selectedThemeName
+                updated.selectedTheme = selectedTheme
                 updated.themeMode = themeMode
                 viewModel.updateUserSettings(updated)
                 Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()

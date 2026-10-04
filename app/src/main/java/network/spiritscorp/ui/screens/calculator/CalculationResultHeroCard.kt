@@ -166,7 +166,7 @@ fun CalculationResultHeroCard(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
-                            text = "BZ ${uiState.currentGlucoseInput} mg/dl",
+                            text = "BZ ${uiState.currentGlucoseInput} ${uiState.glucoseUnit.shortName}",
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                         )

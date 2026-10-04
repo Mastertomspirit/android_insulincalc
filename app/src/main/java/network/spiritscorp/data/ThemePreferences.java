@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 
+import network.spiritscorp.ui.theme.AppTheme;
+
 /**
  * Synchronous theme preferences cache in Java to prevent theme flashing/flickering on app startup
  * while Room Database asynchronous Flow is initializing.
@@ -31,8 +33,7 @@ public class ThemePreferences {
     private static final String KEY_SELECTED_THEME = "selected_theme";
     private static final String KEY_THEME_MODE = "theme_mode";
 
-    private static final String DEFAULT_THEME = "MEDICAL_TEAL";
-    private static final String DEFAULT_MODE = "SYSTEM";
+    private static final String EMPTY_VALUE = "Unused";
 
     private final SharedPreferences mPrefs;
 
@@ -57,21 +58,23 @@ public class ThemePreferences {
     /**
      * Reads the cached color theme identifier synchronously.
      *
-     * @return Stored theme enum name or "MEDICAL_TEAL" default.
+     * @return Stored theme enum name or AppTheme.MEDICAL_TEAL default.
      */
-    @NonNull
-    public String getSelectedTheme() {
-        return mPrefs.getString(KEY_SELECTED_THEME, DEFAULT_THEME);
+    public AppTheme getSelectedTheme() {
+        String themeName = mPrefs.getString(KEY_SELECTED_THEME, EMPTY_VALUE);
+        if (EMPTY_VALUE.equals(themeName)) return null;
+        else return AppTheme.valueOf(themeName);
     }
 
     /**
      * Reads the cached theme mode (LIGHT, DARK, or SYSTEM) synchronously.
      *
-     * @return Stored mode string or "SYSTEM" default.
+     * @return Stored mode enum name or AppTheme.Mode.SYSTEM default.
      */
-    @NonNull
-    public String getThemeMode() {
-        return mPrefs.getString(KEY_THEME_MODE, DEFAULT_MODE);
+    public AppTheme.Mode getThemeMode() {
+        String modeName = mPrefs.getString(KEY_THEME_MODE, EMPTY_VALUE);
+        if(EMPTY_VALUE.equals(modeName)) return null;
+        else return AppTheme.Mode.valueOf(modeName);
     }
 
     /**
@@ -80,10 +83,10 @@ public class ThemePreferences {
      * @param selectedTheme Selected color theme identifier.
      * @param themeMode     Selected mode (LIGHT, DARK, or SYSTEM).
      */
-    public void savePreferences(@NonNull String selectedTheme, @NonNull String themeMode) {
+    public void savePreferences(@NonNull AppTheme selectedTheme, @NonNull AppTheme.Mode themeMode) {
         mPrefs.edit()
-                .putString(KEY_SELECTED_THEME, selectedTheme)
-                .putString(KEY_THEME_MODE, themeMode)
+                .putString(KEY_SELECTED_THEME, selectedTheme.name())
+                .putString(KEY_THEME_MODE, themeMode.name())
                 .apply();
     }
 }

@@ -26,6 +26,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import network.spiritscorp.ai.GeminiAiModel;
+import network.spiritscorp.ui.theme.AppTheme;
+
 /**
  * Comprehensive domain unit tests for core diabetes medical formulas,
  * units conversion, boundary checks, and time-of-day interval logic.
@@ -204,23 +207,23 @@ public class InsulinDomainAndCalculationTest {
                 1.25,
                 1.5,
                 0.75,
-                "KE",
+                CarbUnit.KE,
                 10,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 110.0,
                 35.0,
                 0.1,
                 false,
-                "EMERALD_MINT",
-                "SYSTEM",
+                AppTheme.EMERALD_GREEN,
+                AppTheme.Mode.SYSTEM,
                 "",
-                "gemini-3.9"
+                GeminiAiModel.GEMINI_3_6_FLASH
         );
 
         assertEquals(2.0, customSettings.getMorningFactor(), DELTA);
         assertEquals(10, customSettings.getBeGramsDivisor());
-        assertEquals("KE", customSettings.getDefaultCarbUnit());
-        assertEquals("EMERALD_MINT", customSettings.getSelectedTheme());
+        assertEquals(CarbUnit.KE, customSettings.getDefaultCarbUnit());
+        assertEquals(AppTheme.EMERALD_GREEN, customSettings.getSelectedTheme());
         assertFalse(customSettings.isShowDisclaimer());
     }
 }

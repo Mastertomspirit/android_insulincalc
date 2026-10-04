@@ -34,7 +34,7 @@ public final class AppConstants {
     /**
      * Room SQLite Database Schema Version.
      */
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
 
     /**
      * JSON Backup Payload Format Version.

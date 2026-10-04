@@ -59,13 +59,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.ui.theme.AppTheme
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceSection(
-    selectedThemeName: String,
-    onThemeSelected: (String) -> Unit,
-    themeMode: String,
-    onThemeModeSelected: (String) -> Unit,
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+    themeMode: AppTheme.Mode,
+    onThemeModeSelected: (AppTheme.Mode) -> Unit,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     onToggleExpand: () -> Unit = {},
@@ -109,11 +108,11 @@ fun AppearanceSection(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         AppTheme.entries.forEach { appTheme ->
-                            val isSelected = selectedThemeName == appTheme.name
+                            val isSelected = selectedTheme == appTheme
                             Surface(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onThemeSelected(appTheme.name) }
+                                    .clickable { onThemeSelected(appTheme) }
                                     .testTag("theme_chip_${appTheme.name.lowercase()}"),
                                 shape = RoundedCornerShape(12.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
@@ -169,25 +168,19 @@ fun AppearanceSection(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val modes = listOf(
-                            "SYSTEM" to "System",
-                            "LIGHT" to "Hell",
-                            "DARK" to "Dunkel"
-                        )
-
-                        modes.forEach { (modeKey, modeTitle) ->
-                            val isModeSelected = themeMode == modeKey
+                        AppTheme.Mode.entries.forEach { mode ->
+                            val isModeSelected = themeMode == mode
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .clickable { onThemeModeSelected(modeKey) },
+                                    .clickable { onThemeModeSelected(mode) },
                                 shape = RoundedCornerShape(10.dp),
                                 color = if (isModeSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                                 border = if (isModeSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null
                             ) {
                                 Text(
-                                    text = modeTitle,
+                                    text = mode.displayName,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = if (isModeSelected) FontWeight.Bold else FontWeight.Normal
                                     ),

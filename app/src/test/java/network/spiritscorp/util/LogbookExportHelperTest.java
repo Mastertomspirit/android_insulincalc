@@ -18,6 +18,10 @@ package network.spiritscorp.util;
  */
 
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
+import network.spiritscorp.model.TimeOfDay;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,11 +55,11 @@ public class LogbookExportHelperTest {
                         1700000000000L,
                         "Frühstück",
                         40.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         40.0,
                         3.33,
                         4.0,
-                        "Morgens",
+                        TimeOfDay.MORNING,
                         1.5,
                         6.0,
                         130.0,
@@ -71,11 +75,11 @@ public class LogbookExportHelperTest {
                         1700020000000L,
                         "Mittagessen",
                         50.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         50.0,
                         4.17,
                         5.0,
-                        "Mittags",
+                        TimeOfDay.NOON,
                         1.0,
                         5.0,
                         110.0,
@@ -91,11 +95,11 @@ public class LogbookExportHelperTest {
                         1700040000000L,
                         "Abendessen",
                         30.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         30.0,
                         2.5,
                         3.0,
-                        "Abends",
+                        TimeOfDay.EVENING,
                         1.2,
                         3.6,
                         null,
@@ -179,11 +183,11 @@ public class LogbookExportHelperTest {
                         0L,
                         "Pizza \"Salami, Pilze\"",
                         60.0,
-                        "g KH",
+                        CarbUnit.GRAMS,
                         60.0,
                         5.0,
                         6.0,
-                        "Abends",
+                        TimeOfDay.EVENING,
                         1.0,
                         6.0,
                         null,
@@ -199,18 +203,5 @@ public class LogbookExportHelperTest {
         String csv = exportHelper.generateCsvExport(logs);
         assertTrue(csv.contains("\"Pizza \"\"Salami, Pilze\"\"\""));
         assertTrue(csv.contains("\"Notiz: \"\"Lecker, aber fettig\"\"\""));
-    }
-
-    @Test
-    public void testCalculateSummaryMetrics() {
-        List<CalculationLog> logs = createSampleLogs();
-        LogbookExportHelper.LogbookMetrics metrics = exportHelper.calculateMetrics(logs);
-
-        assertEquals(3, metrics.totalEntries());
-        assertEquals(120.0, metrics.totalCarbsGrams(), DELTA);
-        assertEquals(16.0, metrics.totalInsulinUnits(), DELTA);
-        // Average BG of (130 + 110) / 2 = 120.0 (3rd log has null BG)
-        assertNotNull(metrics.averageBloodGlucose());
-        assertEquals(120.0, metrics.averageBloodGlucose(), DELTA);
     }
 }

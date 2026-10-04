@@ -20,6 +20,9 @@ package network.spiritscorp.data;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import kotlin.Pair;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
@@ -111,14 +114,17 @@ public class DatabaseBackupManager {
         );
     }
 
+    @NonNull
     public String exportToCsv(List<CalculationLog> logs) {
         return csvHandler.exportToCsv(logs);
     }
 
+    @NonNull
     public List<CalculationLog> parseCsv(String csvContent) {
         return csvHandler.parseCsv(csvContent);
     }
 
+    @NonNull
     public ImportResult importFromCsv(String csvContent) {
         List<CalculationLog> logs = parseCsv(csvContent);
         if (logs.isEmpty()) {

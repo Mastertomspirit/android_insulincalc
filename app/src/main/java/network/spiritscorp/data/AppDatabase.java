@@ -18,12 +18,18 @@ package network.spiritscorp.data;
  */
 
 import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.model.GlucoseUnit;
 import network.spiritscorp.util.AppConstants;
 
 /**
@@ -55,6 +61,15 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract UserSettingsDao userSettingsDao();
 
     /**
+     * Migrates the database from version 1 to version 2.
+     *
+     * <p>The {@code glucoseUnit} column was previously stored as a human-readable
+     * string such as {@code "mg/dl"} or {@code "mmol/l"}. Room now maps the
+     * {@link GlucoseUnit} enum automatically using the enum constant name, so
+     * existing values must be converted to {@code "MG_DL"} and {@code "MMOL_L"}.</p>
+     */
+
+    /**
      * Retrieves the thread-safe singleton instance of {@link AppDatabase}.
      *
      * @param context Application context.
@@ -80,12 +95,66 @@ public abstract class AppDatabase extends RoomDatabase {
                     // Step 3: Configure Room directly with SQLCipher SupportOpenHelperFactory
                     SupportOpenHelperFactory supportFactory = new SupportOpenHelperFactory(passphrase);
 
+                    final Migration MIGRATION_1_2 = new Migration(1, 2) {
+
+                        @Override
+                        public void migrate(@NonNull SupportSQLiteDatabase database) {
+                            // Convert glucose units to enum names
+                            database.execSQL(
+                                    "UPDATE user_settings " +
+                                            "SET glucoseUnit = CASE glucoseUnit " +
+                                            "WHEN 'mg/dl' THEN 'MG_DL' " +
+                                            "WHEN 'mmol/l' THEN 'MMOL_L' " +
+                                            "ELSE 'MG_DL' END"
+                            );
+
+                            // Convert carbohydrate units to enum names
+                            database.execSQL(
+                                    "UPDATE user_settings " +
+                                            "SET defaultCarbUnit = CASE defaultCarbUnit " +
+                                            "WHEN 'g KH' THEN 'GRAMS' " +
+                                            "WHEN 'KE' THEN 'KE' " +
+                                            "WHEN 'BE' THEN 'BE' " +
+                                            "ELSE 'GRAMS' END"
+                            );
+
+                            // Convert Time of Day to enum names
+                            database.execSQL(
+                                    "UPDATE calculation_logs " +
+                                            "SET timeOfDay = CASE timeOfDay " +
+                                            "WHEN 'Morgens' THEN 'MORNING' " +
+                                            "WHEN 'Mittags' THEN 'NOON' " +
+                                            "WHEN 'Abend' THEN 'EVENING' " +
+                                            "WHEN 'Nacht' THEN 'NIGHT' " +
+                                            "ELSE 'MORNING' END"
+                            );
+
+                            // Convert carbohydrate units to enum names
+                            database.execSQL(
+                                    "UPDATE calculation_logs " +
+                                            "SET carbUnit = CASE carbUnit " +
+                                            "WHEN 'g KH' THEN 'GRAMS' " +
+                                            "WHEN 'KE' THEN 'KE' " +
+                                            "WHEN 'BE' THEN 'BE' " +
+                                            "ELSE 'GRAMS' END"
+                            );
+
+                            database.execSQL("UPDATE user_settings " +
+                                    "SET selectedAiModel = CASE selectedAiModel " +
+                                    "WHEN 'gemini.3.5' THEN 'GEMINI_FLASH_3_5' " +
+                                    "WHEN 'gemini-flash-lite-latest' THEN 'GEMINI_FLASH_LITE_LATEST' " +
+                                    "ELSE 'GEMINI_FLASH_LITE_LATEST' END"
+                            );
+                        }
+                    };
+
                     INSTANCE = Room.databaseBuilder(
                             appContext,
                             AppDatabase.class,
                             DATABASE_NAME
                     )
                             .openHelperFactory(supportFactory)
+                            .addMigrations(MIGRATION_1_2)
                             .fallbackToDestructiveMigration(false)
                             .build();
                 }

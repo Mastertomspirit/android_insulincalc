@@ -17,6 +17,8 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import java.util.Locale;
+
 public enum CarbUnit {
     GRAMS("Gramm Kohlenhydrate", "g KH", 1.0),
     KE("Kohlenhydrateinheit (10g)", "KE", 10.0),
@@ -54,7 +56,7 @@ public enum CarbUnit {
 
     public static CarbUnit fromString(String str) {
         if (str == null) return GRAMS;
-        String trimmed = str.trim().toUpperCase();
+        String trimmed = str.trim().toUpperCase(Locale.getDefault());
         if ("BE".equals(trimmed) || "BROTEINHEIT".equals(trimmed)) {
             return BE;
         } else if ("KE".equals(trimmed) || "KOHLENHYDRATEINHEIT".equals(trimmed) || "KHE".equals(trimmed)) {

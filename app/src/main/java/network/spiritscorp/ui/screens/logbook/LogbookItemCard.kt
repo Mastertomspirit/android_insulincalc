@@ -88,7 +88,7 @@ fun LogbookItemCard(
                         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
                     ) {
                         Text(
-                            text = log.timeOfDay,
+                            text = log.timeOfDay.title,
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -104,8 +104,9 @@ fun LogbookItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (log.bloodGlucose != null) {
-                    val bzDisplay = if (log.bloodGlucose % 1.0 == 0.0) log.bloodGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", log.bloodGlucose)
+                val blGlucose = log.bloodGlucose
+                if (blGlucose != null) {
+                    val bzDisplay = if (blGlucose.mod(1.0) == 0.0) blGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", blGlucose)
                     val corr = log.correctionInsulin ?: 0.0
                     Text(
                         text = "BZ: $bzDisplay (Korrektur: ${if (corr > 0) "+" else ""}$corr IE)",

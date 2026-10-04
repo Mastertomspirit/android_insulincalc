@@ -90,6 +90,15 @@ public enum TimeOfDay {
         this.colorValue = colorValue;
     }
 
+    public static TimeOfDay fromString(String timeOfDay) {
+        return switch (timeOfDay) {
+            case "Mittags" -> NOON;
+            case "Abends" -> EVENING;
+            case "Nachts" -> NIGHT;
+            default -> MORNING;
+        };
+    }
+
     public String getTitle() {
         return title;
     }
