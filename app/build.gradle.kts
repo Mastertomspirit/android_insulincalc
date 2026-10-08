@@ -17,7 +17,7 @@ android {
     minSdk = 30
     targetSdk = 37
     versionCode = 8
-    versionName = "1.3.7.3"
+    versionName = "1.3.7.5"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -46,6 +46,11 @@ android {
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
+      buildConfigField(
+        "String",
+        "GEMINI_API_KEY",
+        "\"MY_GEMINI_API_KEY\""
+      )
     }
     debug {
       buildConfigField(

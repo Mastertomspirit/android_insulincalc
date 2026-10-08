@@ -68,6 +68,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.viewmodel.AiEstimateState
@@ -92,12 +93,12 @@ fun AiMealEstimatorScreen(
     }
 
     val quickExamples = listOf(
-        "2 Scheiben Vollkornbrot mit Käse & 1 Apfel",
-        "1 Teller Spaghetti Bolognese (250g)",
-        "Döner Kebab im Fladenbrot & 1 Glas Cola",
-        "1 Portion Haferflocken (60g) mit Milch & Beeren",
-        "1 Pizza Margherita (mittel)",
-        "1 Banane & 1 Brezel"
+        stringResource(R.string.ai_estimator_example_1),
+        stringResource(R.string.ai_estimator_example_2),
+        stringResource(R.string.ai_estimator_example_3),
+        stringResource(R.string.ai_estimator_example_4),
+        stringResource(R.string.ai_estimator_example_5),
+        stringResource(R.string.ai_estimator_example_6)
     )
 
     Column(
@@ -134,7 +135,7 @@ fun AiMealEstimatorScreen(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Psychology,
-                            contentDescription = "Gemini High Thinking",
+                            contentDescription = stringResource(R.string.ai_estimator_hero_icon_desc),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp)
                         )
@@ -143,12 +144,12 @@ fun AiMealEstimatorScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "KI Mahlzeiten-Schätzer",
+                        text = stringResource(R.string.ai_estimator_hero_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "Gemini analysiert deine Mahlzeit, schätzt Kohlenhydrate (g KH / KE / BE) und gibt praktische Tipps.",
+                        text = stringResource(R.string.ai_estimator_hero_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
@@ -173,7 +174,7 @@ fun AiMealEstimatorScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Was isst du?",
+                    text = stringResource(R.string.ai_estimator_input_section_title),
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -182,7 +183,7 @@ fun AiMealEstimatorScreen(
                 OutlinedTextField(
                     value = inputQuery,
                     onValueChange = { inputQuery = it },
-                    placeholder = { Text("z.B. 2 Brötchen mit Honig und 1 Glas Orangensaft") },
+                    placeholder = { Text(stringResource(R.string.ai_estimator_input_placeholder)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("ai_meal_input_field"),
@@ -219,7 +220,7 @@ fun AiMealEstimatorScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         val activeModel = userSettings.selectedAiModel
-                        Text("Analysiere mit ${stringResource(activeModel.displayName)}...")
+                        Text(stringResource(R.string.ai_estimator_button_analyzing, stringResource(activeModel.displayName)))
                     } else {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
@@ -228,7 +229,7 @@ fun AiMealEstimatorScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Kohlenhydrate schätzen",
+                            text = stringResource(R.string.ai_estimator_button_estimate),
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                         )
                     }
@@ -237,7 +238,7 @@ fun AiMealEstimatorScreen(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Beispiel-Mahlzeiten zum schnellen Testen:",
+                    text = stringResource(R.string.ai_estimator_quick_examples_title),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -289,13 +290,13 @@ fun AiMealEstimatorScreen(
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Gemini analysiert die Mahlzeit...",
+                            text = stringResource(R.string.ai_estimator_loading_title),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Zutaten werden aufgeschlüsselt und mit Nährwertdaten abgeglichen",
+                            text = stringResource(R.string.ai_estimator_loading_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -326,7 +327,7 @@ fun AiMealEstimatorScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "Hinweis",
+                            contentDescription = stringResource(R.string.ai_estimator_error_notice_desc),
                             tint = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(24.dp)
                         )

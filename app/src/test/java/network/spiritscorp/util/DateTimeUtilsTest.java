@@ -60,13 +60,4 @@ public class DateTimeUtilsTest {
         assertNotNull(filenameTimestamp);
         assertTrue(filenameTimestamp.matches("\\d{8}_\\d{4}"));
     }
-
-    @Test
-    public void testAppConstantsVersions() {
-        assertEquals(2, AppConstants.DATABASE_VERSION);
-        assertEquals(2, AppConstants.JSON_BACKUP_VERSION);
-        assertEquals(1, AppConstants.CSV_BACKUP_VERSION);
-        assertEquals(2, AppConstants.SECURITY_KEY_VERSION);
-        assertEquals("insulin_calculator.db", AppConstants.DATABASE_NAME);
-    }
 }

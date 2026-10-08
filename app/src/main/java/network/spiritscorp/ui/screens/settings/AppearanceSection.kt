@@ -28,7 +28,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,6 +56,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import network.spiritscorp.R
 import network.spiritscorp.ui.theme.AppTheme
 
 @Composable
@@ -80,8 +81,8 @@ fun AppearanceSection(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsSectionHeader(
                 icon = Icons.Default.Palette,
-                title = "4. Farbdesign & Design",
-                subtitle = "Akzentfarben und Hell-/Dunkel-Modus",
+                title = stringResource(R.string.settings_appearance_section_title),
+                subtitle = stringResource(R.string.settings_appearance_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
@@ -96,7 +97,7 @@ fun AppearanceSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Farbschema:",
+                        text = stringResource(R.string.settings_appearance_color_scheme_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -133,7 +134,7 @@ fun AppearanceSection(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = appTheme.displayName,
+                                        text = stringResource(appTheme.displayNameRes),
                                         style = MaterialTheme.typography.bodySmall.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                         ),
@@ -158,7 +159,7 @@ fun AppearanceSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Erscheinungsbild:",
+                        text = stringResource(R.string.settings_appearance_mode_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -180,7 +181,7 @@ fun AppearanceSection(
                                 border = if (isModeSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null
                             ) {
                                 Text(
-                                    text = mode.displayName,
+                                    text = stringResource(mode.displayNameRes),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = if (isModeSelected) FontWeight.Bold else FontWeight.Normal
                                     ),

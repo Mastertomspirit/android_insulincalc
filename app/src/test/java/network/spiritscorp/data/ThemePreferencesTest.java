@@ -26,10 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import network.spiritscorp.ui.theme.AppTheme;
 
@@ -54,8 +51,8 @@ public class ThemePreferencesTest {
 
     @Test
     public void testDefaultPreferences() {
-        assertNull("Default selected theme should be null when no preferences are set", themePreferences.getSelectedTheme());
-        assertNull("Default theme mode should be null when no preferences are set", themePreferences.getThemeMode());
+        assertEquals("Default selected theme should be AppTheme.MEDICAL_TEAL when no preferences are set", AppTheme.MEDICAL_TEAL, themePreferences.getSelectedTheme());
+        assertEquals("Default theme mode should be AppTheme.Mode.SYSTEM when no preferences are set", AppTheme.Mode.SYSTEM, themePreferences.getThemeMode());
     }
 
     @Test

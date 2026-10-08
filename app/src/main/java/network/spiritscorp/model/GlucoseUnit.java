@@ -17,26 +17,39 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.StringRes;
+
 import java.util.Locale;
 
+import network.spiritscorp.R;
+
 public enum GlucoseUnit {
-    MG_DL("Milligramm pro Deziliter", "mg/dl"),
-    MMOL_L("Millimol pro Liter", "mmol/l");
+    MG_DL(
+            R.string.glucose_unit_mg_dl_label,
+            R.string.glucose_unit_mg_dl_short
+    ),
+    MMOL_L(
+            R.string.glucose_unit_mmol_l_label,
+            R.string.glucose_unit_mmol_l_short
+    );
 
-    private final String label;
-    private final String shortName;
+    @StringRes private final int labelResId;
+    @StringRes private final int shortNameResId;
 
-    GlucoseUnit(String label, String shortName) {
-        this.label = label;
-        this.shortName = shortName;
+    GlucoseUnit(
+            @StringRes int labelResId,
+            @StringRes int shortNameResId
+    ) {
+        this.labelResId = labelResId;
+        this.shortNameResId = shortNameResId;
     }
 
-    public String getLabel() {
-        return label;
+    public int getLabelResId() {
+        return labelResId;
     }
 
-    public String getShortName() {
-        return shortName;
+    public int getShortNameResId() {
+        return shortNameResId;
     }
 
     public double toMgDl(double value) {

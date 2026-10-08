@@ -24,6 +24,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import kotlin.Pair;
+import network.spiritscorp.R;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 
@@ -34,7 +35,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * High-level coordinator service for backup and restore operations across database, JSON, and CSV.
@@ -48,6 +48,7 @@ public class DatabaseBackupManager {
     private final CalculationLogDao calculationLogDao;
     private final JsonBackupHandler jsonHandler;
     private final CsvBackupHandler csvHandler;
+    private Context context;
 
     public DatabaseBackupManager() {
         this(null, null);
@@ -66,6 +67,14 @@ public class DatabaseBackupManager {
 
     public DatabaseBackupManager(Context context) {
         this(AppDatabase.getDatabase(context));
+        this.context = context;
+    }
+
+    private String getString(int resId, Object... formatArgs) {
+        if (context != null) {
+            return context.getString(resId, formatArgs);
+        }
+        return "";
     }
 
     /**
@@ -91,7 +100,7 @@ public class DatabaseBackupManager {
     public ImportResult importFromJson(String jsonContent) {
         Pair<UserSettings, List<CalculationLog>> data = parseJson(jsonContent);
         if (data == null) {
-            return new ImportResult(false, 0, false, "Ungültiges oder beschädigtes JSON-Format.");
+            return new ImportResult(false, 0, false, getString(R.string.settings_backup_read_error));
         }
 
         boolean importedSettings = false;
@@ -110,7 +119,7 @@ public class DatabaseBackupManager {
                 true,
                 logsCount,
                 importedSettings,
-                String.format(Locale.getDefault(), "Erfolgreich %d Einträge %s wiederhergestellt.", logsCount, importedSettings ? "und Einstellungen" : "")
+                getString(R.string.data_database_backup_manager_import_success_json, logsCount, importedSettings ? getString(R.string.data_database_backup_manager_import_success_settings_and) : "")
         );
     }
 
@@ -128,7 +137,7 @@ public class DatabaseBackupManager {
     public ImportResult importFromCsv(String csvContent) {
         List<CalculationLog> logs = parseCsv(csvContent);
         if (logs.isEmpty()) {
-            return new ImportResult(false, 0, false, "Keine gültigen Einträge in der CSV-Datei gefunden.");
+            return new ImportResult(false, 0, false, getString(R.string.data_database_backup_manager_csv_import_empty));
         }
 
         if (calculationLogDao != null) {
@@ -139,7 +148,7 @@ public class DatabaseBackupManager {
                 true,
                 logs.size(),
                 false,
-                String.format(Locale.getDefault(),"Erfolgreich %d Einträge aus CSV importiert.", logs.size())
+                getString(R.string.data_database_backup_manager_csv_import_success, logs.size())
         );
     }
 
@@ -178,7 +187,7 @@ public class DatabaseBackupManager {
     public ImportResult importFromUri(Context context, Uri uri) {
         String content = readTextFromUri(context, uri);
         if (content == null || content.trim().isEmpty()) {
-            return new ImportResult(false, 0, false, "Konnte Datei nicht lesen oder Datei ist leer.");
+            return new ImportResult(false, 0, false, getString(R.string.settings_backup_read_error));
         }
 
         String trimmed = content.trim();

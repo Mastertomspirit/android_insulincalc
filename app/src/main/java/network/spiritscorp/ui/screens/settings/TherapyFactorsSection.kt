@@ -48,8 +48,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.ui.theme.EveningColor
 import network.spiritscorp.ui.theme.MorningColor
 import network.spiritscorp.ui.theme.NightColor
@@ -82,8 +84,8 @@ fun TherapyFactorsSection(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsSectionHeader(
                 icon = Icons.Default.Tune,
-                title = "1. Mahlzeiten-Faktoren (ICR)",
-                subtitle = "Insulin-zu-Kohlenhydrat-Faktoren je Tageszeit",
+                title = stringResource(R.string.settings_therapy_factors_section_title),
+                subtitle = stringResource(R.string.settings_therapy_factors_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
@@ -98,8 +100,8 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     FactorRow(
-                        title = "Morgens (06:00 - 10:30)",
-                        subtitle = "Höherer Insulinbedarf wegen Dawn-Phänomen",
+                        title = stringResource(R.string.settings_therapy_factors_morning_title),
+                        subtitle = stringResource(R.string.settings_therapy_factors_morning_subtitle),
                         icon = Icons.Default.WbTwilight,
                         iconColor = MorningColor,
                         factor = morningFactor,
@@ -110,8 +112,8 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     FactorRow(
-                        title = "Mittags (10:30 - 16:00)",
-                        subtitle = "Typischerweise geringster Faktor des Tages",
+                        title = stringResource(R.string.settings_therapy_factors_noon_title),
+                        subtitle = stringResource(R.string.settings_therapy_factors_noon_subtitle),
                         icon = Icons.Default.WbSunny,
                         iconColor = NoonColor,
                         factor = noonFactor,
@@ -122,8 +124,8 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     FactorRow(
-                        title = "Abends (16:00 - 22:00)",
-                        subtitle = "Mittlerer bis leicht erhöhter Bedarf",
+                        title = stringResource(R.string.settings_therapy_factors_evening_title),
+                        subtitle = stringResource(R.string.settings_therapy_factors_evening_subtitle),
                         icon = Icons.Default.Brightness5,
                         iconColor = EveningColor,
                         factor = eveningFactor,
@@ -134,8 +136,8 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     FactorRow(
-                        title = "Nachts / Spät (22:00 - 06:00)",
-                        subtitle = "Vorsichtige Dosierung bei Spätmahlzeiten",
+                        title = stringResource(R.string.settings_therapy_factors_night_title),
+                        subtitle = stringResource(R.string.settings_therapy_factors_night_subtitle),
                         icon = Icons.Default.Bedtime,
                         iconColor = NightColor,
                         factor = nightFactor,
@@ -148,16 +150,16 @@ fun TherapyFactorsSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Rundung der Insulindosis:",
+                        text = stringResource(R.string.settings_therapy_factors_rounding_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
                     val roundingOptions = listOf(
-                        0.5 to "Halbe Einheiten (0.5 IE) – Standard für Pen",
-                        0.1 to "Zehntel Einheiten (0.1 IE) – für Insulinpumpe",
-                        1.0 to "Ganze Einheiten (1.0 IE)"
+                        0.5 to stringResource(R.string.settings_therapy_factors_rounding_half),
+                        0.1 to stringResource(R.string.settings_therapy_factors_rounding_tenth),
+                        1.0 to stringResource(R.string.settings_therapy_factors_rounding_full)
                     )
 
                     roundingOptions.forEach { (step, label) ->

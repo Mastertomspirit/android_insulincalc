@@ -50,9 +50,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.ai.MealEstimateResult
 
 /**
@@ -96,7 +98,11 @@ fun MealResultCard(
                             color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = if (result.isOfflineEstimate) "Offline-Datenbank" else "Live KI: ${result.modelUsed}",
+                                text = if (result.isOfflineEstimate) {
+                                    stringResource(R.string.meal_result_card_offline_badge)
+                                } else {
+                                    stringResource(R.string.meal_result_card_live_ai_badge, result.modelUsed)
+                                },
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
                                 color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -114,12 +120,15 @@ fun MealResultCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "${customCarbs.toInt()} g KH",
+                            text = stringResource(R.string.meal_result_card_carbs_format, customCarbs.toInt()),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "ca. ${String.format(LocalLocale.current.platformLocale, "%.1f", customCarbs / 10.0)} KE",
+                            text = stringResource(
+                                R.string.meal_result_card_ke_format,
+                                String.format(LocalLocale.current.platformLocale, "%.1f", customCarbs / 10.0)
+                            ),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -136,7 +145,7 @@ fun MealResultCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Menge feinanpassen:",
+                    text = stringResource(R.string.meal_result_card_adjust_title),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -149,7 +158,7 @@ fun MealResultCard(
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = "-5g",
+                            text = stringResource(R.string.meal_result_card_minus_5g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -163,7 +172,7 @@ fun MealResultCard(
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = "-10g",
+                            text = stringResource(R.string.meal_result_card_minus_10g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -177,7 +186,7 @@ fun MealResultCard(
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = "+5g",
+                            text = stringResource(R.string.meal_result_card_plus_5g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -191,7 +200,7 @@ fun MealResultCard(
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = "+10g",
+                            text = stringResource(R.string.meal_result_card_plus_10g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -205,7 +214,7 @@ fun MealResultCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Aufschlüsselung der Zutaten:",
+                text = stringResource(R.string.meal_result_card_ingredients_title),
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -247,7 +256,7 @@ fun MealResultCard(
                         }
 
                         Text(
-                            text = "${item.carbsGrams.toInt()} g",
+                            text = stringResource(R.string.meal_result_card_item_weight_format, item.carbsGrams.toInt()),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -267,7 +276,7 @@ fun MealResultCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lightbulb,
-                            contentDescription = "Tipp",
+                            contentDescription = stringResource(R.string.meal_result_card_tip_title),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(20.dp)
                         )
@@ -298,7 +307,7 @@ fun MealResultCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${customCarbs.toInt()}g KH in den Rechner übernehmen",
+                    text = stringResource(R.string.meal_result_card_apply_button_format, customCarbs.toInt()),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

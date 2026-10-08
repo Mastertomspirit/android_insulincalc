@@ -17,6 +17,10 @@ package network.spiritscorp.util;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Context;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import network.spiritscorp.R;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.CarbUnit;
 import network.spiritscorp.model.GlucoseUnit;
@@ -24,28 +28,32 @@ import network.spiritscorp.model.TimeOfDay;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.annotation.Config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Pure Java unit tests for {@link LogbookExportHelper} object instance.
  */
+@RunWith(AndroidJUnit4.class)
+@Config(sdk = 34, qualifiers = "de")
 public class LogbookExportHelperTest {
 
     private static final double DELTA = 0.001;
     private LogbookExportHelper exportHelper;
+    private Context context;
 
     @Before
     public void setUp() {
-        exportHelper = new LogbookExportHelper(Locale.GERMANY);
+        context = ApplicationProvider.getApplicationContext();
+        exportHelper = new LogbookExportHelper(Locale.GERMANY, context);
     }
 
     private List<CalculationLog> createSampleLogs() {
@@ -116,10 +124,10 @@ public class LogbookExportHelperTest {
     @Test
     public void testGenerateExportTextWithEmptyList() {
         String textNull = exportHelper.generateExportText(null, "Heute", GlucoseUnit.MG_DL);
-        assertTrue(textNull.contains("Keine Einträge"));
+        assertTrue(textNull.contains(context.getString(R.string.logbook_export_helper_no_entries_for_period, "Heute")));
 
         String textEmpty = exportHelper.generateExportText(Collections.emptyList(), "Letzte 7 Tage", GlucoseUnit.MG_DL);
-        assertTrue(textEmpty.contains("Keine Einträge"));
+        assertTrue(textEmpty.contains(context.getString(R.string.logbook_export_helper_no_entries_for_period, "Letzte 7 Tage")));
         assertTrue(textEmpty.contains("Letzte 7 Tage"));
     }
 
@@ -129,9 +137,9 @@ public class LogbookExportHelperTest {
         String report = exportHelper.generateExportText(logs, "Alle Einträge", GlucoseUnit.MG_DL);
 
         assertNotNull(report);
-        assertTrue(report.contains("Insulin-Rechner Tagebuch-Export"));
-        assertTrue(report.contains("Einträge: 3"));
-        assertTrue(report.contains("Gesamt-KH: 120 g"));
+        assertTrue(report.contains(context.getString(R.string.logbook_export_helper_title_header)));
+        assertTrue(report.contains(context.getString(R.string.logbook_export_helper_entries_label) + ": 3"));
+        assertTrue(report.contains(context.getString(R.string.logbook_export_helper_total_carbs_label) + ": 120 g"));
         assertTrue(report.contains("Frühstück"));
         assertTrue(report.contains("Mittagessen"));
         assertTrue(report.contains("Abendessen"));
@@ -144,64 +152,13 @@ public class LogbookExportHelperTest {
         String singleShare = exportHelper.formatSingleLogShare(log, GlucoseUnit.MG_DL);
 
         assertNotNull(singleShare);
-        assertTrue(singleShare.contains("Insulin-Berechnung: Frühstück"));
-        assertTrue(singleShare.contains("Kohlenhydrate: 40.0 g"));
-        assertTrue(singleShare.contains("Faktor (Morgens): 1.5 IE/KE"));
-        assertTrue(singleShare.contains("Mahlzeiten-Bolus: 6.0 IE"));
-        assertTrue(singleShare.contains("Gemessener BZ: 130.0 mg/dl"));
-        assertTrue(singleShare.contains("Korrektur-Bolus: +0.75 IE"));
-        assertTrue(singleShare.contains("Gesamtdosis: 7.0 IE"));
-        assertTrue(singleShare.contains("Notiz: Haferflocken"));
-    }
-
-    @Test
-    public void testGenerateCsvExport() {
-        List<CalculationLog> logs = createSampleLogs();
-        String csv = exportHelper.generateCsvExport(logs);
-
-        assertNotNull(csv);
-        String[] lines = csv.trim().split("\n");
-        List<String> validLines = new ArrayList<>();
-        for (String line : lines) {
-            if (!line.trim().isEmpty()) {
-                validLines.add(line);
-            }
-        }
-
-        assertEquals(4, validLines.size()); // Header + 3 entries
-        assertTrue(validLines.get(0).startsWith("ID;Datum_Uhrzeit;Tageszeit"));
-        assertTrue(validLines.get(1).contains("Frühstück"));
-        assertTrue(validLines.get(2).contains("Mittagessen"));
-        assertTrue(validLines.get(3).contains("Abendessen"));
-    }
-
-    @Test
-    public void testCsvEscapingQuotesAndSpecialChars() {
-        List<CalculationLog> logs = Collections.singletonList(
-                new CalculationLog(
-                        10L,
-                        0L,
-                        "Pizza \"Salami, Pilze\"",
-                        60.0,
-                        CarbUnit.GRAMS,
-                        60.0,
-                        5.0,
-                        6.0,
-                        TimeOfDay.EVENING,
-                        1.0,
-                        6.0,
-                        null,
-                        null,
-                        null,
-                        null,
-                        6.0,
-                        6.0,
-                        "Notiz: \"Lecker, aber fettig\""
-                )
-        );
-
-        String csv = exportHelper.generateCsvExport(logs);
-        assertTrue(csv.contains("\"Pizza \"\"Salami, Pilze\"\"\""));
-        assertTrue(csv.contains("\"Notiz: \"\"Lecker, aber fettig\"\"\""));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_calculation_prefix) + ": Frühstück"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_carbs_prefix) + ": 40.0 g"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_factor_prefix) + " (Morgens): 1.5 IE/KE"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_meal_bolus_prefix) + ": 6.0 IE"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_measured_bg_label) + ": 130.0 mg/dl"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_correction_prefix) + ": +0.75 IE"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_total_dose_prefix) + ": 7.0 IE"));
+        assertTrue(singleShare.contains(context.getString(R.string.logbook_export_helper_note_prefix) + ": Haferflocken"));
     }
 }

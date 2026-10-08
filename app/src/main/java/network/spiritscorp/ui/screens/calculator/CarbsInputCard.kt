@@ -48,11 +48,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.ui.components.UnitSelectorRow
 import network.spiritscorp.viewmodel.CalculatorUiState
@@ -95,7 +97,7 @@ fun CarbsInputCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Kohlenhydrate",
+                        text = stringResource(R.string.carbs_input_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -115,13 +117,13 @@ fun CarbsInputCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = "KI Schätzer",
+                            contentDescription = stringResource(R.string.carbs_input_ai_estimator_desc),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "KI-Schätzer",
+                            text = stringResource(R.string.carbs_input_ai_estimator_desc),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -148,7 +150,7 @@ fun CarbsInputCard(
                     ),
                     placeholder = {
                         Text(
-                            "0",
+                            stringResource(R.string.carbs_input_placeholder_zero),
                             style = MaterialTheme.typography.headlineMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -162,7 +164,7 @@ fun CarbsInputCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Löschen",
+                                    contentDescription = stringResource(R.string.carbs_input_clear_desc),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -244,7 +246,7 @@ fun CarbsInputCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams()} " + CarbUnit.GRAMS.shortName,
+                        text = "${uiState.calculationSummary.carbGrams()} ${stringResource(CarbUnit.GRAMS.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -253,7 +255,7 @@ fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.keValue()} " + CarbUnit.KE.shortName,
+                        text = "${uiState.calculationSummary.keValue()} ${stringResource(CarbUnit.KE.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -262,7 +264,7 @@ fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.beValue()} " + CarbUnit.BE.shortName,
+                        text = "${uiState.calculationSummary.beValue()} ${stringResource(CarbUnit.BE.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )

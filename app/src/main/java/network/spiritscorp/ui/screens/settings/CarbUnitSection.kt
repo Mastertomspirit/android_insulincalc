@@ -43,6 +43,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import network.spiritscorp.model.CarbUnit
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,10 +51,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.model.CarbUnit
+import network.spiritscorp.R
 
 @Composable
 fun CarbUnitSection(
@@ -76,8 +78,8 @@ fun CarbUnitSection(
         Column(modifier = Modifier.padding(16.dp)) {
             SettingsSectionHeader(
                 icon = Icons.Default.Scale,
-                title = "3. Kohlenhydrat-Einheit",
-                subtitle = "Standard-Eingabe und BE/KE Definition",
+                title = stringResource(R.string.settings_carb_unit_section_title),
+                subtitle = stringResource(R.string.settings_carb_unit_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
@@ -92,7 +94,7 @@ fun CarbUnitSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Standard-Einheit beim Start:",
+                        text = stringResource(R.string.settings_carb_unit_default_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -124,7 +126,7 @@ fun CarbUnitSection(
                                         .padding(vertical = 10.dp, horizontal = 4.dp)
                                 ) {
                                     Text(
-                                        text = "${unit.label}\n(${unit.shortName})",
+                                        text = "${stringResource(unit.labelResId)}\n(${stringResource(unit.shortNameResId)})",
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                         ),
@@ -141,15 +143,15 @@ fun CarbUnitSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Definition Broteinheit (BE):",
+                        text = stringResource(R.string.settings_carb_unit_be_definition_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
                     val beOptions = listOf(
-                        12 to "1 BE = 12g Kohlenhydrate",
-                        10 to "1 BE = 10g Kohlenhydrate"
+                        12 to stringResource(R.string.settings_carb_unit_be_12),
+                        10 to stringResource(R.string.settings_carb_unit_be_10)
                     )
 
                     beOptions.forEach { (divisor, label) ->

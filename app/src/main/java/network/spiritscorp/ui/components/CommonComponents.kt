@@ -179,7 +179,7 @@ fun TimeOfDaySelector(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = stringResource(R.string.common_time_of_day_label, selectedTimeOfDay.title),
+                            text = stringResource(R.string.common_time_of_day_label, stringResource(selectedTimeOfDay.titleResId)),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -260,13 +260,13 @@ fun TimeOfDaySelector(
                                 ) {
                                     Icon(
                                         imageVector = timeSlot.icon,
-                                        contentDescription = timeSlot.title,
+                                        contentDescription = stringResource(timeSlot.titleResId),
                                         tint = if (isSelected) timeSlot.accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = timeSlot.title,
+                                        text = stringResource(timeSlot.titleResId),
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                             fontSize = 11.sp
@@ -405,7 +405,7 @@ fun UnitSelectorRow(
                     tonalElevation = if (isSelected) 2.dp else 0.dp
                 ) {
                     Text(
-                        text = unit.shortName,
+                        text = stringResource(unit.shortNameResId),
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         ),

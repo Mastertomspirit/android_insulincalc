@@ -17,6 +17,7 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.StringRes;
 import androidx.compose.material.icons.Icons;
 import androidx.compose.material.icons.filled.BedtimeKt;
 import androidx.compose.material.icons.filled.Brightness5Kt;
@@ -25,11 +26,14 @@ import androidx.compose.material.icons.filled.WbTwilightKt;
 import androidx.compose.ui.graphics.vector.ImageVector;
 
 import java.util.Calendar;
+import java.util.Locale;
+
+import network.spiritscorp.R;
 
 public enum TimeOfDay {
     MORNING(
-            "Morgens",
-            "Frühstück (06:00 - 10:30)",
+            R.string.time_of_day_morning_title,
+            R.string.time_of_day_morning_subtitle,
             1.50,
             6.0,
             10.5,
@@ -37,8 +41,8 @@ public enum TimeOfDay {
             0xFFFF9800L
     ),
     NOON(
-            "Mittags",
-            "Mittagessen (10:30 - 16:00)",
+            R.string.time_of_day_noon_title,
+            R.string.time_of_day_noon_subtitle,
             1.00,
             10.5,
             16.0,
@@ -46,8 +50,8 @@ public enum TimeOfDay {
             0xFF009688L
     ),
     EVENING(
-            "Abends",
-            "Abendessen (16:00 - 22:00)",
+            R.string.time_of_day_evening_title,
+            R.string.time_of_day_evening_subtitle,
             1.20,
             16.0,
             22.0,
@@ -55,8 +59,8 @@ public enum TimeOfDay {
             0xFF3F51B5L
     ),
     NIGHT(
-            "Nachts",
-            "Spätmahlzeit (22:00 - 06:00)",
+            R.string.time_of_day_night_title,
+            R.string.time_of_day_night_subtitle,
             0.80,
             22.0,
             6.0,
@@ -64,8 +68,8 @@ public enum TimeOfDay {
             0xFF673AB7L
     );
 
-    private final String title;
-    private final String subtitle;
+    @StringRes private final int titleResId;
+    @StringRes private final int subtitleResId;
     private final double defaultFactor;
     private final double startHour;
     private final double endHour;
@@ -73,16 +77,16 @@ public enum TimeOfDay {
     private final long colorValue;
 
     TimeOfDay(
-            String title,
-            String subtitle,
+            @StringRes int titleResId,
+            @StringRes int subtitleResId,
             double defaultFactor,
             double startHour,
             double endHour,
             ImageVector icon,
             long colorValue
     ) {
-        this.title = title;
-        this.subtitle = subtitle;
+        this.titleResId = titleResId;
+        this.subtitleResId = subtitleResId;
         this.defaultFactor = defaultFactor;
         this.startHour = startHour;
         this.endHour = endHour;
@@ -91,20 +95,22 @@ public enum TimeOfDay {
     }
 
     public static TimeOfDay fromString(String timeOfDay) {
-        return switch (timeOfDay) {
-            case "Mittags" -> NOON;
-            case "Abends" -> EVENING;
-            case "Nachts" -> NIGHT;
+        if (timeOfDay == null) return MORNING;
+        String trimmed = timeOfDay.trim().toUpperCase(Locale.getDefault());
+        return switch (trimmed) {
+            case "MITTAGS", "NOON" -> NOON;
+            case "ABENDS", "EVENING" -> EVENING;
+            case "NACHTS", "NIGHT" -> NIGHT;
             default -> MORNING;
         };
     }
 
-    public String getTitle() {
-        return title;
+    public int getTitleResId() {
+        return titleResId;
     }
 
-    public String getSubtitle() {
-        return subtitle;
+    public int getSubtitleResId() {
+        return subtitleResId;
     }
 
     public double getDefaultFactor() {

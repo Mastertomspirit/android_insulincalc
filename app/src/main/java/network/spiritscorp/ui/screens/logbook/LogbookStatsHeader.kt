@@ -30,10 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.R
 
 @Composable
 fun LogbookStatsHeader(
@@ -59,7 +61,7 @@ fun LogbookStatsHeader(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Einträge",
+                    text = stringResource(R.string.logbook_stats_header_entries),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -72,12 +74,12 @@ fun LogbookStatsHeader(
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Gesamt KH",
+                    text = stringResource(R.string.logbook_stats_header_total_carbs),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(LocalLocale.current.platformLocale, "%.0f", totalCarbs)} g",
+                    text = stringResource(R.string.logbook_stats_header_carbs_unit, totalCarbs.toInt()),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -85,12 +87,12 @@ fun LogbookStatsHeader(
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Gesamt Insulin",
+                    text = stringResource(R.string.logbook_stats_header_total_insulin),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(LocalLocale.current.platformLocale, "%.1f", totalInsulin)} IE",
+                    text = stringResource(R.string.logbook_stats_header_insulin_unit, String.format(LocalLocale.current.platformLocale, "%.1f", totalInsulin)),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -99,7 +101,7 @@ fun LogbookStatsHeader(
             if (avgBloodGlucose != null) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Ø BZ",
+                        text = stringResource(R.string.logbook_stats_header_avg_bg),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

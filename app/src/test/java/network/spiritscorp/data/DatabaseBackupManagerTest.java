@@ -267,13 +267,14 @@ public class DatabaseBackupManagerTest {
             }
         }
 
-        // Header line + 4 logs = 5 lines total
-        assertEquals(5, validLines.size());
-        assertTrue(validLines.get(0).startsWith("ID,Timestamp,Date,MealTitle"));
-        assertTrue(validLines.get(1).contains("Frühstück (Müsli & Apfel)"));
-        assertTrue(validLines.get(2).contains("Mittagessen (Pasta, Tomatensauce)"));
-        assertTrue(validLines.get(3).contains("Abendessen (Brot mit Käse)"));
-        assertTrue(validLines.get(4).contains("Spät-Snack"));
+        // Header 2 lines + 4 logs = 6 lines total
+        assertEquals(6, validLines.size());
+        assertTrue(validLines.get(0).startsWith("#"));
+        assertTrue(validLines.get(1).startsWith("ID,Timestamp,Date,MealTitle"));
+        assertTrue(validLines.get(2).contains("Frühstück (Müsli & Apfel)"));
+        assertTrue(validLines.get(3).contains("Mittagessen (Pasta, Tomatensauce)"));
+        assertTrue(validLines.get(4).contains("Abendessen (Brot mit Käse)"));
+        assertTrue(validLines.get(5).contains("Spät-Snack"));
 
         // Parse CSV back
         List<CalculationLog> parsedLogs = backupManager.parseCsv(csvOutput);

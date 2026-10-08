@@ -29,7 +29,6 @@ import org.robolectric.annotation.Config;
 import kotlinx.coroutines.flow.FlowKt;
 import network.spiritscorp.R;
 import network.spiritscorp.ai.GeminiAiModel;
-import network.spiritscorp.data.AppDatabase;
 import network.spiritscorp.data.CalculationLogDao;
 import network.spiritscorp.data.InsulinRepository;
 import network.spiritscorp.data.UserSettingsDao;
@@ -217,7 +216,7 @@ public class CalculatorEngineStateTest {
         assertEquals(1.13, summary.rawTotalInsulin(), DELTA);
         assertEquals(1.0, summary.roundedTotalInsulin(), DELTA);
         assertTrue(summary.isHypoRisk());
-        assertEquals(app.getString(R.string.view_model_advisory_hypo, "70 " + GlucoseUnit.MG_DL.getShortName()), summary.advisoryNote());
+        assertEquals(app.getString(R.string.view_model_advisory_hypo, "70 " + app.getString(GlucoseUnit.MG_DL.getShortNameResId())), summary.advisoryNote());
     }
 
     @Test

@@ -39,12 +39,12 @@ public final class AppConstants {
     /**
      * JSON Backup Payload Format Version.
      */
-    public static final int JSON_BACKUP_VERSION = 2;
+    public static final int JSON_BACKUP_VERSION = 3;
 
     /**
      * CSV Export & Import Format Version.
      */
-    public static final int CSV_BACKUP_VERSION = 1;
+    public static final int CSV_BACKUP_VERSION = 2;
 
     /**
      * Android KeyStore Encryption Key Vault Version.

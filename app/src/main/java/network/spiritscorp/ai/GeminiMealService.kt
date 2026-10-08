@@ -17,8 +17,10 @@ package network.spiritscorp.ai
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Context
 import android.util.Log
 import network.spiritscorp.BuildConfig
+import network.spiritscorp.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -48,13 +50,17 @@ data class MealEstimateResult(
     val modelUsed: String = ""
 )
 
-class GeminiMealService {
+class GeminiMealService(private val context: Context? = null) {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
+
+    private fun getString(resId: Int, vararg formatArgs: Any): String {
+        return context?.getString(resId, *formatArgs) ?: ""
+    }
 
     suspend fun estimateCarbsFromDescription(
         foodDescription: String,
@@ -80,7 +86,7 @@ class GeminiMealService {
             return@withContext if (offline != null) {
                 Result.success(offline)
             } else {
-                Result.failure(Exception("In der Offline-Datenbank wurde zu \"$foodDescription\" kein passender Eintrag gefunden.\n\n💡 Bitte trage oben im Menü 'KI-Modell & API-Schlüssel' deinen Gemini API-Key ein, um beliebige Gerichte und Rezepte per Online-KI zu analysieren."))
+                Result.failure(Exception(getString(R.string.gemini_meal_service_offline_not_found, foodDescription)))
             }
         }
 
@@ -90,29 +96,7 @@ class GeminiMealService {
         try {
             val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent"
 
-            val prompt = """
-                Du bist ein erfahrener diabetologischer Ernährungsberater und Experte für Kohlenhydratschätzung (KE/BE und Gramm KH).
-                Analysiere die folgende Mahlzeit/Lebensmittelbeschreibung:
-                "$foodDescription"
-
-                Schätze präzise den Kohlenhydratgehalt für die einzelnen Bestandteile und die gesamte Mahlzeit.
-                Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backticks oder sonstigen Text außerhalb des JSON):
-                {
-                  "mealTitle": "Kurzer Name der Mahlzeit",
-                  "totalCarbsGrams": 45.0,
-                  "items": [
-                    {
-                      "name": "Zutat 1 (z.B. Vollkornbrot)",
-                      "portion": "2 Scheiben (ca. 90g)",
-                      "carbsGrams": 36.0,
-                      "calories": 190,
-                      "notes": "Langsame Resorption dank Ballaststoffen"
-                    }
-                  ],
-                  "explanation": "Detaillierte ernährungswissenschaftliche Begründung der Schätzung.",
-                  "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE/Fett-Protein-Einheiten oder glykämischer Index)"
-                }
-            """.trimIndent()
+            val prompt = getString(R.string.gemini_meal_service_prompt_template, foodDescription).trimIndent()
 
             val jsonBody = JSONObject().apply {
                 put("contents", JSONArray().apply {
@@ -146,9 +130,7 @@ class GeminiMealService {
                 } catch (_: Exception) {
                     "HTTP ${response.code}"
                 }
-                return@withContext Result.failure(
-                    Exception("Gemini API-Anfrage fehlgeschlagen (${response.code}): $errorMessage. Bitte überprüfe deinen API-Key in den KI-Einstellungen.")
-                )
+                return@withContext Result.failure(Exception(getString(R.string.gemini_meal_service_api_failed, response.code, errorMessage)))
             }
 
             val rootJson = JSONObject(responseBody)
@@ -169,7 +151,7 @@ class GeminiMealService {
             }
 
             if (jsonText.isBlank()) {
-                return@withContext Result.failure(Exception("Die KI hat keine Antwort geliefert. Bitte versuche eine andere Formulierung."))
+                return@withContext Result.failure(Exception(getString(R.string.gemini_meal_service_no_response)))
             }
 
             // Clean json text if wrapped in Markdown
@@ -178,19 +160,20 @@ class GeminiMealService {
 
             val mealTitle = parsedResult.optString("mealTitle", foodDescription.take(30))
             val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
-            val explanation = parsedResult.optString("explanation", "Ernährungswissenschaftliche Schätzung.")
-            val insulinTip = parsedResult.optString("insulinTip", "Bitte aktuellen BZ-Wert vor der Injektion prüfen.")
+            val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation))
+            val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip))
 
             val itemsList = mutableListOf<MealItemDetail>()
             val itemsJsonArray = parsedResult.optJSONArray("items")
+
             if (itemsJsonArray != null) {
                 for (i in 0 until itemsJsonArray.length()) {
                     val itemObj = itemsJsonArray.optJSONObject(i)
                     if (itemObj != null) {
                         itemsList.add(
                             MealItemDetail(
-                                name = itemObj.optString("name", "Zutat"),
-                                portion = itemObj.optString("portion", "1 Portion"),
+                                name = itemObj.optString("name", getString(R.string.gemini_meal_service_default_item_name)),
+                                portion = itemObj.optString("portion", getString(R.string.gemini_meal_service_default_item_portion)),
                                 carbsGrams = itemObj.optDouble("carbsGrams", 0.0),
                                 calories = itemObj.optInt("calories", 0),
                                 notes = itemObj.optString("notes", "")
@@ -213,7 +196,7 @@ class GeminiMealService {
             )
         } catch (e: Exception) {
             Log.e("GeminiMealService", "Error during Gemini estimation", e)
-            Result.failure(Exception("Netzwerkfehler bei der KI-Anfrage: ${e.localizedMessage ?: e.message}"))
+            Result.failure(Exception(getString(R.string.gemini_meal_service_network_error, e.localizedMessage)))
         }
     }
 
@@ -242,10 +225,10 @@ class GeminiMealService {
             mealTitle = foodDescription.take(35),
             totalCarbsGrams = total,
             items = items,
-            explanation = "Offline-Ergebnis aus integrierter Nährwerttabelle (${items.size} Treffer gefunden).",
-            insulinTip = "Empfehlung: Bei fett- und eiweißreichen Mahlzeiten kann der Blutzuckeranstieg verzögert auftreten. Spritz-Ess-Abstand beachten.",
+            explanation = getString(R.string.gemini_meal_service_offline_explanation, items.size),
+            insulinTip = getString(R.string.gemini_meal_service_default_insulin_tip),
             isOfflineEstimate = true,
-            modelUsed = "Offline-Datenbank"
+            modelUsed = getString(R.string.gemini_meal_service_offline_model_name)
         )
     }
 }
