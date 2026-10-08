@@ -28,19 +28,20 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import network.spiritscorp.R
 
-enum class AppTheme(val displayName: String, val previewColor: Color) {
-    MEDICAL_TEAL("Medizinisch Türkis", Color(0xFF006874)),
-    OCEAN_BLUE("Ozean Blau", Color(0xFF0061A4)),
-    EMERALD_GREEN("Smaragd Grün", Color(0xFF1B6C43)),
-    SUNSET_AMBER("Sonnenuntergang", Color(0xFFB34A00)),
-    BERRY_VIOLET("Beere & Violett", Color(0xFF834C77)),
-    MIDNIGHT_DARK("Mitternacht AMOLED", Color(0xFF9965F4));
+enum class AppTheme(val displayNameRes: Int, val previewColor: Color) {
+    MEDICAL_TEAL(R.string.app_theme_medical_teal, Color(0xFF006874)),
+    OCEAN_BLUE(R.string.app_theme_ocean_blue, Color(0xFF0061A4)),
+    EMERALD_GREEN(R.string.app_theme_emerald_green, Color(0xFF1B6C43)),
+    SUNSET_AMBER(R.string.app_theme_sunset_amber, Color(0xFFB34A00)),
+    BERRY_VIOLET(R.string.app_theme_berry_violet, Color(0xFF834C77)),
+    MIDNIGHT_DARK(R.string.app_theme_midnight_dark, Color(0xFF9965F4));
 
-    enum class Mode( val displayName: String) {
-        SYSTEM("System"),
-        DARK("Dunkel"),
-        LIGHT("Hell");
+    enum class Mode(val displayNameRes: Int) {
+        SYSTEM(R.string.app_theme_mode_system),
+        DARK(R.string.app_theme_mode_dark),
+        LIGHT(R.string.app_theme_mode_light);
     }
 }
 

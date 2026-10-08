@@ -58,9 +58,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
@@ -106,12 +108,12 @@ fun MealNotesCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Mahlzeit & Notizen (Optional)",
+                            text = stringResource(R.string.meal_notes_title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (uiState.mealTitle.isNotBlank()) uiState.mealTitle else if (isMealNotesExpanded) "Details eingeblendet" else "Tippe für Bezeichnung & Notizen",
+                            text = if (uiState.mealTitle.isNotBlank()) uiState.mealTitle else if (isMealNotesExpanded) stringResource(R.string.meal_notes_subtitle_expanded) else stringResource(R.string.meal_notes_subtitle_tap),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -143,8 +145,8 @@ fun MealNotesCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("meal_title_input_field"),
-                        label = { Text("Mahlzeit / Bezeichnung") },
-                        placeholder = { Text("z.B. Frühstück, Spaghetti Bolognese, Snack...") },
+                        label = { Text(stringResource(R.string.meal_notes_label_title)) },
+                        placeholder = { Text(stringResource(R.string.meal_notes_placeholder_title)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Restaurant,
@@ -161,7 +163,7 @@ fun MealNotesCard(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Löschen",
+                                        contentDescription = stringResource(R.string.meal_notes_clear_desc),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -179,8 +181,8 @@ fun MealNotesCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("meal_notes_input_field"),
-                        label = { Text("Notizen / Bemerkungen") },
-                        placeholder = { Text("z.B. Sport vor Mahlzeit, Restaurant, Sensorwert...") },
+                        label = { Text(stringResource(R.string.meal_notes_label_notes)) },
+                        placeholder = { Text(stringResource(R.string.meal_notes_placeholder_notes)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Notes,
@@ -197,7 +199,7 @@ fun MealNotesCard(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Löschen",
+                                        contentDescription = stringResource(R.string.meal_notes_clear_desc),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }

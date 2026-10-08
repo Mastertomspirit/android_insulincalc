@@ -32,9 +32,6 @@ public class ThemePreferences {
     private static final String PREFS_NAME = "insulin_calc_theme_prefs";
     private static final String KEY_SELECTED_THEME = "selected_theme";
     private static final String KEY_THEME_MODE = "theme_mode";
-
-    private static final String EMPTY_VALUE = "Unused";
-
     private final SharedPreferences mPrefs;
 
     /**
@@ -61,9 +58,8 @@ public class ThemePreferences {
      * @return Stored theme enum name or AppTheme.MEDICAL_TEAL default.
      */
     public AppTheme getSelectedTheme() {
-        String themeName = mPrefs.getString(KEY_SELECTED_THEME, EMPTY_VALUE);
-        if (EMPTY_VALUE.equals(themeName)) return null;
-        else return AppTheme.valueOf(themeName);
+        String themeName = mPrefs.getString(KEY_SELECTED_THEME, AppTheme.MEDICAL_TEAL.name());
+        return AppTheme.valueOf(themeName);
     }
 
     /**
@@ -72,9 +68,8 @@ public class ThemePreferences {
      * @return Stored mode enum name or AppTheme.Mode.SYSTEM default.
      */
     public AppTheme.Mode getThemeMode() {
-        String modeName = mPrefs.getString(KEY_THEME_MODE, EMPTY_VALUE);
-        if(EMPTY_VALUE.equals(modeName)) return null;
-        else return AppTheme.Mode.valueOf(modeName);
+        String modeName = mPrefs.getString(KEY_THEME_MODE, AppTheme.Mode.SYSTEM.name());
+        return AppTheme.Mode.valueOf(modeName);
     }
 
     /**

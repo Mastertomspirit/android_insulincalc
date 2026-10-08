@@ -56,10 +56,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.viewmodel.CalculatorUiState
@@ -106,12 +108,12 @@ fun GlucoseCorrectionCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Blutzucker-Korrektur (Optional)",
+                            text = stringResource(R.string.glucose_correction_title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (uiState.showCorrection) "Korrektur-Bolus aktiviert" else "Tippe zum Hinzufügen von BZ-Korrektur",
+                            text = if (uiState.showCorrection) stringResource(R.string.glucose_correction_subtitle_active) else stringResource(R.string.glucose_correction_subtitle_tap),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -146,10 +148,10 @@ fun GlucoseCorrectionCard(
                         OutlinedTextField(
                             value = uiState.currentGlucoseInput,
                             onValueChange = onGlucoseInputChange,
-                            label = { Text("Aktueller BZ (${uiState.glucoseUnit.shortName})") },
+                            label = { Text(stringResource(R.string.glucose_correction_current_label, stringResource(uiState.glucoseUnit.shortNameResId))) },
                             placeholder = {
                                 Text(
-                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 9.5" else "z.B. 160"
+                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) stringResource(R.string.glucose_correction_mmol_placeholder) else stringResource(R.string.glucose_correction_mgdl_placeholder)
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -168,10 +170,10 @@ fun GlucoseCorrectionCard(
                         OutlinedTextField(
                             value = uiState.targetGlucoseInput,
                             onValueChange = onTargetGlucoseChange,
-                            label = { Text("Zielwert (${uiState.glucoseUnit.shortName})") },
+                            label = { Text(stringResource(R.string.glucose_correction_target_label, stringResource(uiState.glucoseUnit.shortNameResId))) },
                             placeholder = {
                                 Text(
-                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 6.7" else "z.B. 120"
+                                    if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) stringResource(R.string.glucose_correction_target_mmol_placeholder) else stringResource(R.string.glucose_correction_target_mgdl_placeholder)
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -191,10 +193,10 @@ fun GlucoseCorrectionCard(
                     OutlinedTextField(
                         value = uiState.correctionFactorInput,
                         onValueChange = onCorrectionFactorChange,
-                        label = { Text("Korrekturfaktor (${uiState.glucoseUnit.shortName} pro 1 IE)") },
+                        label = { Text(stringResource(R.string.glucose_correction_factor_label, stringResource(uiState.glucoseUnit.shortNameResId))) },
                         placeholder = {
                             Text(
-                                if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) "z.B. 2.8" else "z.B. 50"
+                                if (uiState.glucoseUnit == GlucoseUnit.MMOL_L) stringResource(R.string.glucose_correction_factor_mmol_placeholder) else stringResource(R.string.glucose_correction_factor_mgdl_placeholder)
                             )
                         },
                         keyboardOptions = KeyboardOptions(
@@ -230,7 +232,11 @@ fun GlucoseCorrectionCard(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Korrektur-Dosis: ${if (uiState.calculationSummary.correctionInsulin() > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin()} IE",
+                                    text = stringResource(
+                                        R.string.glucose_correction_dose_format,
+                                        if (uiState.calculationSummary.correctionInsulin() > 0) "+" else "",
+                                        uiState.calculationSummary.correctionInsulin()
+                                    ),
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                     color = if (uiState.calculationSummary.correctionInsulin() > 0) MaterialTheme.colorScheme.onSecondaryContainer else AlertRed
                                 )

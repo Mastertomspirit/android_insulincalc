@@ -40,7 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import network.spiritscorp.BuildConfig
+import network.spiritscorp.R
 
 @Composable
 fun AboutAndLegalSection(
@@ -76,13 +78,13 @@ fun AboutAndLegalSection(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Wichtiger medizinischer Hinweis",
+                            text = stringResource(R.string.settings_about_legal_title),
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Diese App ist eine Berechnungshilfe und ersetzt keine ärztliche Beratung. Faktoren unterliegen Schwankungen durch Bewegung, Krankheit, Stress oder Hormone. Passe deine Dosis im Zweifel mit deinem behandelnden Diabetesteam an.",
+                            text = stringResource(R.string.settings_about_legal_text),
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -104,7 +106,7 @@ fun AboutAndLegalSection(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Insulin Calc V${BuildConfig.VERSION_NAME} • by Tom Spirit",
+                        text = stringResource(R.string.settings_about_legal_version_format, BuildConfig.VERSION_NAME),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,12 +49,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogbookFilterBar(
     selectedFilter: HistoryFilter,
@@ -146,7 +146,7 @@ fun LogbookFilterBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = "Vorheriger Zeitraum",
+                            contentDescription = stringResource(R.string.logbook_filter_bar_previous_slice_desc),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -165,7 +165,7 @@ fun LogbookFilterBar(
                         )
                         if (offsetIndex > 0) {
                             Text(
-                                text = "Tippen für Zurück zu Aktuell",
+                                text = stringResource(R.string.logbook_filter_bar_back_to_current),
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -179,7 +179,7 @@ fun LogbookFilterBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Nächster Zeitraum",
+                            contentDescription = stringResource(R.string.logbook_filter_bar_next_slice_desc),
                             tint = if (offsetIndex > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                     }
@@ -204,12 +204,12 @@ fun LogbookFilterBar(
                         onShowDatePickerDialogChange(false)
                     }
                 ) {
-                    Text("Auswählen", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.logbook_filter_bar_select), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onShowDatePickerDialogChange(false) }) {
-                    Text("Abbrechen")
+                    Text(stringResource(R.string.logbook_delete_confirmation_dialog_cancel))
                 }
             }
         ) {
@@ -217,7 +217,7 @@ fun LogbookFilterBar(
                 state = dateRangePickerState,
                 title = {
                     Text(
-                        text = "Zeitraum auswählen",
+                        text = stringResource(R.string.logbook_filter_bar_picker_title),
                         modifier = Modifier.padding(start = 24.dp, top = 16.dp),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )

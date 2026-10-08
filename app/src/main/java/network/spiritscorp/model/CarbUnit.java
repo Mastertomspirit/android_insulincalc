@@ -17,29 +17,49 @@ package network.spiritscorp.model;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.StringRes;
+
 import java.util.Locale;
 
-public enum CarbUnit {
-    GRAMS("Gramm Kohlenhydrate", "g KH", 1.0),
-    KE("Kohlenhydrateinheit (10g)", "KE", 10.0),
-    BE("Broteinheit (12g)", "BE", 12.0);
+import network.spiritscorp.R;
 
-    private final String label;
-    private final String shortName;
+public enum CarbUnit {
+    GRAMS(
+            R.string.carb_unit_grams_label,
+            R.string.carb_unit_grams_short,
+            1.0
+    ),
+    KE(
+            R.string.carb_unit_ke_label,
+            R.string.carb_unit_ke_short,
+            10.0
+    ),
+    BE(
+            R.string.carb_unit_be_label,
+            R.string.carb_unit_be_short,
+            12.0
+    );
+
+    @StringRes private final int labelResId;
+    @StringRes private final int shortNameResId;
     private final double gramsFactor;
 
-    CarbUnit(String label, String shortName, double gramsFactor) {
-        this.label = label;
-        this.shortName = shortName;
+    CarbUnit(
+            @StringRes int labelResId,
+            @StringRes int shortNameResId,
+            double gramsFactor
+    ) {
+        this.labelResId = labelResId;
+        this.shortNameResId = shortNameResId;
         this.gramsFactor = gramsFactor;
     }
 
-    public String getLabel() {
-        return label;
+    public int getLabelResId() {
+        return labelResId;
     }
 
-    public String getShortName() {
-        return shortName;
+    public int getShortNameResId() {
+        return shortNameResId;
     }
 
     public double getGramsFactor() {

@@ -502,7 +502,7 @@ public class InsulinCalculatorSystemScenarioTest {
 
         UserSettings restoredSettings = repository.getSettings();
         assertEquals(AppTheme.OCEAN_BLUE, restoredSettings.getSelectedTheme());
-        assertEquals("mmol/l", restoredSettings.getGlucoseUnit().getShortName());
+        assertEquals(GlucoseUnit.MMOL_L, restoredSettings.getGlucoseUnit());
         assertTrue(restoredSettings.getGeminiApiKey().isBlank());
 
         List<CalculationLog> restoredLogs = repository.getAllLogsDirect();

@@ -43,10 +43,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import androidx.compose.ui.platform.LocalLocale
@@ -88,7 +90,7 @@ fun LogbookItemCard(
                         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
                     ) {
                         Text(
-                            text = log.timeOfDay.title,
+                            text = stringResource(log.timeOfDay.titleResId),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -99,7 +101,7 @@ fun LogbookItemCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "${log.carbGrams}g KH (${log.beValue} BE • ${log.keValue} KE) • Faktor: ${log.insulinFactor}",
+                    text = stringResource(R.string.logbook_item_card_carb_format, log.carbGrams, log.beValue, log.keValue, log.insulinFactor),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -107,9 +109,9 @@ fun LogbookItemCard(
                 val blGlucose = log.bloodGlucose
                 if (blGlucose != null) {
                     val bzDisplay = if (blGlucose.mod(1.0) == 0.0) blGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", blGlucose)
-                    val corr = log.correctionInsulin ?: 0.0
+                    val corrSign = if ((log.correctionInsulin ?: 0.0) > 0) "+" else ""
                     Text(
-                        text = "BZ: $bzDisplay (Korrektur: ${if (corr > 0) "+" else ""}$corr IE)",
+                        text = stringResource(R.string.logbook_item_card_bg_format, bzDisplay, corrSign, log.correctionInsulin ?: 0.0),
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -155,7 +157,7 @@ fun LogbookItemCard(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "${log.roundedInsulin} IE",
+                        text = stringResource(R.string.logbook_item_card_insulin_format, log.roundedInsulin.toInt().toString()),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -174,7 +176,7 @@ fun LogbookItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Eintrag teilen",
+                            contentDescription = stringResource(R.string.logbook_item_card_share_desc),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(17.dp)
                         )
@@ -188,7 +190,7 @@ fun LogbookItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Eintrag löschen",
+                            contentDescription = stringResource(R.string.logbook_item_card_delete_desc),
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(18.dp)
                         )

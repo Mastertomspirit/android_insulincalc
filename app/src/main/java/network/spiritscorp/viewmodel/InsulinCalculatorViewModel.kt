@@ -122,7 +122,7 @@ class InsulinCalculatorViewModel(
         application: Application,
         db: AppDatabase = AppDatabase.getDatabase(application)
     ) : this(application, InsulinRepository(db.calculationLogDao(), db.userSettingsDao()))
-    private val geminiService = GeminiMealService()
+    private val geminiService = GeminiMealService(application)
     private val themePreferences = ThemePreferences(application)
     private var cachedSettings: UserSettings = UserSettings()
 
@@ -151,11 +151,6 @@ class InsulinCalculatorViewModel(
             repository.settingsFlow.collect { settingsNullable ->
                 val settings = settingsNullable ?: UserSettings()
                 cachedSettings = settings
-                // Sync to ThemePreferences
-                themePreferences.savePreferences(
-                    settings.selectedTheme,
-                    settings.themeMode
-                )
                 val gUnit = settings.glucoseUnit
                 val initialTime = if (_uiState.value.isAutoTimeDetection) TimeOfDay.current() else _uiState.value.selectedTimeOfDay
                 val unit = settings.defaultCarbUnit
@@ -349,14 +344,16 @@ class InsulinCalculatorViewModel(
         val isMmol = (gUnit == GlucoseUnit.MMOL_L)
 
         if (state.showCorrection && currentBg != null && targetBg != null && corrFactor != null) {
+            val app = getApplication<Application>()
             if (InsulinMathEngine.isHypoglycemia(currentBg, isMmol)) {
                 isHypoRisk = true
-                val thresholdStr = if (isMmol) "3.9 " + GlucoseUnit.MMOL_L.shortName else "70 " + GlucoseUnit.MG_DL.shortName
-                advisory = getApplication<Application>().getString(R.string.view_model_advisory_hypo, thresholdStr)
+                val unitStr = app.getString(gUnit.shortNameResId)
+                val thresholdStr = if (isMmol) "3.9 $unitStr" else "70 $unitStr"
+                advisory = app.getString(R.string.view_model_advisory_hypo, thresholdStr)
             }else if (currentBg < targetBg) {
-                advisory = getApplication<Application>().getString(R.string.view_model_advisory_below_target)
+                advisory = app.getString(R.string.view_model_advisory_below_target)
             } else if (currentBg > targetBg) {
-                advisory = getApplication<Application>().getString(R.string.view_model_advisory_above_target)
+                advisory = app.getString(R.string.view_model_advisory_above_target)
             }
         }
         val correctionInsulin = InsulinMathEngine.calculateCorrectionInsulin(true, currentBg, targetBg, corrFactor)
@@ -389,7 +386,7 @@ class InsulinCalculatorViewModel(
         val state = _uiState.value
         val summary = state.calculationSummary
         val autoMealTitle = state.mealTitle.ifBlank {
-            "${state.selectedTimeOfDay.title} (${summary.carbGrams()}g KH)"
+            "${getApplication<Application>().getString(state.selectedTimeOfDay.titleResId)} (${summary.carbGrams()}g KH)"
         }
         val finalNotes = notesOverride ?: state.notes
 
@@ -434,7 +431,7 @@ class InsulinCalculatorViewModel(
     fun clearAllLogs() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.clearLogs()
-            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.settings_database_cleared_toast)) }
+            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_logbook_cleared)) }
         }
     }
 

@@ -57,10 +57,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
+import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 
@@ -70,7 +73,6 @@ fun SettingsScreen(
     settings: UserSettings,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -153,7 +155,7 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = if (allExpanded) "Alle einklappen" else "Alle ausklappen",
+                    text = if (allExpanded) stringResource(R.string.settings_screen_collapse_all) else stringResource(R.string.settings_screen_expand_all),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -212,9 +214,9 @@ fun SettingsScreen(
 
         // SECTION 4: Farbdesign & Erscheinungsbild
         AppearanceSection(
-            selectedTheme = selectedTheme,
+            selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL,
             onThemeSelected = { selectedTheme = it },
-            themeMode = themeMode,
+            themeMode = themeMode ?: AppTheme.Mode.SYSTEM,
             onThemeModeSelected = { themeMode = it },
             isExpanded = isAppearanceExpanded,
             onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
@@ -248,8 +250,8 @@ fun SettingsScreen(
                 updated.targetGlucoseMgDl = targetMgDl
                 updated.correctionFactorMgDl = corrMgDl
                 updated.roundingStep = roundingStep
-                updated.selectedTheme = selectedTheme
-                updated.themeMode = themeMode
+                updated.selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL
+                updated.themeMode = themeMode ?: AppTheme.Mode.SYSTEM
                 viewModel.updateUserSettings(updated)
                 focusManager.clearFocus()
                 keyboardController?.hide()
@@ -265,7 +267,7 @@ fun SettingsScreen(
             Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Einstellungen speichern",
+                text = stringResource(R.string.settings_screen_save_button),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
             )
         }
@@ -287,9 +289,9 @@ fun SettingsScreen(
                     modifier = Modifier.size(32.dp)
                 )
             },
-            title = { Text("Komplette Datenbank löschen?") },
+            title = { Text(stringResource(R.string.settings_screen_reset_dialog_title)) },
             text = {
-                Text("Bist du sicher? Dies löscht alle gespeicherten Tagebucheinträge und setzt die Einstellungen zurück. Es wird empfohlen, vorher ein JSON- oder CSV-Backup zu erstellen.")
+                Text(stringResource(R.string.settings_screen_reset_dialog_message))
             },
             confirmButton = {
                 TextButton(
@@ -299,7 +301,7 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.testTag("confirm_reset_all_data_button")
                 ) {
-                    Text("Unwiderruflich löschen", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_screen_reset_dialog_confirm), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -307,7 +309,7 @@ fun SettingsScreen(
                     onClick = { showResetDbDialog = false },
                     modifier = Modifier.testTag("cancel_reset_all_data_button")
                 ) {
-                    Text("Abbrechen")
+                    Text(stringResource(R.string.settings_screen_reset_dialog_cancel))
                 }
             }
         )

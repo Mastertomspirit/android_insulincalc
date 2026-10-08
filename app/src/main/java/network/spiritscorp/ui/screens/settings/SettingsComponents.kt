@@ -52,7 +52,9 @@ import java.math.RoundingMode
 
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.R
 
 @Composable
 fun SettingsSectionHeader(
@@ -107,7 +109,7 @@ fun SettingsSectionHeader(
         if (isExpanded != null) {
             Icon(
                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (isExpanded) "Einklappen" else "Ausklappen",
+                contentDescription = if (isExpanded) stringResource(R.string.settings_components_collapse) else stringResource(R.string.settings_components_expand),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
@@ -190,7 +192,7 @@ fun FactorRow(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
                 ) {
-                    Text(text = "-0,05", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(text = stringResource(R.string.settings_components_factor_decrement_label), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 }
 
                 Spacer(modifier = Modifier.width(10.dp))
@@ -202,7 +204,10 @@ fun FactorRow(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = "${String.format(LocalLocale.current.platformLocale, "%.2f", factor)} IE",
+                            text = stringResource(
+                                R.string.settings_components_factor_value_format,
+                                String.format(LocalLocale.current.platformLocale, "%.2f", factor)
+                            ),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -229,7 +234,7 @@ fun FactorRow(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
                 ) {
-                    Text(text = "+0,05", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(text = stringResource(R.string.settings_components_factor_increment_label), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }

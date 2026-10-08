@@ -3,9 +3,69 @@
     <!-- App name -->
     <string name="app_name">InsulinRechner</string>
 
+    <!-- Enums -->
+    <!-- TimeOfDay Enum Strings -->
+    <string name="time_of_day_morning_title">Morgens</string>
+    <string name="time_of_day_morning_subtitle">Frühstück (06:00 &#8211; 10:30)</string>
+    <string name="time_of_day_noon_title">Mittags</string>
+    <string name="time_of_day_noon_subtitle">Mittagessen (10:30 &#8211; 16:00)</string>
+    <string name="time_of_day_evening_title">Abends</string>
+    <string name="time_of_day_evening_subtitle">Abendessen (16:00 &#8211; 22:00)</string>
+    <string name="time_of_day_night_title">Nachts</string>
+    <string name="time_of_day_night_subtitle">Spätmahlzeit (22:00 &#8211; 06:00)</string>
+
+    <!-- AppTheme & Mode Enum Strings -->
+    <string name="app_theme_medical_teal">Medizinisch Türkis</string>
+    <string name="app_theme_ocean_blue">Ozean Blau</string>
+    <string name="app_theme_emerald_green">Smaragd Grün</string>
+    <string name="app_theme_sunset_amber">Sonnenuntergang</string>
+    <string name="app_theme_berry_violet">Beere &amp; Violett</string>
+    <string name="app_theme_midnight_dark">Mitternacht AMOLED</string>
+    <string name="app_theme_mode_system">System</string>
+    <string name="app_theme_mode_dark">Dunkel</string>
+    <string name="app_theme_mode_light">Hell</string>
+
+    <!-- CarbUnit Enum Strings -->
+    <string name="carb_unit_grams_label">Gramm Kohlenhydrate</string>
+    <string name="carb_unit_grams_short">g KH</string>
+    <string name="carb_unit_ke_label">Kohlenhydrateinheit (10g)</string>
+    <string name="carb_unit_ke_short">KE</string>
+    <string name="carb_unit_be_label">Broteinheit (12g)</string>
+    <string name="carb_unit_be_short">BE</string>
+
+    <!-- GlucoseUnit Enum Strings -->
+    <string name="glucose_unit_mg_dl_label">Milligramm pro Deziliter</string>
+    <string name="glucose_unit_mg_dl_short">mg/dl</string>
+    <string name="glucose_unit_mmol_l_label">Millimol pro Liter</string>
+    <string name="glucose_unit_mmol_l_short">mmol/l</string>
+
+    <!-- HistoryFilter Enum Strings -->
+    <string name="history_filter_all">Alle</string>
+    <string name="history_filter_today">Heute</string>
+    <string name="history_filter_7_days">7 Tage</string>
+    <string name="history_filter_30_days">30 Tage</string>
+    <string name="history_filter_custom">Zeitraum</string>
+
+    <!-- Gemini AI Models Enum Strings -->
+    <string name="gemini_model_flash_latest_title">Gemini Flash (Neueste)</string>
+    <string name="gemini_model_flash_latest_desc">Verwendet immer die neueste stabile Flash-Modellversion</string>
+    <string name="gemini_model_flash_lite_latest_title">Gemini Flash-Lite (Neueste)</string>
+    <string name="gemini_model_flash_lite_latest_desc">Ultraschnell &amp; kostengünstig bei minimalem Token-Verbrauch</string>
+    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Empfohlen)</string>
+    <string name="gemini_model_3_8_flash_desc">Neueste Generation, optimiert für High-Speed Nährwert- &amp; Mahlzeitenanalyse</string>
+    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash</string>
+    <string name="gemini_model_3_7_flash_desc">Hohe Genauigkeit und schnelle Verarbeitung für Mahlzeitenauswertung</string>
+    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
+    <string name="gemini_model_3_6_flash_desc">Zuverlässige Flash-Modellversion für tägliche KH-Erfassung</string>
+    <string name="gemini_model_3_5_flash_title">Gemini 3.5 Flash</string>
+    <string name="gemini_model_3_5_flash_desc">Bewährtes Flash-Basismodell für Ernährungsschätzungen</string>
+    <string name="gemini_model_3_1_pro_title">Gemini 3.1 Pro</string>
+    <string name="gemini_model_3_1_pro_desc">Erweiterte Logik für komplexe mehrgängige Menüs &amp; Rezepte</string>
+
+
     <!-- Main Activity & Navigation -->
     <string name="main_top_bar_calculator">Insulin-Rechner</string>
-    <string name="main_top_bar_ai_estimator">KI Mahlzeiten-Schätzer</string>
+    <string name="main_top_bar_ai_estimator">KI-Mahlzeiten-Schätzer</string>
     <string name="main_top_bar_logbook">Insulin-Tagebuch</string>
     <string name="main_top_bar_settings">Einstellungen &amp; Faktoren</string>
     <string name="main_nav_calculator_label">Rechner</string>
@@ -13,81 +73,328 @@
     <string name="main_nav_logbook_label">Tagebuch</string>
     <string name="main_nav_settings_label">Einstellungen</string>
 
+    <!-- InsulinCalculatorViewModel -->
+    <string name="view_model_advisory_standard">Standard-Mahlzeitendosis</string>
+    <string name="view_model_advisory_hypo">Achtung: Niedriger Blutzucker (&lt; %1$s)! Bitte zuerst 1–2 schnell wirksame Kohlenhydrate (z.B. Traubenzucker/Saft) zu dir nehmen.</string>
+    <string name="view_model_advisory_below_target">Blutzucker unter Zielwert: Korrektur reduziert Gesamtdosis.</string>
+    <string name="view_model_advisory_above_target">Erhöhter Blutzucker: Korrekturbolus hinzugefügt.</string>
+    <string name="view_model_diary_saved_toast">Berechnung erfolgreich ins Tagebuch gespeichert!</string>
+    <string name="view_model_settings_saved_toast">Einstellungen gespeichert!</string>
+    <string name="view_model_logbook_cleared">Tagebuch geleert.</string>
+    <string name="view_model_ai_error_generic">KI-Analysefehler</string>
+
+    <!-- Database Backup Manager -->
+    <string name="data_database_backup_manager_import_success_json">Erfolgreich %1$d Einträge %2$s wiederhergestellt.</string>
+    <string name="data_database_backup_manager_import_success_settings_and">und Einstellungen</string>
+    <string name="data_database_backup_manager_csv_import_empty">Keine gültigen Einträge in der CSV-Datei gefunden.</string>
+    <string name="data_database_backup_manager_csv_import_success">Erfolgreich %1$d Einträge aus CSV importiert.</string>
+
+    <!-- Logbook Export Helper -->
+    <string name="logbook_export_helper_no_entries_for_period">Insulin-Rechner Tagebuch\nKeine Einträge für den ausgewählten Zeitraum (%1$s) vorhanden.</string>
+    <string name="logbook_export_helper_title_header">Insulin-Rechner Tagebuch-Export</string>
+    <string name="logbook_export_helper_period_label">Zeitraum: %1$s</string>
+    <string name="logbook_export_helper_created_label">Erstellt am: %1$s</string>
+    <string name="logbook_export_helper_summary_title">Zusammenfassung:</string>
+    <string name="logbook_export_helper_entries_label">Einträge</string>
+    <string name="logbook_export_helper_total_carbs_label">Gesamt-KH</string>
+    <string name="logbook_export_helper_total_insulin_label">Gesamtes Insulin</string>
+    <string name="logbook_export_helper_avg_bg_label">Ø Blutzucker</string>
+    <string name="logbook_export_helper_created_with">Erstellt mit InsulinRechner</string>
+    <string name="logbook_export_helper_calculation_prefix">Insulin-Berechnung</string>
+    <string name="logbook_export_helper_carbs_prefix">Kohlenhydrate</string>
+    <string name="logbook_export_helper_factor_prefix">Faktor</string>
+    <string name="logbook_export_helper_meal_bolus_prefix">Mahlzeiten-Bolus</string>
+    <string name="logbook_export_helper_correction_prefix">Korrektur-Bolus</string>
+    <string name="logbook_export_helper_total_dose_prefix">Gesamtdosis</string>
+    <string name="logbook_export_helper_measured_bg_label">Gemessener BZ</string>
+    <string name="logbook_export_helper_target_bg_prefix">Ziel</string>
+    <string name="logbook_export_helper_correction_factor_label">Korrekturfaktor: 1 IE /</string>
+    <string name="logbook_export_helper_exact_dose_prefix">exakt</string>
+    <string name="logbook_export_helper_note_prefix">Notiz</string>
+
+    <!-- UI Classes -->
+    <!-- Components -->
     <!-- Common Components -->
     <string name="common_medical_disclaimer_content_desc">Hinweis</string>
-    <string name="common_medical_disclaimer_text">Rechenhilfe: Bitte Faktoren stets mit deinem Arzt abstimmen.</string>
+    <string name="common_medical_disclaimer_text">Berechnungshilfe: Bitte stimme Faktoren immer mit deinem Arzt ab.</string>
     <string name="common_medical_disclaimer_close_desc">Hinweis schließen</string>
     <string name="common_time_of_day_label">Tageszeit: %1$s</string>
-    <string name="common_time_of_day_factor_subtitle">Faktor: %1$s • Tippe zum %2$s</string>
+    <string name="common_time_of_day_factor_subtitle">Faktor: %1$s • Zum %2$s tippen</string>
     <string name="common_collapse">Einklappen</string>
     <string name="common_adjust">Anpassen</string>
     <string name="common_auto">Auto</string>
-    <string name="common_active_insulin_factor_label">Aktiver Insulin-Faktor (±0,05):</string>
+    <string name="common_active_insulin_factor_label">Aktiver Insulinfaktor (±0,05):</string>
     <string name="common_insulin_unit_label">IE / KE</string>
-    <string name="common_factor_decrease_desc">Faktor -0.05</string>
-    <string name="common_factor_increase_desc">Faktor +0.05</string>
-    <string name="common_restore_auto_mode">Auto-Modus wiederherstellen</string>
+    <string name="common_factor_decrease_desc">Faktor -0,05</string>
+    <string name="common_factor_increase_desc">Faktor +0,05</string>
+    <string name="common_restore_auto_mode">Automodus wiederherstellen</string>
 
-    <!-- SettingsScreen UI Strings -->
-    <string name="settings_database_cleared_toast">Tagebuch &amp; Daten wurden gelöscht</string>
+    <!-- AI Screen -->
+    <!-- AiConfigCard -->
+    <string name="ai_config_title">KI-Modell &amp; API-Schlüssel</string>
+    <string name="ai_config_status_custom">Eigener Schlüssel aktiv\n(%1$s)</string>
+    <string name="ai_config_status_dev">Entwicklerschlüssel aktiv\n(%1$s)</string>
+    <string name="ai_config_status_none">Kein Schlüssel hinterlegt\n(Offline-Schätzung aktiv)</string>
+    <string name="ai_config_description">Für eine datenschutzfreundliche &amp; unbegrenzte Mahlzeitenanalyse kannst du hier deinen eigenen kostenlosen Gemini API-Schlüssel hinterlegen. Dieser wird AES-256 verschlüsselt ausschließlich lokal auf deinem Gerät gespeichert.</string>
+    <string name="ai_config_model_label">Gemini KI-Modell</string>
+    <string name="ai_config_api_key_label">Google Gemini API-Key</string>
+    <string name="ai_config_api_key_placeholder">AIzaSy…</string>
+    <string name="ai_config_delete_key_desc">Schlüssel löschen</string>
+    <string name="ai_config_hide_key_desc">Ausblenden</string>
+    <string name="ai_config_show_key_desc">Anzeigen</string>
+    <string name="ai_config_aistudio_link">Kostenlosen Schlüssel bei Google AI Studio erstellen</string>
+    <string name="ai_config_save_button">Schlüssel &amp; Modell speichern</string>
 
-    <!-- HistoryFilter Enum Titles -->
-    <string name="enum_history_filter_all">Alle</string>
-    <string name="enum_history_filter_today">Heute</string>
-    <string name="enum_history_filter_7_days">7 Tage</string>
-    <string name="enum_history_filter_30_days">30 Tage</string>
-    <string name="enum_history_filter_custom">Zeitraum</string>
+    <!-- AiMealEstimatorScreen UI Strings -->
+    <string name="ai_estimator_hero_icon_desc">Gemini High Thinking</string>
+    <string name="ai_estimator_hero_title">KI-Mahlzeiten-Schätzer</string>
+    <string name="ai_estimator_hero_subtitle">Gemini analysiert deine Mahlzeit, schätzt Kohlenhydrate (g KH / KE / BE) und liefert praktische Tipps.</string>
+    <string name="ai_estimator_input_section_title">Was isst du gerade?</string>
+    <string name="ai_estimator_input_placeholder">z.B. 2 Brötchen mit Honig und 1 Glas Orangensaft</string>
+    <string name="ai_estimator_button_analyzing">Analysiere mit %1$s…</string>
+    <string name="ai_estimator_button_estimate">Kohlenhydrate schätzen</string>
+    <string name="ai_estimator_quick_examples_title">Schnell-Testmahlzeiten:</string>
+    <string name="ai_estimator_example_1">2 Scheiben Vollkornbrot mit Käse &amp; 1 Apfel</string>
+    <string name="ai_estimator_example_2">1 Teller Spaghetti Bolognese (250g)</string>
+    <string name="ai_estimator_example_3">Döner Kebap im Fladenbrot &amp; 1 Glas Cola</string>
+    <string name="ai_estimator_example_4">1 Portion Haferflocken (60g) mit Milch &amp; Beeren</string>
+    <string name="ai_estimator_example_5">1 Pizza Margherita (mittel)</string>
+    <string name="ai_estimator_example_6">1 Banane &amp; 1 Brezel</string>
+    <string name="ai_estimator_loading_title">Gemini analysiert die Mahlzeit…</string>
+    <string name="ai_estimator_loading_subtitle">Zutaten werden aufgeschlüsselt und mit Nährwertdaten abgeglichen</string>
+    <string name="ai_estimator_error_notice_desc">Hinweis</string>
 
-    <!-- LogbookScreen UI Strings -->
+    <!-- MealResultCard -->
+    <string name="meal_result_card_offline_badge">Offline-Datenbank</string>
+    <string name="meal_result_card_live_ai_badge">Live-KI: %1$s</string>
+    <string name="meal_result_card_carbs_format">%1$s g KH</string>
+    <string name="meal_result_card_ke_format">ca. %1$s KE</string>
+    <string name="meal_result_card_adjust_title">Portion anpassen:</string>
+    <string name="meal_result_card_minus_5g">-5g</string>
+    <string name="meal_result_card_minus_10g">-10g</string>
+    <string name="meal_result_card_plus_5g">+5g</string>
+    <string name="meal_result_card_plus_10g">+10g</string>
+    <string name="meal_result_card_ingredients_title">Zutaten-Aufschlüsselung:</string>
+    <string name="meal_result_card_item_weight_format">%1$s g</string>
+    <string name="meal_result_card_tip_title">Tipp</string>
+    <string name="meal_result_card_apply_button_format">%1$dg KH in Rechner übernehmen</string>
+
+    <!-- Calculator Screen -->
+    <!-- Calculator CalculationResultHeroCard -->
+    <string name="calc_result_hero_title">EMPFOHLENE INSULINDOSIS</string>
+    <string name="calc_result_hero_unit">IE</string>
+    <string name="calc_result_hero_rounded_format">Gerundet auf %1$s IE (Exakt: %2$s IE)</string>
+    <string name="calc_result_hero_breakdown_meal">Mahlzeit</string>
+    <string name="calc_result_hero_unit_format">%1$s IE</string>
+    <string name="calc_result_hero_meal_calc_format">%1$sg × %2$s</string>
+    <string name="calc_result_hero_breakdown_correction">Korrektur</string>
+    <string name="calc_result_hero_signed_unit_format">%1$s%2$s IE</string>
+    <string name="calc_result_hero_glucose_format">BZ %1$s %2$s</string>
+    <string name="calc_result_hero_breakdown_time">Tageszeit</string>
+    <string name="calc_result_hero_factor_format">Faktor: %1$s</string>
+    <string name="calc_result_hero_hypo_risk_desc">Unterzuckerungs-Risiko</string>
+    <string name="calc_result_hero_info_desc">Information</string>
+    <string name="calc_result_hero_save_button">Ins Tagebuch speichern</string>
+
+    <!-- Calculator CarbsInputCard -->
+    <string name="carbs_input_title">Kohlenhydrate</string>
+    <string name="carbs_input_ai_estimator_desc">KI-Schätzer</string>
+    <string name="carbs_input_placeholder_zero">0</string>
+    <string name="carbs_input_clear_desc">Löschen</string>
+
+    <!-- Calculator GlucoseCorrectionCard -->
+    <string name="glucose_correction_title">Blutzucker-Korrektur (Optional)</string>
+    <string name="glucose_correction_subtitle_active">Korrekturbolus aktiviert</string>
+    <string name="glucose_correction_subtitle_tap">Tippen für BZ-Korrektur</string>
+    <string name="glucose_correction_current_label">Aktueller BZ (%1$s)</string>
+    <string name="glucose_correction_mmol_placeholder">z.B. 9,5</string>
+    <string name="glucose_correction_mgdl_placeholder">z.B. 160</string>
+    <string name="glucose_correction_target_label">Zielwert (%1$s)</string>
+    <string name="glucose_correction_target_mmol_placeholder">z.B. 6,7</string>
+    <string name="glucose_correction_target_mgdl_placeholder">z.B. 120</string>
+    <string name="glucose_correction_factor_label">Korrekturfaktor (%1$s pro 1 IE)</string>
+    <string name="glucose_correction_factor_mmol_placeholder">z.B. 2,8</string>
+    <string name="glucose_correction_factor_mgdl_placeholder">z.B. 50</string>
+    <string name="glucose_correction_dose_format">Korrekturdosis: %1$s%2$s IE</string>
+
+    <!-- Calculator MealNotesCard -->
+    <string name="meal_notes_title">Mahlzeit &amp; Notizen (Optional)</string>
+    <string name="meal_notes_subtitle_expanded">Details ausgeklappt</string>
+    <string name="meal_notes_subtitle_tap">Tippen für Name &amp; Notizen</string>
+    <string name="meal_notes_label_title">Mahlzeit / Name</string>
+    <string name="meal_notes_placeholder_title">z.B. Frühstück, Spaghetti Bolognese, Snack…</string>
+    <string name="meal_notes_clear_desc">Löschen</string>
+    <string name="meal_notes_label_notes">Notizen / Bemerkungen</string>
+    <string name="meal_notes_placeholder_notes">z.B. Sport vor dem Essen, Restaurant, Sensorwert…</string>
+
+    <!-- Logbook Screen -->
+    <!-- Logbook DeleteConfirmationDialog -->
+    <string name="logbook_delete_confirmation_dialog_title">Eintrag löschen?</string>
+    <string name="logbook_delete_confirmation_dialog_message">Möchtest du diesen Eintrag wirklich aus deinem Tagebuch entfernen?</string>
+    <string name="logbook_delete_confirmation_dialog_confirm">Löschen</string>
+    <string name="logbook_delete_confirmation_dialog_cancel">Abbrechen</string>
+    <string name="logbook_clear_all_dialog_title">Gesamtes Tagebuch löschen?</string>
+    <string name="logbook_clear_all_dialog_message">Bist du sicher? Alle %1$d gespeicherten Berechnungen werden unwiderruflich aus der Datenbank gelöscht. Es wird empfohlen, vorher ein Backup oder CSV-Export zu erstellen.</string>
+    <string name="logbook_clear_all_dialog_confirm">Alle löschen</string>
+    <string name="logbook_clear_all_dialog_cancel">Abbrechen</string>
+
+    <!-- Logbook LogbookFilterBar -->
+    <string name="logbook_filter_bar_previous_slice_desc">Vorheriger Zeitraum</string>
+    <string name="logbook_filter_bar_back_to_current">Tippen, um zum aktuellen zurückzukehren</string>
+    <string name="logbook_filter_bar_next_slice_desc">Nächster Zeitraum</string>
+    <string name="logbook_filter_bar_select">Auswählen</string>
+    <string name="logbook_filter_bar_picker_title">Zeitraum wählen</string>
+
+    <!-- Logbook LogbookItemCard -->
+    <string name="logbook_item_card_carb_format">%1$sg KH (%2$s BE • %3$s KE) • Faktor: %4$s</string>
+    <string name="logbook_item_card_bg_format">BZ: %1$s (Korrektur: %2$s%3$s IE)</string>
+    <string name="logbook_item_card_insulin_format">%1$s IE</string>
+    <string name="logbook_item_card_share_desc">Eintrag teilen</string>
+    <string name="logbook_item_card_delete_desc">Eintrag löschen</string>
+
+    <!-- Logbook LogbookScreen -->
     <string name="logbook_title">Insulin-Tagebuch</string>
     <string name="logbook_entry_count">%1$d von %2$d Einträgen</string>
     <string name="logbook_share_content_description">Tagebuch teilen</string>
     <string name="logbook_share_chooser_title">Tagebuch teilen (%1$s)</string>
-    <string name="logbook_clear_content_description">Tagebuch leeren</string>
     <string name="logbook_entry_deleted_toast">Eintrag gelöscht</string>
-    <string name="logbook_cleared_toast">Tagebuch vollständig geleert</string>
+    <string name="logbook_cleared_toast">Tagebuch komplett geleert</string>
     <string name="logbook_share_single_title">Eintrag teilen (%1$s)</string>
-
-    <!-- Empty States -->
     <string name="logbook_empty_title_no_logs">Noch keine Berechnungen gespeichert</string>
     <string name="logbook_empty_title_filtered">Keine Einträge für diesen Zeitraum</string>
-    <string name="logbook_empty_desc_no_logs">Berechne im Rechner eine Dosis und tippe auf \'Im Tagebuch speichern\'.</string>
-    <string name="logbook_empty_desc_filtered">Wähle oben einen anderen Filter oder springe im Zeitraum.</string>
+    <string name="logbook_empty_desc_no_logs">Berechne eine Dosis im Rechner und tippe auf \'Ins Tagebuch speichern\'.</string>
+    <string name="logbook_empty_desc_filtered">Wähle oben einen anderen Filter oder springe innerhalb des Zeitraums.</string>
+    <string name="logbook_filter_desc_all">Alle Einträge</string>
+    <string name="logbook_filter_desc_today">Heute</string>
+    <string name="logbook_filter_desc_yesterday">Gestern</string>
+    <string name="logbook_filter_desc_last_7_days">Letzte 7 Tage</string>
+    <string name="logbook_filter_desc_7_days_offset">7 Tage (%1$d Woche(n) her)</string>
+    <string name="logbook_filter_desc_last_30_days">Letzte 30 Tage</string>
+    <string name="logbook_filter_desc_30_days_offset">30 Tage (%1$d Monat(e) her)</string>
+    <string name="logbook_filter_desc_custom_range">%1$s bis %2$s</string>
 
-    <!-- Filter Descriptions -->
-    <string name="filter_desc_all">Alle Einträge</string>
-    <string name="filter_desc_today">Heute</string>
-    <string name="filter_desc_yesterday">Gestern</string>
-    <string name="filter_desc_last_7_days">Letzte 7 Tage</string>
-    <string name="filter_desc_7_days_offset">7 Tage (vor %1$d Woche(n))</string>
-    <string name="filter_desc_last_30_days">Letzte 30 Tage</string>
-    <string name="filter_desc_30_days_offset">30 Tage (vor %1$d Monat(en))</string>
-    <string name="filter_desc_custom_range">%1$s bis %2$s</string>
+    <!-- Logbook LogbookStatsHeader -->
+    <string name="logbook_stats_header_entries">Einträge</string>
+    <string name="logbook_stats_header_total_carbs">Gesamt-KH</string>
+    <string name="logbook_stats_header_total_insulin">Gesamtes Insulin</string>
+    <string name="logbook_stats_header_avg_bg">Ø BZ</string>
+    <string name="logbook_stats_header_carbs_unit">%1$s g</string>
+    <string name="logbook_stats_header_insulin_unit">%1$s IE</string>
 
-    <!-- Calculator Advisories and States -->
-    <string name="view_model_ready">Bereit für Eingabe</string>
-    <string name="view_model_advisory_standard">Standard-Dosis für die Mahlzeit</string>
-    <string name="view_model_advisory_hypo">Achtung: Niedriger Blutzucker (&lt; %1$s)! Bitte zuerst 1–2 KE schnelle KH (z.B. Traubenzucker/Saft) einnehmen.</string>
-    <string name="view_model_advisory_below_target">Blutzucker unter Zielbereich: Korrektur reduziert Gesamtdosis.</string>
-    <string name="view_model_advisory_above_target">Erhöhter Blutzucker: Korrektur-Bolus addiert.</string>
-    <string name="view_model_diary_saved_toast">Berechnung erfolgreich im Tagebuch gespeichert!</string>
-    <string name="view_model_settings_saved_toast">Einstellungen gespeichert!</string>
-    <string name="view_model_ai_error_generic">Fehler bei der KI-Analyse</string>
-    <string name="view_model_logbook_cleared">Tagebuch wurde geleert.</string>
+    <!-- Settings AboutAndLegalSection -->
+    <string name="settings_about_legal_title">Wichtiger medizinischer Hinweis</string>
+    <string name="settings_about_legal_text">Diese App ist eine Berechnungshilfe und ersetzt keine ärztliche Beratung. Faktoren schwanken durch Bewegung, Krankheit, Stress oder Hormone. Passe deine Dosis im Zweifelsfall mit deinem Diabetes-Team an.</string>
+    <string name="settings_about_legal_version_format">Insulin Calc V%1$s • von Tom Spirit</string>
 
-    <!-- Gemini AI Modelle -->
-    <string name="gemini_model_flash_latest_title">Gemini Flash (Aktuellste)</string>
-    <string name="gemini_model_flash_latest_desc">Nutzt automatisch die neueste stabile Flash-Modellversion</string>
-    <string name="gemini_model_flash_lite_latest_title">Gemini Flash-Lite (Aktuellste)</string>
-    <string name="gemini_model_flash_lite_latest_desc">Superschnell &amp; extrem sparsam im Tokenverbrauch</string>
-    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Empfohlen)</string>
-    <string name="gemini_model_3_8_flash_desc">Neueste Generation, optimiert für schnelle Nährwert- &amp; Mahlzeitenanalysen</string>
-    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash</string>
-    <string name="gemini_model_3_7_flash_desc">Hohe Präzision und schnelle Verarbeitung für Mahlzeitenauswertungen</string>
-    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
-    <string name="gemini_model_3_6_flash_desc">Zuverlässiges Flash-Modell für die tägliche Kohlenhydrat-Erfassung</string>
-    <string name="gemini_model_3_5_flash_title">Gemini 3.5 Flash</string>
-    <string name="gemini_model_3_5_flash_desc">Bewährtes Basis-Flash-Modell für Nährwertschätzungen</string>
-    <string name="gemini_model_3_1_pro_title">Gemini 3.1 Pro</string>
-    <string name="gemini_model_3_1_pro_desc">Erweiterte Analyse für komplexe Menüs, Rezepte &amp; Mehrmahlzeiten</string>
+    <!-- Settings AppearanceSection -->
+    <string name="settings_appearance_section_title">4. Farbdesign &amp; Design</string>
+    <string name="settings_appearance_section_subtitle">Akzentfarben und Hell-/Dunkel-Modus</string>
+    <string name="settings_appearance_color_scheme_label">Farbschema:</string>
+    <string name="settings_appearance_mode_label">Erscheinungsbild:</string>
+
+    <!-- Settings BackupRestoreSection -->
+    <string name="settings_backup_csv_toast_success">Tagebuch erfolgreich als CSV gespeichert!</string>
+    <string name="settings_backup_csv_toast_error">Fehler beim Speichern der CSV-Datei.</string>
+    <string name="settings_backup_read_error">Konnte Datei nicht lesen oder Datei ist leer.</string>
+    <string name="settings_backup_section_title">5. Datensicherung &amp; Backup</string>
+    <string name="settings_backup_section_subtitle">Sichere deine Daten lokal oder importiere Backups</string>
+    <string name="settings_backup_export_json_button">Backup\nExport</string>
+    <string name="settings_backup_export_csv_button">Tagebuch\nExport</string>
+    <string name="settings_backup_share_json_button">JSON teilen</string>
+    <string name="settings_backup_share_csv_button">CSV teilen</string>
+    <string name="settings_backup_import_button">Backup-Datei importieren (.json / .csv)</string>
+    <string name="settings_backup_reset_button">Alle Daten &amp; Tagebuch unwiderruflich löschen</string>
+    <string name="settings_backup_share_json_subject">InsulinCalculator JSON Backup</string>
+    <string name="settings_backup_share_csv_subject">InsulinCalculator CSV Export</string>
+    <string name="settings_backup_share_json_chooser">JSON Backup teilen</string>
+    <string name="settings_backup_share_csv_chooser">CSV Tagebuch teilen</string>
+    <string name="settings_backup_export_json_toast_success">JSON-Backupdatei erfolgreich gespeichert!</string>
+    <string name="settings_backup_export_json_toast_error">Fehler beim Speichern der JSON-Datei.</string>
+    <string name="settings_backup_import_toast_error">Import fehlgeschlagen: </string>
+    <string name="settings_backup_share_error_general">Fehler beim Teilen: %1$s</string>
+    <string name="settings_backup_file_name_csv">insulin_tagebuch_%1$s.csv</string>
+
+    <!-- Settings CarbUnitSection -->
+    <string name="settings_carb_unit_section_title">3. Kohlenhydrat-Einheit</string>
+    <string name="settings_carb_unit_section_subtitle">Standard-Eingabe und BE/KE Definition</string>
+    <string name="settings_carb_unit_default_label">Standard-Einheit beim Start:</string>
+    <string name="settings_carb_unit_be_definition_label">Definition Broteinheit (BE):</string>
+    <string name="settings_carb_unit_be_12">1 BE = 12g Kohlenhydrate</string>
+    <string name="settings_carb_unit_be_10">1 BE = 10g Kohlenhydrate</string>
+
+    <!-- SettingsGlucoseCorrectionSection -->
+    <string name="settings_glucose_correction_section_title">2. Blutzucker &amp; Korrektur</string>
+    <string name="settings_glucose_correction_section_subtitle">Einheit, Zielblutzucker und Korrekturfaktor (ISF)</string>
+    <string name="settings_glucose_correction_section_unit_label">Glukose-Messeinheit:</string>
+    <string name="settings_glucose_correction_section_target_label">Ziel-BZ</string>
+    <string name="settings_glucose_correction_section_correction_factor_label">Korrekturfaktor (ISF)</string>
+    <string name="settings_glucose_correction_section_hint_format">Um wie viel %1$s senkt 1 IE Insulin deinen Blutzucker?</string>
+
+    <!-- Settings SettingsComponents -->
+    <string name="settings_components_collapse">Einklappen</string>
+    <string name="settings_components_expand">Ausklappen</string>
+    <string name="settings_components_factor_decrement_label">-0,05</string>
+    <string name="settings_components_factor_increment_label">+0,05</string>
+    <string name="settings_components_factor_value_format">%1$s IE</string>
+
+    <!-- Settings SettingsScreen -->
+    <string name="settings_database_cleared_toast">Tagebuch &amp; Daten wurden gelöscht</string>
+    <string name="settings_screen_collapse_all">Alle einklappen</string>
+    <string name="settings_screen_expand_all">Alle ausklappen</string>
+    <string name="settings_screen_save_button">Einstellungen speichern</string>
+    <string name="settings_screen_reset_dialog_title">Komplette Datenbank löschen?</string>
+    <string name="settings_screen_reset_dialog_message">Bist du sicher? Dies löscht alle gespeicherten Tagebucheinträge und setzt die Einstellungen zurück. Es wird empfohlen, vorher ein JSON- oder CSV-Backup zu erstellen.</string>
+    <string name="settings_screen_reset_dialog_confirm">Unwiderruflich löschen</string>
+    <string name="settings_screen_reset_dialog_cancel">Abbrechen</string>
+
+    <!-- Settings TherapyFactorsSection -->
+    <string name="settings_therapy_factors_section_title">1. Mahlzeiten-Faktoren (ICR)</string>
+    <string name="settings_therapy_factors_section_subtitle">Insulin-zu-Kohlenhydrat-Faktoren je Tageszeit</string>
+    <string name="settings_therapy_factors_morning_title">Morgens (06:00 &#8211; 10:30)</string>
+    <string name="settings_therapy_factors_morning_subtitle">Höherer Insulinbedarf wegen Dawn-Phänomen</string>
+    <string name="settings_therapy_factors_noon_title">Mittags (10:30 &#8211; 16:00)</string>
+    <string name="settings_therapy_factors_noon_subtitle">Typischerweise geringster Faktor des Tages</string>
+    <string name="settings_therapy_factors_evening_title">Abends (16:00 &#8211; 22:00)</string>
+    <string name="settings_therapy_factors_evening_subtitle">Mittlerer bis leicht erhöhter Bedarf</string>
+    <string name="settings_therapy_factors_night_title">Nachts / Spät (22:00 &#8211; 06:00)</string>
+    <string name="settings_therapy_factors_night_subtitle">Vorsichtige Dosierung bei Spätmahlzeiten</string>
+    <string name="settings_therapy_factors_rounding_label">Rundung der Insulindosis:</string>
+    <string name="settings_therapy_factors_rounding_half">Halbe Einheiten (0,5 IE) – Standard für Pen</string>
+    <string name="settings_therapy_factors_rounding_tenth">Zehntel Einheiten (0,1 IE) – für Insulinpumpe</string>
+    <string name="settings_therapy_factors_rounding_full">Ganze Einheiten (1,0 IE)</string>
+
+    <!-- GeminiMealService -->
+    <string name="gemini_meal_service_offline_not_found">In der Offline-Datenbank wurde zu \"%1$s\" kein passender Eintrag gefunden.\n\n💡 Bitte trage oben im Menü \'KI-Modell &amp; API-Schlüssel\' deinen Gemini API-Key ein, um beliebige Gerichte und Rezepte per Online-KI zu analysieren.</string>
+    <string name="gemini_meal_service_api_failed">Gemini API-Anfrage fehlgeschlagen (%1$d): %2$s. Bitte überprüfe deinen API-Key in den KI-Einstellungen.</string>
+    <string name="gemini_meal_service_no_response">Die KI hat keine Antwort geliefert. Bitte versuche eine andere Formulierung.</string>
+    <string name="gemini_meal_service_default_explanation">Ernährungswissenschaftliche Schätzung.</string>
+    <string name="gemini_meal_service_default_insulin_tip">Bitte aktuellen BZ-Wert vor der Injektion prüfen und ggf. FPE (Fett-Protein-Einheiten) für verzögerte Blutzuckeranstiege berücksichtigen.</string>
+    <string name="gemini_meal_service_default_item_name">Zutat</string>
+    <string name="gemini_meal_service_default_item_portion">1 Portion</string>
+    <string name="gemini_meal_service_network_error">Netzwerkfehler bei der KI-Anfrage: %1$s</string>
+    <string name="gemini_meal_service_offline_explanation">Offline-Ergebnis aus integrierter Nährwerttabelle (%1$d Treffer gefunden).</string>
+    <string name="gemini_meal_service_offline_model_name">Offline-Datenbank</string>
+    <string name="gemini_meal_service_prompt_template">Du bist ein erfahrener diabetologischer Ernährungsberater und Experte für Kohlenhydratschätzung (KE/BE und Gramm KH) sowie Fett-Protein-Einheiten (FPE).
+
+Analysiere die folgende Mahlzeit/Lebensmittelbeschreibung:
+"%1$s"
+
+Schätze präzise den Kohlenhydratgehalt sowie den Fett- und Proteingehalt für die einzelnen Bestandteile und die gesamte Mahlzeit, um FPE (Fett-Protein-Einheiten) zu berechnen und in den Notizen auszugeben.
+Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backticks oder sonstigen Text außerhalb des JSON):
+{
+  "mealTitle": "Kurzer Name der Mahlzeit",
+  "totalCarbsGrams": 45.0,
+  "items": [
+    {
+      "name": "Zutat 1 (z.B. Vollkornbrot)",
+      "portion": "2 Scheiben (ca. 90 g)",
+      "carbsGrams": 36.0,
+      "calories": 190,
+      "notes": "Langsame Resorption dank Ballaststoffen. Enthält Xg Fett / Yg Protein (FPE-relevant)."
+    }
+  ],
+  "explanation": "Detaillierte ernährungswissenschaftliche Begründung der Schätzung inklusive Blutzuckerverlauf.",
+  "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
+}</string>
+
 </resources>

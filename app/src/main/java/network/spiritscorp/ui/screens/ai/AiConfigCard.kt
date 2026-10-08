@@ -73,6 +73,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import network.spiritscorp.R
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -144,15 +145,15 @@ fun AiConfigCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "KI-Modell & API-Schlüssel",
+                            text = stringResource(R.string.ai_config_title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         val model = stringResource(selectedModel.displayName)
                         val statusText = when {
-                            hasCustomKey -> "Eigener Key aktiv\n(${model})"
-                            isDevKeyPresent -> "Entwickler-Key aktiv\n(${model})"
-                            else -> "Kein Key hinterlegt\n(Offline-Schätzung aktiv)"
+                            hasCustomKey -> stringResource(R.string.ai_config_status_custom, model)
+                            isDevKeyPresent -> stringResource(R.string.ai_config_status_dev, model)
+                            else -> stringResource(R.string.ai_config_status_none)
                         }
                         Text(
                             text = statusText,
@@ -182,7 +183,7 @@ fun AiConfigCard(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 
                     Text(
-                        text = "Für datenschutzfreundliche & unbegrenzte Mahlzeitanalysen kannst du hier deinen eigenen kostenlosen Gemini API-Schlüssel eintragen. Dieser wird militärisch AES-256 verschlüsselt nur lokal auf deinem Gerät gespeichert.",
+                        text = stringResource(R.string.ai_config_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
@@ -198,7 +199,7 @@ fun AiConfigCard(
                             value = stringResource(selectedModel.displayName),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Gemini KI-Modell") },
+                            label = { Text(stringResource(R.string.ai_config_model_label)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
                             modifier = Modifier
                                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
@@ -239,8 +240,8 @@ fun AiConfigCard(
                     OutlinedTextField(
                         value = apiKeyInput,
                         onValueChange = { apiKeyInput = it },
-                        label = { Text("Google Gemini API-Key") },
-                        placeholder = { Text("AIzaSy...") },
+                        label = { Text(stringResource(R.string.ai_config_api_key_label)) },
+                        placeholder = { Text(stringResource(R.string.ai_config_api_key_placeholder)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("ai_api_key_input"),
@@ -257,7 +258,7 @@ fun AiConfigCard(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = "Key löschen",
+                                            contentDescription = stringResource(R.string.ai_config_delete_key_desc),
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                     }
@@ -268,7 +269,7 @@ fun AiConfigCard(
                                 ) {
                                     Icon(
                                         imageVector = if (showApiKey) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                        contentDescription = if (showApiKey) "Verbergen" else "Anzeigen",
+                                        contentDescription = if (showApiKey) stringResource(R.string.ai_config_hide_key_desc) else stringResource(R.string.ai_config_show_key_desc),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -296,7 +297,7 @@ fun AiConfigCard(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Kostenlosen Key bei Google AI Studio erstellen",
+                                text = stringResource(R.string.ai_config_aistudio_link),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -330,7 +331,7 @@ fun AiConfigCard(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Key & Modell speichern")
+                            Text(stringResource(R.string.ai_config_save_button))
                         }
                     }
                 }

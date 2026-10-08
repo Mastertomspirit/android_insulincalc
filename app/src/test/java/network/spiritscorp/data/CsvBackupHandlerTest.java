@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import static network.spiritscorp.data.CsvBackupHandler.CSV_HEAD;
+
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.CarbUnit;
 import network.spiritscorp.model.TimeOfDay;
@@ -40,8 +42,6 @@ import org.junit.jupiter.api.function.Executable;
  * All tests use static test data sets for deterministic export/parsing verification.
  */
 public class CsvBackupHandlerTest {
-
-    private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes\n";
 
     private List<LogCsvPair> testList;
     private CsvBackupHandler csvHandler;
@@ -90,11 +90,11 @@ public class CsvBackupHandlerTest {
                 csvHandler.escapeCsv(DateTimeUtils.formatIsoDateTime(log.getTimestamp())) + "," +
                 csvHandler.escapeCsv(log.getMealTitle()) + "," +
                 log.getRawCarbInput() + "," +
-                csvHandler.escapeCsv(log.getCarbUnit().getShortName()) + "," +
+                csvHandler.escapeCsv(log.getCarbUnit().name()) + "," +
                 log.getCarbGrams() + "," +
                 log.getBeValue() + "," +
                 log.getKeValue() + "," +
-                csvHandler.escapeCsv(log.getTimeOfDay().getTitle()) + "," +
+                csvHandler.escapeCsv(log.getTimeOfDay().name()) + "," +
                 log.getInsulinFactor() + "," +
                 log.getMealInsulin() + "," +
                 (log.getBloodGlucose() != null ? log.getBloodGlucose() : "") + "," +
@@ -110,7 +110,7 @@ public class CsvBackupHandlerTest {
 
     @Test
     public void exportToCsvFullVerifyTest() {
-        StringBuilder expectedCsv = new StringBuilder(CSV_HEADER);
+        StringBuilder expectedCsv = new StringBuilder(CSV_HEAD);
         List<CalculationLog> logs = new ArrayList<>();
         for (LogCsvPair pair : testList) {
             expectedCsv.append(pair.csvLine).append("\n");
@@ -130,7 +130,7 @@ public class CsvBackupHandlerTest {
         );
 
         String actualCsv = csvHandler.exportToCsv(List.of(emojiPair.log));
-        String expectedCsv = CSV_HEADER + emojiPair.csvLine + "\n";
+        String expectedCsv = CSV_HEAD + emojiPair.csvLine + "\n";
 
         assertEquals(expectedCsv, actualCsv, "Exported CSV must correctly escape special characters, quotes, and emojis");
     }
@@ -138,12 +138,12 @@ public class CsvBackupHandlerTest {
     @Test
     public void exportToCsvHeaderOnlyTest() {
         String actualCsv = csvHandler.exportToCsv(Collections.emptyList());
-        assertEquals(CSV_HEADER, actualCsv, "Exported CSV with empty list must contain header and newline only");
+        assertEquals(CSV_HEAD, actualCsv, "Exported CSV with empty list must contain header and newline only");
     }
 
     @Test
     public void parseCsvFullVerifyTest() {
-        StringBuilder csvContent = new StringBuilder(CSV_HEADER);
+        StringBuilder csvContent = new StringBuilder(CSV_HEAD);
         List<CalculationLog> originalLogs = new ArrayList<>();
         for (LogCsvPair pair : testList) {
             csvContent.append(pair.csvLine).append("\n");
@@ -189,7 +189,7 @@ public class CsvBackupHandlerTest {
         // Construct a CSV line with invalid / malformed numeric fields to verify fallback default values in parseCsv
         // Format: ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes
         String malformedRow = "abc,invalidTime,2026-03-01T12:00:00,InvalidTest,badCarb,UNKNOWN_UNIT,badGrams,badBE,badKE,UNKNOWN_TIME,badFac,badMealIns,badGlc,badTarget,badCorrFct,badCorrIns,badTotal,badRounded";
-        String csvContent = CSV_HEADER + malformedRow + "\n";
+        String csvContent = CSV_HEAD + malformedRow + "\n";
 
         List<CalculationLog> parsedLogs = csvHandler.parseCsv(csvContent);
 
@@ -232,7 +232,7 @@ public class CsvBackupHandlerTest {
 
     @Test
     public void parseCsvMalformedLineTest() {
-        StringBuilder csvContent = new StringBuilder(CSV_HEADER);
+        StringBuilder csvContent = new StringBuilder(CSV_HEAD);
         List<CalculationLog> originalLogs = new ArrayList<>();
         int i = 0;
         for (LogCsvPair pair : testList) {

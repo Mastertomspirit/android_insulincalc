@@ -43,14 +43,16 @@ public class CsvBackupHandler {
      */
     private static final int CSV_FORMAT_VERSION = AppConstants.CSV_BACKUP_VERSION;
 
+    private static final String CSV_VERSION = "# CSV Format Version: " + CSV_FORMAT_VERSION;
     private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
+    static final String CSV_HEAD = String.format("%s\n%s\n",CSV_VERSION, CSV_HEADER);
 
     /**
      * Exports a list of calculation logs to standard CSV format.
      */
     public String exportToCsv(List<CalculationLog> logs) {
         StringBuilder sb = new StringBuilder();
-        sb.append(CSV_HEADER).append("\n");
+        sb.append(CSV_HEAD);
 
         if (logs == null || logs.isEmpty()) {
             return sb.toString();
@@ -62,11 +64,11 @@ public class CsvBackupHandler {
             sb.append(escapeCsv(DateTimeUtils.formatIsoDateTime(log.getTimestamp()))).append(",");
             sb.append(escapeCsv(log.getMealTitle())).append(",");
             sb.append(log.getRawCarbInput()).append(",");
-            sb.append(escapeCsv(log.getCarbUnit().getShortName())).append(",");
+            sb.append(escapeCsv(log.getCarbUnit().name())).append(",");
             sb.append(log.getCarbGrams()).append(",");
             sb.append(log.getBeValue()).append(",");
             sb.append(log.getKeValue()).append(",");
-            sb.append(escapeCsv(log.getTimeOfDay().getTitle())).append(",");
+            sb.append(escapeCsv(log.getTimeOfDay().name())).append(",");
             sb.append(log.getInsulinFactor()).append(",");
             sb.append(log.getMealInsulin()).append(",");
             sb.append(log.getBloodGlucose() != null ? log.getBloodGlucose() : "").append(",");
@@ -78,7 +80,6 @@ public class CsvBackupHandler {
             sb.append(escapeCsv(log.getNotes()));
             sb.append("\n");
         }
-
         return sb.toString();
     }
 
@@ -97,17 +98,19 @@ public class CsvBackupHandler {
             String trimmedLine = line.trim();
             if (trimmedLine.isEmpty()) continue;
             List<String> tokens = splitCsvLine(line);
-
+            if (isFirstLine && !tokens.isEmpty() && tokens.get(0).startsWith("#")){
+                continue; // Skip comments
+            }
             if (isFirstLine && !tokens.isEmpty() && tokens.get(0).equals("ID")) {
                 isFirstLine = false;
                 continue; // Skip header row
             }
 
-                if (tokens.size() < 18){
-                    Log.w(TAG, "Skipping malformed CSV line (" + tokens.size() + " fields): " + line);
-                    continue; // Fields 0-17 mandatory, field 18 (notes) optional
-                }
-
+            if (tokens.size() < 18){
+                Log.w(TAG, "Skipping malformed CSV line (" + tokens.size() + " fields): " + line);
+                continue; // Fields 0-17 mandatory, field 18 (notes) optional
+            }
+            // TODO throw exception for to many malformed lines?
             logs.add(new CalculationLog(
                     parseLongSafe(tokens.get(0), 0L),                          // 0: entry id
                     parseLongSafe(tokens.get(1), System.currentTimeMillis()),   // 1: epoch timestamp (ms)
@@ -130,7 +133,6 @@ public class CsvBackupHandler {
                     tokens.size() > 18 ? tokens.get(18) : ""                    // 18: free-text notes (optional)
             ));
         }
-
         return logs;
     }
 

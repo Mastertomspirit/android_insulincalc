@@ -19,7 +19,6 @@ package network.spiritscorp.ui.screens.logbook
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -73,11 +72,11 @@ import java.util.Calendar
  *                 This decouples the enum from Android Context while guaranteeing full i18n support.
  */
 enum class HistoryFilter(@StringRes val titleRes: Int) {
-    ALL(R.string.enum_history_filter_all),
-    TODAY(R.string.enum_history_filter_today),
-    DAYS_7(R.string.enum_history_filter_7_days),
-    DAYS_30(R.string.enum_history_filter_30_days),
-    CUSTOM(R.string.enum_history_filter_custom);
+    ALL(R.string.history_filter_all),
+    TODAY(R.string.history_filter_today),
+    DAYS_7(R.string.history_filter_7_days),
+    DAYS_30(R.string.history_filter_30_days),
+    CUSTOM(R.string.history_filter_custom);
 
     /**
      * Backward-compatible property or helper to retrieve the translated label via a Composable.
@@ -86,10 +85,6 @@ enum class HistoryFilter(@StringRes val titleRes: Int) {
         @Composable
         get() = stringResource(titleRes)
 
-    /**
-     * Helper to retrieve the translated label in non-composable code using a standard [Context].
-     */
-    fun getTitle(context: Context): String = context.getString(titleRes)
 }
 
 @Composable
@@ -150,7 +145,7 @@ fun LogbookScreen(
         }
     }
 
-    val exportHelper = remember { LogbookExportHelper() }
+    val exportHelper = remember(context) { LogbookExportHelper(context) }
 
     val filterDescription by remember(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
@@ -221,7 +216,7 @@ fun LogbookScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = stringResource(R.string.logbook_clear_content_description),
+                            contentDescription = stringResource(R.string.logbook_cleared_toast),
                             tint = if (logs.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -369,11 +364,11 @@ private fun getFilterDescription(
 ): String {
     val sdf = DateTimeUtils.getDisplayDateFormatter()
     return when (filter) {
-        HistoryFilter.ALL -> context.getString(R.string.filter_desc_all)
+        HistoryFilter.ALL -> context.getString(R.string.logbook_filter_desc_all)
         HistoryFilter.TODAY -> {
             when (sliceOffset) {
-                0 -> context.getString(R.string.filter_desc_today)
-                1 -> context.getString(R.string.filter_desc_yesterday)
+                0 -> context.getString(R.string.logbook_filter_desc_today)
+                1 -> context.getString(R.string.logbook_filter_desc_yesterday)
                 else -> {
                     val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -sliceOffset) }
                     sdf.format(cal.time)
@@ -381,15 +376,15 @@ private fun getFilterDescription(
             }
         }
         HistoryFilter.DAYS_7 -> {
-            if (sliceOffset == 0) context.getString(R.string.filter_desc_last_7_days)
-            else context.getString(R.string.filter_desc_7_days_offset, sliceOffset)
+            if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_7_days)
+            else context.getString(R.string.logbook_filter_desc_7_days_offset, sliceOffset)
         }
         HistoryFilter.DAYS_30 -> {
-            if (sliceOffset == 0) context.getString(R.string.filter_desc_last_30_days)
-            else context.getString(R.string.filter_desc_30_days_offset, sliceOffset)
+            if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_30_days)
+            else context.getString(R.string.logbook_filter_desc_30_days_offset, sliceOffset)
         }
         HistoryFilter.CUSTOM -> context.getString(
-            R.string.filter_desc_custom_range,
+            R.string.logbook_filter_desc_custom_range,
             DateTimeUtils.formatDisplayDate(customStart),
             DateTimeUtils.formatDisplayDate(customEnd)
         )

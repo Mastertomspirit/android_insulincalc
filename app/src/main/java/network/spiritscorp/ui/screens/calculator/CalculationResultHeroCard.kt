@@ -45,10 +45,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.ui.theme.InfoBlue
 import network.spiritscorp.viewmodel.CalculatorUiState
@@ -80,7 +82,7 @@ fun CalculationResultHeroCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "EMPFOHLENE INSULINDOSIS",
+                text = stringResource(R.string.calc_result_hero_title),
                 style = MaterialTheme.typography.labelMedium.copy(
                     letterSpacing = 1.2.sp,
                     fontWeight = FontWeight.Bold
@@ -109,7 +111,7 @@ fun CalculationResultHeroCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "IE",
+                    text = stringResource(R.string.calc_result_hero_unit),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -120,7 +122,7 @@ fun CalculationResultHeroCard(
 
             if (uiState.calculationSummary.roundingStep() > 0.0) {
                 Text(
-                    text = "Gerundet auf ${uiState.calculationSummary.roundingStep()} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin()} IE)",
+                    text = stringResource(R.string.calc_result_hero_rounded_format, uiState.calculationSummary.roundingStep(), uiState.calculationSummary.rawTotalInsulin()),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                 )
@@ -137,17 +139,17 @@ fun CalculationResultHeroCard(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Mahlzeit",
+                        text = stringResource(R.string.calc_result_hero_breakdown_meal),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = "${uiState.calculationSummary.mealInsulin()} IE",
+                        text = stringResource(R.string.calc_result_hero_unit_format, uiState.calculationSummary.mealInsulin()),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams()}g × ${uiState.calculationSummary.factorUsed()}",
+                        text = stringResource(R.string.calc_result_hero_meal_calc_format, uiState.calculationSummary.carbGrams(), uiState.calculationSummary.factorUsed()),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
@@ -156,17 +158,21 @@ fun CalculationResultHeroCard(
                 if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin() != 0.0) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Korrektur",
+                            text = stringResource(R.string.calc_result_hero_breakdown_correction),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                         )
                         Text(
-                            text = "${if (uiState.calculationSummary.correctionInsulin() > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin()} IE",
+                            text = stringResource(
+                                R.string.calc_result_hero_signed_unit_format,
+                                if (uiState.calculationSummary.correctionInsulin() > 0) "+" else "",
+                                uiState.calculationSummary.correctionInsulin()
+                            ),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
-                            text = "BZ ${uiState.currentGlucoseInput} ${uiState.glucoseUnit.shortName}",
+                            text = stringResource(R.string.calc_result_hero_glucose_format, uiState.currentGlucoseInput, stringResource(uiState.glucoseUnit.shortNameResId)),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                         )
@@ -175,17 +181,17 @@ fun CalculationResultHeroCard(
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Tageszeit",
+                        text = stringResource(R.string.calc_result_hero_breakdown_time),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = uiState.selectedTimeOfDay.title,
+                        text = stringResource(uiState.selectedTimeOfDay.titleResId),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "Faktor: ${uiState.calculationSummary.factorUsed()}",
+                        text = stringResource(R.string.calc_result_hero_factor_format, uiState.calculationSummary.factorUsed()),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
@@ -204,7 +210,7 @@ fun CalculationResultHeroCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Warning,
-                            contentDescription = "Hypoglykämie-Gefahr",
+                            contentDescription = stringResource(R.string.calc_result_hero_hypo_risk_desc),
                             tint = AlertRed,
                             modifier = Modifier.size(20.dp)
                         )
@@ -217,7 +223,7 @@ fun CalculationResultHeroCard(
                         )
                     }
                 }
-            } else{
+            } else {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -229,7 +235,7 @@ fun CalculationResultHeroCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "Information",
+                            contentDescription = stringResource(R.string.calc_result_hero_info_desc),
                             tint = InfoBlue,
                             modifier = Modifier.size(20.dp)
                         )
@@ -265,7 +271,7 @@ fun CalculationResultHeroCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Im Tagebuch speichern",
+                    text = stringResource(R.string.calc_result_hero_save_button),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

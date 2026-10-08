@@ -148,11 +148,11 @@ public class JsonBackupHandler {
                 logObj.put("timestamp", log.getTimestamp());
                 logObj.put("mealTitle", log.getMealTitle());
                 logObj.put("rawCarbInput", log.getRawCarbInput());
-                logObj.put("carbUnit", log.getCarbUnit().getShortName());
+                logObj.put("carbUnit", log.getCarbUnit().name());
                 logObj.put("carbGrams", log.getCarbGrams());
                 logObj.put("beValue", log.getBeValue());
                 logObj.put("keValue", log.getKeValue());
-                logObj.put("timeOfDay", log.getTimeOfDay().getTitle());
+                logObj.put("timeOfDay", log.getTimeOfDay().name());
                 logObj.put("insulinFactor", log.getInsulinFactor());
                 logObj.put("mealInsulin", log.getMealInsulin());
                 if (log.getBloodGlucose() != null) {
@@ -263,11 +263,11 @@ public class JsonBackupHandler {
                     obj.optLong("timestamp", System.currentTimeMillis()),
                     obj.optString("mealTitle", "Mahlzeit"),
                     obj.optDouble("rawCarbInput", 0.0),
-                    CarbUnit.fromString(obj.optString("carbUnit", "g KH")),
+                    CarbUnit.fromString(obj.optString("carbUnit", "GRAMS")),
                     obj.optDouble("carbGrams", 0.0),
                     obj.optDouble("beValue", 0.0),
                     obj.optDouble("keValue", 0.0),
-                    TimeOfDay.fromString(obj.optString("timeOfDay", "Morgens")),
+                    TimeOfDay.fromString(obj.optString("timeOfDay", "MORNING")),
                     obj.optDouble("insulinFactor", 1.0),
                     obj.optDouble("mealInsulin", 0.0),
                     obj.has("bloodGlucose") && !obj.isNull("bloodGlucose") ? obj.optDouble("bloodGlucose") : null,
