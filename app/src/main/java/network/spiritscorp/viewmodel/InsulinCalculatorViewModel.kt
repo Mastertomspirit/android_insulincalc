@@ -38,13 +38,14 @@ import network.spiritscorp.data.AppDatabase
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.data.ImportResult
 import network.spiritscorp.data.InsulinRepository
-import network.spiritscorp.data.ThemePreferences
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.model.CalculationSummary
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.TimeOfDay
 import network.spiritscorp.model.UserSettings
+import network.spiritscorp.preferences.DisclaimerPreferences
+import network.spiritscorp.preferences.ThemePreferences
 import network.spiritscorp.util.InsulinMathEngine
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -86,6 +87,7 @@ data class CalculatorUiState(
     val showCorrection: Boolean = false,
     val mealTitle: String = "",
     val notes: String = "",
+    val showDisclaimerBanner: Boolean = true,
     val calculationSummary: CalculationSummary = CalculationSummary(
         0.0,
         0.0,
@@ -124,6 +126,7 @@ class InsulinCalculatorViewModel(
     ) : this(application, InsulinRepository(db.calculationLogDao(), db.userSettingsDao()))
     private val geminiService = GeminiMealService(application)
     private val themePreferences = ThemePreferences(application)
+    private val disclaimerPreferences = DisclaimerPreferences(application)
     private var cachedSettings: UserSettings = UserSettings()
 
     init {
@@ -166,6 +169,7 @@ class InsulinCalculatorViewModel(
                 } else {
                     settings.correctionFactorMgDl.toString().replace(".0", "")
                 }
+                val shouldShowBanner = disclaimerPreferences.shouldShowDisclaimer()
 
                 _uiState.update { current ->
                     current.copy(
@@ -173,7 +177,8 @@ class InsulinCalculatorViewModel(
                         glucoseUnit = gUnit,
                         targetGlucoseInput = if (current.targetGlucoseInput.isEmpty() || current.targetGlucoseInput == "120") targetStr else current.targetGlucoseInput,
                         correctionFactorInput = if (current.correctionFactorInput.isEmpty() || current.correctionFactorInput == "50") corrStr else current.correctionFactorInput,
-                        selectedTimeOfDay = initialTime
+                        selectedTimeOfDay = initialTime,
+                        showDisclaimerBanner = shouldShowBanner
                     )
                 }
                 recalculate(settings)
@@ -259,6 +264,8 @@ class InsulinCalculatorViewModel(
     }
 
     fun dismissDisclaimer() {
+        disclaimerPreferences.dismissDisclaimer()
+        _uiState.update { it.copy(showDisclaimerBanner = false) }
         viewModelScope.launch(Dispatchers.IO) {
             val updatedSettings = userSettings.value.copy()
             updatedSettings.isShowDisclaimer = false

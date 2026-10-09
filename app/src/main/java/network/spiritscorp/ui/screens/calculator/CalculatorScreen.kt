@@ -27,8 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -58,7 +56,6 @@ fun CalculatorScreen(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val settings by viewModel.userSettings.collectAsState()
 
     val closeKeyboard = {
         focusManager.clearFocus()
@@ -78,7 +75,7 @@ fun CalculatorScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // 1. Optional Medical Disclaimer Banner
-        if (settings.isShowDisclaimer) {
+        if (uiState.showDisclaimerBanner) {
             MedicalDisclaimerBanner(
                 onDismiss = {
                     closeKeyboard()
