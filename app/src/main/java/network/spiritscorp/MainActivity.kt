@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import network.spiritscorp.data.ThemePreferences
+import network.spiritscorp.preferences.ThemePreferences
 import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen
 import network.spiritscorp.ui.screens.calculator.CalculatorScreen
 import network.spiritscorp.ui.screens.logbook.LogbookScreen
