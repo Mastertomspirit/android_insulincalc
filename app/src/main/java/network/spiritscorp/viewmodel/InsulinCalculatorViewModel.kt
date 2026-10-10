@@ -541,7 +541,11 @@ class InsulinCalculatorViewModel(
         }
     }
 
-    fun applyEstimatedCarbsToCalculator(carbsGrams: Double, mealName: String) {
+    fun applyEstimatedCarbsToCalculator(
+        carbsGrams: Double,
+        mealName: String,
+        notesText: String
+    ) {
         val currentUnit = _uiState.value.selectedUnit
         val converted = currentUnit.fromGrams(carbsGrams)
         val formatted = if (currentUnit == CarbUnit.GRAMS) {
@@ -549,10 +553,12 @@ class InsulinCalculatorViewModel(
         } else {
             "%.1f".format(Locale.getDefault(), converted)
         }
+
         _uiState.update {
             it.copy(
                 carbInput = formatted,
                 mealTitle = mealName,
+                notes = notesText,
                 activeTab = 0 // Switch back to calculator
             )
         }

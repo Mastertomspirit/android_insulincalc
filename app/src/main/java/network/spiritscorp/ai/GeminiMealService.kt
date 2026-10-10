@@ -35,6 +35,8 @@ data class MealItemDetail(
     val name: String,
     val portion: String,
     val carbsGrams: Double,
+    val fatGrams: Double,
+    val proteinGrams: Double,
     val calories: Int = 0,
     val notes: String = ""
 )
@@ -42,6 +44,8 @@ data class MealItemDetail(
 data class MealEstimateResult(
     val mealTitle: String,
     val totalCarbsGrams: Double,
+    val totalFatGrams: Double,
+    val totalProteinGrams: Double,
     val items: List<MealItemDetail>,
     val explanation: String,
     val insulinTip: String,
@@ -50,12 +54,14 @@ data class MealEstimateResult(
     val modelUsed: String = ""
 )
 
-class GeminiMealService(private val context: Context? = null) {
-
+class GeminiMealService(
+    private val context: Context? = null,
+    private val baseUrl: String = "https://generativelanguage.googleapis.com"
+) {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(20, TimeUnit.SECONDS)
         .build()
 
     private fun getString(resId: Int, vararg formatArgs: Any): String {
@@ -74,6 +80,7 @@ class GeminiMealService(private val context: Context? = null) {
         }
 
         // Prioritize custom user key over BuildConfig dev key
+        @Suppress("KotlinConstantConditions")
         val apiKey = when {
             !customApiKey.isNullOrBlank() -> customApiKey.trim()
             devKey.isNotBlank() && devKey != "MY_GEMINI_API_KEY" -> devKey.trim()
@@ -94,7 +101,7 @@ class GeminiMealService(private val context: Context? = null) {
         val effectiveModel = selectedModel.modelId
 
         try {
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/$effectiveModel:generateContent"
+            val url = "$baseUrl/v1/models/$effectiveModel:generateContent"
 
             val prompt = getString(R.string.gemini_meal_service_prompt_template, foodDescription).trimIndent()
 
@@ -133,13 +140,32 @@ class GeminiMealService(private val context: Context? = null) {
                 return@withContext Result.failure(Exception(getString(R.string.gemini_meal_service_api_failed, response.code, errorMessage)))
             }
 
+            val parsedEstimate = parseGeminiApiResponse(
+                responseBody = responseBody,
+                fallbackTitle = foodDescription.take(30),
+                modelUsed = effectiveModel
+            )
+
+            Result.success(parsedEstimate)
+        } catch (e: Exception) {
+            Log.e("GeminiMealService", "Error during Gemini estimation", e)
+            Result.failure(Exception(getString(R.string.gemini_meal_service_network_error, e.localizedMessage)))
+        }
+    }
+
+    fun parseGeminiApiResponse(
+        responseBody: String,
+        fallbackTitle: String = "",
+        modelUsed: String = ""
+    ): MealEstimateResult {
+        var jsonText = ""
+        try {
             val rootJson = JSONObject(responseBody)
             val candidates = rootJson.optJSONArray("candidates")
             val firstCandidate = candidates?.optJSONObject(0)
             val content = firstCandidate?.optJSONObject("content")
             val parts = content?.optJSONArray("parts")
 
-            var jsonText = ""
             if (parts != null) {
                 for (i in 0 until parts.length()) {
                     val part = parts.optJSONObject(i)
@@ -148,56 +174,63 @@ class GeminiMealService(private val context: Context? = null) {
                         jsonText += text
                     }
                 }
+            } else {
+                jsonText = responseBody
             }
+        } catch (_: Exception) {
+            jsonText = responseBody
+        }
 
-            if (jsonText.isBlank()) {
-                return@withContext Result.failure(Exception(getString(R.string.gemini_meal_service_no_response)))
-            }
+        if (jsonText.isBlank()) {
+            throw IllegalArgumentException(getString(R.string.gemini_meal_service_no_response))
+        }
 
-            // Clean json text if wrapped in Markdown
-            val cleaned = jsonText.replace("```json", "").replace("```", "").trim()
-            val parsedResult = JSONObject(cleaned)
+        val cleaned = jsonText.replace("```json", "").replace("```", "").trim()
+        val parsedResult = JSONObject(cleaned)
 
-            val mealTitle = parsedResult.optString("mealTitle", foodDescription.take(30))
-            val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
-            val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation))
-            val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip))
+        val mealTitle = parsedResult.optString("mealTitle", fallbackTitle.take(30))
+        val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
+        val totalFat = parsedResult.optDouble("totalFatGrams", 0.0)
+        val totalProtein = parsedResult.optDouble("totalProteinGrams", 0.0)
+        val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation))
+        val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip))
 
-            val itemsList = mutableListOf<MealItemDetail>()
-            val itemsJsonArray = parsedResult.optJSONArray("items")
+        val itemsList = mutableListOf<MealItemDetail>()
+        val itemsJsonArray = parsedResult.optJSONArray("items")
 
-            if (itemsJsonArray != null) {
-                for (i in 0 until itemsJsonArray.length()) {
-                    val itemObj = itemsJsonArray.optJSONObject(i)
-                    if (itemObj != null) {
-                        itemsList.add(
-                            MealItemDetail(
-                                name = itemObj.optString("name", getString(R.string.gemini_meal_service_default_item_name)),
-                                portion = itemObj.optString("portion", getString(R.string.gemini_meal_service_default_item_portion)),
-                                carbsGrams = itemObj.optDouble("carbsGrams", 0.0),
-                                calories = itemObj.optInt("calories", 0),
-                                notes = itemObj.optString("notes", "")
-                            )
+        if (itemsJsonArray != null) {
+            for (i in 0 until itemsJsonArray.length()) {
+                val itemObj = itemsJsonArray.optJSONObject(i)
+                if (itemObj != null) {
+                    val fat = itemObj.optDouble("fatGrams", 0.0)
+                    val protein = itemObj.optDouble("proteinGrams", 0.0)
+
+                    itemsList.add(
+                        MealItemDetail(
+                            name = itemObj.optString("name", getString(R.string.gemini_meal_service_default_item_name)),
+                            portion = itemObj.optString("portion", getString(R.string.gemini_meal_service_default_item_portion)),
+                            carbsGrams = itemObj.optDouble("carbsGrams", 0.0),
+                            fatGrams = fat,
+                            proteinGrams = protein,
+                            calories = itemObj.optInt("calories", 0),
+                            notes = itemObj.optString("notes", "")
                         )
-                    }
+                    )
                 }
             }
-
-            Result.success(
-                MealEstimateResult(
-                    mealTitle = mealTitle,
-                    totalCarbsGrams = totalCarbs,
-                    items = itemsList,
-                    explanation = explanation,
-                    insulinTip = insulinTip,
-                    isOfflineEstimate = false,
-                    modelUsed = effectiveModel
-                )
-            )
-        } catch (e: Exception) {
-            Log.e("GeminiMealService", "Error during Gemini estimation", e)
-            Result.failure(Exception(getString(R.string.gemini_meal_service_network_error, e.localizedMessage)))
         }
+
+        return MealEstimateResult(
+            mealTitle = mealTitle,
+            totalCarbsGrams = totalCarbs,
+            totalFatGrams = totalFat,
+            totalProteinGrams = totalProtein,
+            items = itemsList,
+            explanation = explanation,
+            insulinTip = insulinTip,
+            isOfflineEstimate = false,
+            modelUsed = modelUsed
+        )
     }
 
     private fun createOfflineEstimation(foodDescription: String): MealEstimateResult? {
@@ -206,8 +239,11 @@ class GeminiMealService(private val context: Context? = null) {
             return null
         }
         val items = mutableListOf<MealItemDetail>()
-        var total = 0.0
+        var totalCarbs = 0.0
+        var totalFat = 0.0
+        var totalProtein = 0.0
 
+        // TODO create fat and protein in offline db
         for (food in matches) {
             items.add(
                 MealItemDetail(
@@ -215,15 +251,22 @@ class GeminiMealService(private val context: Context? = null) {
                     portion = food.standardPortionText,
                     carbsGrams = food.carbsPerPortion,
                     calories = food.caloriesPerPortion,
-                    notes = food.glycemicIndexNote
-                )
+                    notes = food.glycemicIndexNote,
+                    fatGrams = 0.0,
+                    proteinGrams = 0.0,
+
+                    )
             )
-            total += food.carbsPerPortion
+            totalCarbs += food.carbsPerPortion
+            totalFat += 0.0
+            totalProtein += 0.0
         }
 
         return MealEstimateResult(
             mealTitle = foodDescription.take(35),
-            totalCarbsGrams = total,
+            totalCarbsGrams = totalCarbs,
+            totalFatGrams = totalFat,
+            totalProteinGrams = totalProtein,
             items = items,
             explanation = getString(R.string.gemini_meal_service_offline_explanation, items.size),
             insulinTip = getString(R.string.gemini_meal_service_default_insulin_tip),
