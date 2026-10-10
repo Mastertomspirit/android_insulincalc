@@ -182,8 +182,8 @@ fun SettingsScreen(
             glucoseUnit = glucoseUnit,
             onGlucoseUnitChange = { newUnit ->
                 if (newUnit != glucoseUnit) {
-                    val currentTarget = targetGlucose.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
-                    val currentCorr = correctionFactor.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
+                    val currentTarget = targetGlucose.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                    val currentCorr = correctionFactor.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
                     if (newUnit == GlucoseUnit.MMOL_L) {
                         targetGlucose = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentTarget))
                         correctionFactor = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentCorr))
@@ -233,8 +233,8 @@ fun SettingsScreen(
         // SAVE ACTION BUTTON
         Button(
             onClick = {
-                val targetNum = targetGlucose.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
-                val corrNum = correctionFactor.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
+                val targetNum = targetGlucose.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                val corrNum = correctionFactor.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
 
                 val targetMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(targetNum) else targetNum
                 val corrMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(corrNum) else corrNum
