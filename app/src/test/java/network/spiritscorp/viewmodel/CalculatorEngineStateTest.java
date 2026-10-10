@@ -87,7 +87,7 @@ public class CalculatorEngineStateTest {
     public void testMorningCalculationWithGrams() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
-                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 
@@ -117,7 +117,7 @@ public class CalculatorEngineStateTest {
     public void testNoonCalculationWithBEAndFactorOverride() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
-                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 
@@ -149,7 +149,7 @@ public class CalculatorEngineStateTest {
     public void testEveningCalculationWithHighGlucoseCorrection() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
-                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 
@@ -186,7 +186,7 @@ public class CalculatorEngineStateTest {
     public void testLowBloodGlucoseWarningAndDoseReduction() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
-                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 
@@ -223,7 +223,7 @@ public class CalculatorEngineStateTest {
     public void testNegativeCorrectionDoseReduction() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
-                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 
@@ -260,7 +260,7 @@ public class CalculatorEngineStateTest {
     public void testMmolLCorrectionCalculation() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.55, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MMOL_L,
-                6.7, 2.8, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_PRO
+                6.7, 2.8, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         viewModel.updateUserSettings(settings);
 

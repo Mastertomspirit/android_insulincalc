@@ -47,20 +47,19 @@
     <string name="history_filter_custom">Zeitraum</string>
 
     <!-- Gemini AI Models Enum Strings -->
-    <string name="gemini_model_flash_latest_title">Gemini Flash (Neueste)</string>
-    <string name="gemini_model_flash_latest_desc">Verwendet immer die neueste stabile Flash-Modellversion</string>
-    <string name="gemini_model_flash_lite_latest_title">Gemini Flash-Lite (Neueste)</string>
-    <string name="gemini_model_flash_lite_latest_desc">Ultraschnell &amp; kostengünstig bei minimalem Token-Verbrauch</string>
-    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Empfohlen)</string>
-    <string name="gemini_model_3_8_flash_desc">Neueste Generation, optimiert für High-Speed Nährwert- &amp; Mahlzeitenanalyse</string>
-    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash</string>
-    <string name="gemini_model_3_7_flash_desc">Hohe Genauigkeit und schnelle Verarbeitung für Mahlzeitenauswertung</string>
-    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
-    <string name="gemini_model_3_6_flash_desc">Zuverlässige Flash-Modellversion für tägliche KH-Erfassung</string>
+    <string name="gemini_model_3_1_flash_lite_title">Gemini 3.1 Flash-Lite</string>
+    <string name="gemini_model_3_1_flash_lite_desc">Schnelles Zwischenmodell für einfache Lebensmittel und schnelle Abfragen.</string>
+    <string name="gemini_model_3_5_flash_lite_title">Gemini 3.5 Flash-Lite (Ultraschnell)</string>
+    <string name="gemini_model_3_5_flash_lite_desc">Die beste Wahl für einzelne Zutaten. Kostengünstig und ideal, um dein API-Kontingent zu schonen.</string>
     <string name="gemini_model_3_5_flash_title">Gemini 3.5 Flash</string>
-    <string name="gemini_model_3_5_flash_desc">Bewährtes Flash-Basismodell für Ernährungsschätzungen</string>
-    <string name="gemini_model_3_1_pro_title">Gemini 3.1 Pro</string>
-    <string name="gemini_model_3_1_pro_desc">Erweiterte Logik für komplexe mehrgängige Menüs &amp; Rezepte</string>
+    <string name="gemini_model_3_5_flash_desc">Solider Allrounder für ganz normale Tellergerichte und Alltags-Mahlzeiten.</string>
+    <string name="gemini_model_3_6_flash_title">Gemini 3.6 Flash</string>
+    <string name="gemini_model_3_6_flash_desc">Zuverlässiges Update für die tägliche Kohlenhydratschätzung von Standardgerichten.</string>
+    <string name="gemini_model_3_7_flash_title">Gemini 3.7 Flash (Hohe Genauigkeit)</string>
+    <string name="gemini_model_3_7_flash_desc">Sehr präzise bei kombinierten Mahlzeiten, ohne die strengen Limits der Pro-Modelle zu berühren.</string>
+    <string name="gemini_model_3_8_flash_title">Gemini 3.8 Flash (Neueste)</string>
+    <string name="gemini_model_3_8_flash_desc">Beste Balance aus Intelligenz und Geschwindigkeit für fast alle Mahlzeiten und Nährwertanalysen.</string>
+
 
 
     <!-- Main Activity & Navigation -->

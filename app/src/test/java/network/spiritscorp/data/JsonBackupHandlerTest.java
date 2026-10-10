@@ -69,7 +69,7 @@ class JsonBackupHandlerTest {
     private static final AppTheme SELECTED_THEME = AppTheme.BERRY_VIOLET;
     private static final AppTheme.Mode THEME_MODE = AppTheme.Mode.SYSTEM;
     private static final String API_KEY = "API_KEY";
-    private static final GeminiAiModel CUSTOM_AI_MODEL = GeminiAiModel.GEMINI_FLASH_LATEST;
+    private static final GeminiAiModel CUSTOM_AI_MODEL = GeminiAiModel.GEMINI_3_1_FLASH_LITE;
 
     // Calculation Log Constants
     private static final long LOG_ID = 101L;
