@@ -149,6 +149,18 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
         }
     }
 
+    // Sync PagerState when ViewModel changes activeTab programmatically (e.g. from AI Estimator)
+    LaunchedEffect(uiState.activeTab) {
+        if (pagerState.currentPage != uiState.activeTab) {
+            val distance = abs(pagerState.currentPage - uiState.activeTab)
+            if (distance <= 1) {
+                pagerState.animateScrollToPage(uiState.activeTab)
+            } else {
+                pagerState.scrollToPage(uiState.activeTab)
+            }
+        }
+    }
+
     // Sync ViewModel with settled pager changes from swipe gestures
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { settledPage ->

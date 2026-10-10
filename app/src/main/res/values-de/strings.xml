@@ -166,8 +166,9 @@
     <!-- MealResultCard -->
     <string name="meal_result_card_offline_badge">Offline-Datenbank</string>
     <string name="meal_result_card_live_ai_badge">Live-KI: %1$s</string>
-    <string name="meal_result_card_carbs_format">%1$s g KH</string>
-    <string name="meal_result_card_ke_format">ca. %1$s KE</string>
+    <string name="meal_result_card_carbs_format">%1$s g</string>
+    <string name="meal_result_card_be_format">ca. %1$s BE</string>
+    <string name="meal_result_card_fpe_summary_format">Fett: %1$sg • Eiweiß: %2$sg</string>
     <string name="meal_result_card_adjust_title">Portion anpassen:</string>
     <string name="meal_result_card_minus_5g">-5g</string>
     <string name="meal_result_card_minus_10g">-10g</string>
@@ -175,8 +176,9 @@
     <string name="meal_result_card_plus_10g">+10g</string>
     <string name="meal_result_card_ingredients_title">Zutaten-Aufschlüsselung:</string>
     <string name="meal_result_card_item_weight_format">%1$s g</string>
+    <string name="meal_result_card_item_fp_format">%1$sg Fett, %2$sg Eiweiß</string>
     <string name="meal_result_card_tip_title">Tipp</string>
-    <string name="meal_result_card_apply_button_format">%1$dg KH in Rechner übernehmen</string>
+    <string name="meal_result_card_apply_button_format">%1$dg in Rechner übernehmen</string>
 
     <!-- Calculator Screen -->
     <!-- Calculator CalculationResultHeroCard -->
@@ -378,21 +380,26 @@
 Analysiere die folgende Mahlzeit/Lebensmittelbeschreibung:
 "%1$s"
 
-Schätze präzise den Kohlenhydratgehalt sowie den Fett- und Proteingehalt für die einzelnen Bestandteile und die gesamte Mahlzeit, um FPE (Fett-Protein-Einheiten) zu berechnen und in den Notizen auszugeben.
+Schätze präzise den Kohlenhydratgehalt ("carbsGrams") sowie den Fett- und Proteingehalt (in Gramm) für die einzelnen Bestandteile ("fatGrams", "proteinGrams") und die gesamte Mahlzeit ("totalCarbsGrams", "totalFatGrams", "totalProteinGrams"), um FPE (Fett-Protein-Einheiten) zu berechnen.
+Falls keine Mengenangabe gemacht wurde, nimm eine realistische, leicht konservative Standardportion an – lieber etwas niedriger ansetzen für die Sicherheit, aber ohne den Wert unrealistisch stark zu reduzieren.
 Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backticks oder sonstigen Text außerhalb des JSON):
 {
   "mealTitle": "Kurzer Name der Mahlzeit",
   "totalCarbsGrams": 45.0,
+  "totalFatGrams": 15.0,
+  "totalProteinGrams": 20.0,
   "items": [
     {
       "name": "Zutat 1 (z.B. Vollkornbrot)",
       "portion": "2 Scheiben (ca. 90 g)",
       "carbsGrams": 36.0,
+      "fatGrams": 2.0,
+      "proteinGrams": 6.0,
       "calories": 190,
       "notes": "Langsame Resorption dank Ballaststoffen. Enthält Xg Fett / Yg Protein (FPE-relevant)."
     }
   ],
-  "explanation": "Detaillierte ernährungswissenschaftliche Begründung der Schätzung inklusive Blutzuckerverlauf.",
+  "explanation": "Aufzählung der Zutaten und detaillierte ernährungswissenschaftliche Begründung der Schätzung inklusive Blutzuckerverlauf.",
   "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
 }</string>
 

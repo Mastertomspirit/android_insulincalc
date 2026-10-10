@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.R
 import network.spiritscorp.ai.MealEstimateResult
+import network.spiritscorp.ui.components.toDisplayString
 
 /**
  * Result display card for AI meal estimation featuring ingredient breakdown,
@@ -64,7 +65,7 @@ import network.spiritscorp.ai.MealEstimateResult
 @Composable
 fun MealResultCard(
     result: MealEstimateResult,
-    onApply: (Double, String) -> Unit,
+    onApply: (Double, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var customCarbs by remember(result) { mutableDoubleStateOf(result.totalCarbsGrams) }
@@ -78,6 +79,7 @@ fun MealResultCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            val locale = LocalLocale.current.platformLocale
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -126,12 +128,23 @@ fun MealResultCard(
                         )
                         Text(
                             text = stringResource(
-                                R.string.meal_result_card_ke_format,
-                                String.format(LocalLocale.current.platformLocale, "%.1f", customCarbs / 10.0)
+                                R.string.meal_result_card_be_format,
+                                String.format(locale, "%.1f", customCarbs / 12.0)
                             ),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                        if (result.totalFatGrams > 0.0 || result.totalProteinGrams > 0.0) {
+                            Text(
+                                text = stringResource(
+                                    R.string.meal_result_card_fpe_summary_format,
+                                    result.totalFatGrams.toDisplayString(1,locale),
+                                    result.totalProteinGrams.toDisplayString(1, locale)
+                                ),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                            )
+                        }
                     }
                 }
             }
@@ -255,11 +268,24 @@ fun MealResultCard(
                             }
                         }
 
-                        Text(
-                            text = stringResource(R.string.meal_result_card_item_weight_format, item.carbsGrams.toInt()),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = stringResource(R.string.meal_result_card_item_weight_format, item.carbsGrams.toInt()),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if (item.fatGrams > 0.0 || item.proteinGrams > 0.0) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.meal_result_card_item_fp_format,
+                                        item.fatGrams.toDisplayString(1,locale),
+                                        item.proteinGrams.toDisplayString(1, locale)
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -293,7 +319,7 @@ fun MealResultCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { onApply(customCarbs, result.mealTitle) },
+                onClick = { onApply(customCarbs, result.mealTitle, result.explanation) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("apply_ai_carbs_button"),

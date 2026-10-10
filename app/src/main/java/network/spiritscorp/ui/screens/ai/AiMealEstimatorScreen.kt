@@ -307,8 +307,8 @@ fun AiMealEstimatorScreen(
             is AiEstimateState.Success -> {
                 MealResultCard(
                     result = aiState.result,
-                    onApply = { carbs, name ->
-                        viewModel.applyEstimatedCarbsToCalculator(carbs, name)
+                    onApply = { carbs, name, notes ->
+                        viewModel.applyEstimatedCarbsToCalculator(carbs, name, notes)
                     }
                 )
             }
