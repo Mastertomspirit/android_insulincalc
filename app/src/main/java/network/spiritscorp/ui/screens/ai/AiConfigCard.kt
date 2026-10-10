@@ -93,7 +93,7 @@ fun AiConfigCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_FLASH_LITE_LATEST
+    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
     var selectedModel by remember { mutableStateOf(savedModelId) }
@@ -109,6 +109,7 @@ fun AiConfigCard(
     }
 
     val hasCustomKey = apiKeyInput.isNotBlank()
+    @Suppress("KotlinConstantConditions", "SimplifyBooleanWithConstants")
     val isDevKeyPresent = try {
         BuildConfig.GEMINI_API_KEY.isNotBlank() && 
         BuildConfig.GEMINI_API_KEY != "MY_GEMINI_API_KEY"
@@ -150,11 +151,12 @@ fun AiConfigCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         val model = stringResource(selectedModel.displayName)
-                        val statusText = when {
+                        @Suppress("KotlinConstantConditions") val statusText = when {
                             hasCustomKey -> stringResource(R.string.ai_config_status_custom, model)
                             isDevKeyPresent -> stringResource(R.string.ai_config_status_dev, model)
                             else -> stringResource(R.string.ai_config_status_none)
                         }
+                        @Suppress("KotlinConstantConditions")
                         Text(
                             text = statusText,
                             style = MaterialTheme.typography.bodySmall,

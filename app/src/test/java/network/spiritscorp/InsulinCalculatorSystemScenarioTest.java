@@ -82,7 +82,7 @@ public class InsulinCalculatorSystemScenarioTest {
                 AppTheme.MEDICAL_TEAL,
                 AppTheme.Mode.SYSTEM,
                 "",
-                GeminiAiModel.GEMINI_FLASH_LATEST
+                GeminiAiModel.GEMINI_3_7_FLASH
         );
         repository.saveSettings(userSettings);
 

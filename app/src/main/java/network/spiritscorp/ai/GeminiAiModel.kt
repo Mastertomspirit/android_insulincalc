@@ -28,54 +28,49 @@ enum class GeminiAiModel(
     @StringRes val displayName: Int,
     @StringRes val description: Int
 ) {
-    GEMINI_FLASH_LATEST(
-        modelId = "gemini-flash-latest",
-        displayName = R.string.gemini_model_flash_latest_title,
-        description = R.string.gemini_model_flash_latest_desc
+    GEMINI_3_1_FLASH_LITE(
+        modelId = "gemini-3.1-flash-lite",
+        displayName = R.string.gemini_model_3_1_flash_lite_title,
+        description = R.string.gemini_model_3_1_flash_lite_desc
     ),
-    GEMINI_FLASH_LITE_LATEST(
-        modelId = "gemini-flash-lite-latest",
-        displayName = R.string.gemini_model_flash_lite_latest_title,
-        description = R.string.gemini_model_flash_lite_latest_desc
-    ),
-    GEMINI_3_8_FLASH(
-        modelId = "gemini-3.8-flash",
-        displayName = R.string.gemini_model_3_8_flash_title,
-        description = R.string.gemini_model_3_8_flash_desc
-    ),
-    GEMINI_3_7_FLASH(
-        modelId = "gemini-3.7-flash",
-        displayName = R.string.gemini_model_3_7_flash_title,
-        description = R.string.gemini_model_3_7_flash_desc
-    ),
-    GEMINI_3_6_FLASH(
-        modelId = "gemini-3.6-flash",
-        displayName = R.string.gemini_model_3_6_flash_title,
-        description = R.string.gemini_model_3_6_flash_desc
+    GEMINI_3_5_FLASH_LITE(
+        modelId = "gemini-3.5-flash-lite",
+        displayName = R.string.gemini_model_3_5_flash_lite_title,
+        description = R.string.gemini_model_3_5_flash_lite_desc
     ),
     GEMINI_3_5_FLASH(
         modelId = "gemini-3.5-flash",
         displayName = R.string.gemini_model_3_5_flash_title,
         description = R.string.gemini_model_3_5_flash_desc
     ),
-    GEMINI_3_1_PRO(
-        modelId = "gemini-3.1-pro-preview",
-        displayName = R.string.gemini_model_3_1_pro_title,
-        description = R.string.gemini_model_3_1_pro_desc
+    GEMINI_3_6_FLASH(
+        modelId = "gemini-3.6-flash",
+        displayName = R.string.gemini_model_3_6_flash_title,
+        description = R.string.gemini_model_3_6_flash_desc
+    ),
+    GEMINI_3_7_FLASH(
+        modelId = "gemini-3.7-flash",
+        displayName = R.string.gemini_model_3_7_flash_title,
+        description = R.string.gemini_model_3_7_flash_desc
+    ),
+    GEMINI_3_8_FLASH(
+        modelId = "gemini-3.8-flash",
+        displayName = R.string.gemini_model_3_8_flash_title,
+        description = R.string.gemini_model_3_8_flash_desc
     );
 
     companion object {
         fun fromModelId(id: String?): GeminiAiModel {
-            if (id.isNullOrBlank()) return GEMINI_FLASH_LITE_LATEST
+            if (id.isNullOrBlank()) return GEMINI_3_5_FLASH_LITE
             return entries.find { it.modelId.equals(id.trim(), ignoreCase = true) }
                 ?: when {
-                    id.contains("flash-latest", ignoreCase = true) -> GEMINI_FLASH_LATEST
-                    id.contains("pro", ignoreCase = true) -> GEMINI_3_1_PRO
                     id.contains("3.8", ignoreCase = true) -> GEMINI_3_8_FLASH
                     id.contains("3.7", ignoreCase = true) -> GEMINI_3_7_FLASH
                     id.contains("3.6", ignoreCase = true) -> GEMINI_3_6_FLASH
+                    id.contains("3.5-flash-lite", ignoreCase = true) -> GEMINI_3_5_FLASH_LITE
                     id.contains("3.5", ignoreCase = true) -> GEMINI_3_5_FLASH
-                    else -> GEMINI_FLASH_LITE_LATEST
+                    id.contains("3.1", ignoreCase = true) -> GEMINI_3_1_FLASH_LITE
+                    else -> GEMINI_3_5_FLASH_LITE
                 }
         }
     }

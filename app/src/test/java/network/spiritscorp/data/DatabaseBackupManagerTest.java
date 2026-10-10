@@ -438,7 +438,7 @@ public class DatabaseBackupManagerTest {
                 AppTheme.EMERALD_GREEN,
                 AppTheme.Mode.DARK,
                 "test-api-key-9988",
-                GeminiAiModel.GEMINI_3_1_PRO
+                GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
         userSettingsDao.saveSettings(customSettings);
 
@@ -477,14 +477,14 @@ public class DatabaseBackupManagerTest {
         assertEquals(AppTheme.EMERALD_GREEN, restored.getSelectedTheme());
         assertEquals(AppTheme.Mode.DARK, restored.getThemeMode());
         assertEquals("", restored.getGeminiApiKey());
-        assertEquals(GeminiAiModel.GEMINI_3_1_PRO, restored.getSelectedAiModel());
+        assertEquals(GeminiAiModel.GEMINI_3_1_FLASH_LITE, restored.getSelectedAiModel());
     }
 
     @Test
     public void testJsonBackupWithUmlautsAndNullValuesRoundtrip() {
         UserSettings originalSettings = new UserSettings(
                 1, 1.75, 1.25, 1.5, 0.9, CarbUnit.BE, 12, GlucoseUnit.MG_DL,
-                115.0, 45.0, 0.5, true, AppTheme.SUNSET_AMBER, AppTheme.Mode.DARK, "test-api-key", GeminiAiModel.GEMINI_FLASH_LITE_LATEST
+                115.0, 45.0, 0.5, true, AppTheme.SUNSET_AMBER, AppTheme.Mode.DARK, "test-api-key", GeminiAiModel.GEMINI_3_5_FLASH_LITE
         );
         userSettingsDao.saveSettings(originalSettings);
 

@@ -97,7 +97,7 @@ public class InsulinRepositoryIntegrationTest {
                 AppTheme.SUNSET_AMBER,
                 AppTheme.Mode.SYSTEM,
                 "",
-                GeminiAiModel.GEMINI_3_1_PRO
+                GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
 
         repository.saveSettings(custom);

@@ -65,7 +65,7 @@ public class UserSettings {
         this.selectedTheme = null;
         this.themeMode = null;
         this.geminiApiKey = "";
-        this.selectedAiModel = GeminiAiModel.GEMINI_FLASH_LITE_LATEST;
+        this.selectedAiModel = GeminiAiModel.GEMINI_3_5_FLASH_LITE;
     }
 
     @Ignore
