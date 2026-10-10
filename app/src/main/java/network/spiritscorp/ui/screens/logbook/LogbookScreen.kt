@@ -64,6 +64,7 @@ import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Calendar
+import androidx.compose.runtime.collectAsState
 
 /**
  * Filter options for the calculation history.
@@ -313,6 +314,7 @@ fun LogbookScreen(
                 val shareSingleTitle = stringResource(R.string.logbook_share_single_title, log.mealTitle)
                 LogbookItemCard(
                     log = log,
+                    viewModel.userSettings.collectAsState().value.glucoseUnit,
                     onShareRequest = {
                         val shareText = exportHelper.formatSingleLogShare(log, viewModel.userSettings.value.glucoseUnit)
                         val sendIntent = Intent().apply {

@@ -52,16 +52,20 @@ import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.ui.components.toDisplayString
+import kotlin.math.abs
 
 @Composable
 fun LogbookItemCard(
     log: CalculationLog,
+    //TODO:  Workaround  use GlucoseUnit from log
+    glucoseUnit: network.spiritscorp.model.GlucoseUnit,
     onDeleteRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onShareRequest: () -> Unit = {}
 ) {
     val dateString = remember(log.timestamp) { DateTimeUtils.formatDisplayDateTimeBullet(log.timestamp) }
-
+    val locale = LocalLocale.current.platformLocale
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -101,22 +105,40 @@ fun LogbookItemCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = stringResource(R.string.logbook_item_card_carb_format, log.carbGrams, log.beValue, log.keValue, log.insulinFactor),
+                    text = stringResource(R.string.logbook_item_card_carb_format,
+                        log.carbGrams.toDisplayString(maxDecimals = 0, locale = locale),
+                        log.beValue.toDisplayString(maxDecimals = 2, locale = locale),
+                        log.keValue.toDisplayString(maxDecimals = 2, locale = locale),
+                        log.insulinFactor.toDisplayString(maxDecimals = 2, locale = locale)
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                val blGlucose = log.bloodGlucose
-                if (blGlucose != null) {
-                    val bzDisplay = if (blGlucose.mod(1.0) == 0.0) blGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", blGlucose)
-                    val corrSign = if ((log.correctionInsulin ?: 0.0) > 0) "+" else ""
+                val bgGlucose = log.bloodGlucose
+                if (bgGlucose != null) {
+                    val corrIns = log.correctionInsulin ?: 0.0
+                    val corrSign = when {
+                        corrIns > 0 -> "+"
+                        corrIns < 0 -> "-"
+                        else -> ""
+                    }
                     Text(
-                        text = stringResource(R.string.logbook_item_card_bg_format, bzDisplay, corrSign, log.correctionInsulin ?: 0.0),
+                        text = stringResource(
+                            R.string.logbook_item_card_bg_format,
+                            bgGlucose.toDisplayString(
+                                maxDecimals = 1,
+                                locale = locale
+                            ),
+                            // TODO: Create an entry in calculationLog for individual view
+                            stringResource(glucoseUnit.shortNameResId),
+                            corrSign,
+                            abs(corrIns).toDisplayString(maxDecimals = 1, locale = locale)
+                        ),
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 if (log.notes.isNotBlank()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(
@@ -157,7 +179,7 @@ fun LogbookItemCard(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = stringResource(R.string.logbook_item_card_insulin_format, log.roundedInsulin.toInt().toString()),
+                        text = stringResource(R.string.logbook_item_card_insulin_format, log.roundedInsulin.toDisplayString(1, locale)),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)

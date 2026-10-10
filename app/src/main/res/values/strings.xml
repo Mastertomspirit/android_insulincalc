@@ -247,7 +247,7 @@
 
     <!-- Logbook LogbookItemCard -->
     <string name="logbook_item_card_carb_format">%1$sg KH (%2$s BE • %3$s KE) • Factor: %4$s</string>
-    <string name="logbook_item_card_bg_format">BG: %1$s (Correction: %2$s%3$s IE)</string>
+    <string name="logbook_item_card_bg_format">BG: %1$s %2$s (Correction: %3$s%4$s IE)</string>
     <string name="logbook_item_card_insulin_format">%1$s IE</string>
     <string name="logbook_item_card_share_desc">Share entry</string>
     <string name="logbook_item_card_delete_desc">Delete entry</string>
