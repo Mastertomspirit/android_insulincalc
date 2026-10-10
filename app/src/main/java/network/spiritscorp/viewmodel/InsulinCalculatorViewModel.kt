@@ -324,7 +324,7 @@ class InsulinCalculatorViewModel(
 
     private fun recalculate(passedSettings: UserSettings? = null) {
         val state = _uiState.value
-        val rawInput = state.carbInput.toDoubleOrNull() ?: 0.0
+        val rawInput = state.carbInput.replace(',','.').toDoubleOrNull() ?: 0.0
         val settings = passedSettings ?: cachedSettings
         
         val grams = InsulinMathEngine.convertToGrams(rawInput, state.selectedUnit, settings.beGramsDivisor)
@@ -341,9 +341,9 @@ class InsulinCalculatorViewModel(
             settings.beGramsDivisor
         )
 
-        val currentBg = state.currentGlucoseInput.toDoubleOrNull()
-        val targetBg = state.targetGlucoseInput.toDoubleOrNull()
-        val corrFactor = state.correctionFactorInput.toDoubleOrNull()
+        val currentBg = state.currentGlucoseInput.replace(',', '.').toDoubleOrNull()
+        val targetBg = state.targetGlucoseInput.replace(',', '.').toDoubleOrNull()
+        val corrFactor = state.correctionFactorInput.replace(',', '.').toDoubleOrNull()
 
         var isHypoRisk = false
         var advisory = getApplication<Application>().getString(R.string.view_model_advisory_standard)
@@ -401,7 +401,7 @@ class InsulinCalculatorViewModel(
             0L,
             System.currentTimeMillis(),
             autoMealTitle,
-            state.carbInput.toDoubleOrNull() ?: 0.0,
+            state.carbInput.replace(',', '.').toDoubleOrNull() ?: 0.0,
             state.selectedUnit,
             summary.carbGrams(),
             summary.beValue(),
@@ -411,7 +411,7 @@ class InsulinCalculatorViewModel(
             summary.mealInsulin(),
             summary.bloodGlucoseInput(),
             summary.targetGlucose(),
-            state.correctionFactorInput.toDoubleOrNull(),
+            state.correctionFactorInput.replace(',', '.').toDoubleOrNull(),
             summary.correctionInsulin(),
             summary.rawTotalInsulin(),
             summary.roundedTotalInsulin(),
