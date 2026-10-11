@@ -47,7 +47,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -82,7 +82,6 @@ import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.model.UserSettings
 import androidx.core.net.toUri
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiConfigCard(
     userSettings: UserSettings?,
@@ -151,7 +150,8 @@ fun AiConfigCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         val model = stringResource(selectedModel.displayName)
-                        @Suppress("KotlinConstantConditions") val statusText = when {
+                        @Suppress("KotlinConstantConditions")
+                        val statusText = when {
                             hasCustomKey -> stringResource(R.string.ai_config_status_custom, model)
                             isDevKeyPresent -> stringResource(R.string.ai_config_status_dev, model)
                             else -> stringResource(R.string.ai_config_status_none)

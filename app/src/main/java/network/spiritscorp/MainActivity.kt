@@ -25,8 +25,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -38,8 +40,6 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -57,6 +57,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -89,10 +92,10 @@ class MainActivity : ComponentActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Enable edge-to-edge system bar rendering
         enableEdgeToEdge()
-        
+
         // Load initial theme settings from SharedPreferences as fallback before Room loads
         val themePrefs = ThemePreferences(this)
         val initialSavedTheme = themePrefs.selectedTheme
@@ -128,7 +131,6 @@ class MainActivity : ComponentActivity() {
  *
  * @param viewModel The shared [InsulinCalculatorViewModel] supplying UI state and event handlers.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -139,7 +141,6 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
-
     val context = LocalContext.current
 
     LaunchedEffect(uiState.toastMessage) {
@@ -208,6 +209,7 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     focusManager.clearFocus()
                 })
             },
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -286,6 +288,8 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .imePadding()
         ) {
             HorizontalPager(
                 state = pagerState,

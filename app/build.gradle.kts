@@ -17,7 +17,7 @@ android {
     minSdk = 30
     targetSdk = 37
     versionCode = 8
-    versionName = "1.3.7.8"
+    versionName = "1.3.7.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -112,6 +112,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.material3)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.sqlcipher.android)
