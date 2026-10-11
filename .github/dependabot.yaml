@@ -16,21 +16,12 @@ updates:
       - "mastertomspirit"
       
     # Restricts the maximum number of concurrent open Pull Requests to prevent repository clutter
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
 
     # Assigns specific organizational tags to the PRs for easier filtering and automated workflows
     labels:
       - "dependencies"
 
-    # Defines rules to consolidate multiple dependency updates into single, manageable Pull Requests
-    groups:
-      # Combines all non-breaking updates (Minor and Patch) into a single daily PR to reduce noise
-      minor-and-patch-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
     # Commit messages settings
     commit-message:
       prefix: "chore"
