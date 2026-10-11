@@ -84,6 +84,24 @@ public class CalculatorEngineStateTest {
     }
 
     @Test
+    public void testInitialShowDisclaimerBannerRespectsDisclaimerPreferences() {
+        // Dismiss disclaimer in preferences first
+        new network.spiritscorp.preferences.DisclaimerPreferences(app).dismissDisclaimer();
+
+        CalculationLogDao mockLogDao = mock(CalculationLogDao.class);
+        UserSettingsDao mockSettingsDao = mock(UserSettingsDao.class);
+        when(mockSettingsDao.getSettingsDirect()).thenReturn(null);
+        when(mockSettingsDao.getSettings()).thenReturn(FlowKt.emptyFlow());
+        when(mockLogDao.getAllLogs()).thenReturn(FlowKt.emptyFlow());
+
+        InsulinRepository mockRepo = new InsulinRepository(mockLogDao, mockSettingsDao);
+        InsulinCalculatorViewModel newVm = new InsulinCalculatorViewModel(app, mockRepo);
+
+        assertFalse("Banner should immediately be false in initial StateFlow value when preference was dismissed",
+                newVm.getUiState().getValue().getShowDisclaimerBanner());
+    }
+
+    @Test
     public void testMorningCalculationWithGrams() {
         UserSettings settings = new UserSettings(
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
