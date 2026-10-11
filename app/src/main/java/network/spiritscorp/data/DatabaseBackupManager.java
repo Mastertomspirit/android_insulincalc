@@ -183,18 +183,4 @@ public class DatabaseBackupManager {
             return null;
         }
     }
-
-    public ImportResult importFromUri(Context context, Uri uri) {
-        String content = readTextFromUri(context, uri);
-        if (content == null || content.trim().isEmpty()) {
-            return new ImportResult(false, 0, false, getString(R.string.settings_backup_read_error));
-        }
-
-        String trimmed = content.trim();
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-            return importFromJson(trimmed);
-        } else {
-            return importFromCsv(trimmed);
-        }
-    }
 }

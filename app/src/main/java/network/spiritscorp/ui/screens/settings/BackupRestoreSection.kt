@@ -120,7 +120,7 @@ fun BackupRestoreSection(
         }
     }
 
-    val backupSuccessImport = stringResource(R.string.settings_backup_read_error)
+    val backupReadError = stringResource(R.string.settings_backup_read_error)
     val backupErrorImport = stringResource(R.string.settings_backup_import_toast_error)
     val fileImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -130,7 +130,7 @@ fun BackupRestoreSection(
                 val content = backupManager.readTextFromUri(context, uri)
                 if (content.isNullOrBlank()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, backupSuccessImport, Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, backupReadError, Toast.LENGTH_LONG).show()
                     }
                     return@launch
                 }
