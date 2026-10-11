@@ -431,6 +431,10 @@ class InsulinCalculatorViewModel(
         }
     }
 
+    fun showToast(message: String) {
+        _uiState.update { it.copy(toastMessage = message) }
+    }
+
     fun clearToast() {
         _uiState.update { it.copy(toastMessage = null) }
     }

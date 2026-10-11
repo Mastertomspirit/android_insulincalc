@@ -18,9 +18,13 @@ package network.spiritscorp.ui.screens.settings
  */
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,23 +56,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import network.spiritscorp.R
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.util.DateTimeUtils
-import androidx.compose.ui.res.stringResource
-import network.spiritscorp.R
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
-
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun BackupRestoreSection(
@@ -89,13 +87,7 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val json = viewModel.exportJsonBackup()
                 val success = backupManager.writeTextToUri(context, uri, json)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(context, backupSuccess, Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, backupError, Toast.LENGTH_SHORT).show()
-                    }
-                }
+                viewModel.showToast(if (success) backupSuccess else backupError)
             }
         }
     }
@@ -109,13 +101,7 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val csv = viewModel.exportCsvBackup()
                 val success = backupManager.writeTextToUri(context, uri, csv)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(context, backupSuccessCsv, Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, backupErrorCsv, Toast.LENGTH_SHORT).show()
-                    }
-                }
+                viewModel.showToast(if (success) backupSuccessCsv else backupErrorCsv)
             }
         }
     }
@@ -129,18 +115,14 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val content = backupManager.readTextFromUri(context, uri)
                 if (content.isNullOrBlank()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, backupReadError, Toast.LENGTH_LONG).show()
-                    }
+                    viewModel.showToast(backupReadError)
                     return@launch
                 }
                 val result = viewModel.importBackupContent(content)
-                withContext(Dispatchers.Main) {
-                    if (result.isSuccess) {
-                        Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(context, backupErrorImport + result.message, Toast.LENGTH_LONG).show()
-                    }
+                if (result.isSuccess) {
+                    viewModel.showToast(result.message)
+                } else {
+                    viewModel.showToast(backupErrorImport + result.message)
                 }
             }
         }
@@ -238,7 +220,7 @@ fun BackupRestoreSection(
                                             }
                                             context.startActivity(Intent.createChooser(sendIntent, shareChooser))
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, shareError + e.message, Toast.LENGTH_SHORT).show()
+                                            viewModel.showToast(shareError + e.message)
                                         }
                                     }
                                 }
@@ -272,7 +254,7 @@ fun BackupRestoreSection(
                                             }
                                             context.startActivity(Intent.createChooser(sendIntent, csvChooser))
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, backupError + e.message, Toast.LENGTH_SHORT).show()
+                                            viewModel.showToast(backupError + e.message)
                                         }
                                     }
                                 }
