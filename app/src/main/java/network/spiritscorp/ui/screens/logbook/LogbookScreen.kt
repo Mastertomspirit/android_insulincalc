@@ -42,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -54,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,7 +66,6 @@ import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Calendar
-import androidx.compose.runtime.collectAsState
 
 /**
  * Filter options for the calculation history.
@@ -181,7 +182,7 @@ fun LogbookScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = stringResource(R.string.logbook_entry_count, filteredLogs.size, logs.size),
+                        text = pluralStringResource(R.plurals.logbook_entry_count, filteredLogs.size, filteredLogs.size, logs.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -379,11 +380,11 @@ private fun getFilterDescription(
         }
         HistoryFilter.DAYS_7 -> {
             if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_7_days)
-            else context.getString(R.string.logbook_filter_desc_7_days_offset, sliceOffset)
+            else context.resources.getQuantityString(R.plurals.logbook_filter_desc_7_days_offset, sliceOffset, sliceOffset)
         }
         HistoryFilter.DAYS_30 -> {
             if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_30_days)
-            else context.getString(R.string.logbook_filter_desc_30_days_offset, sliceOffset)
+            else context.resources.getQuantityString(R.plurals.logbook_filter_desc_30_days_offset, sliceOffset, sliceOffset)
         }
         HistoryFilter.CUSTOM -> context.getString(
             R.string.logbook_filter_desc_custom_range,

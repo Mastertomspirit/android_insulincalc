@@ -268,7 +268,8 @@ class GeminiMealService(
             totalFatGrams = totalFat,
             totalProteinGrams = totalProtein,
             items = items,
-            explanation = getString(R.string.gemini_meal_service_offline_explanation, items.size),
+            // TODO check if this is correct
+            explanation = context?.resources?.getQuantityString(R.plurals.gemini_meal_service_offline_explanation, items.size, items.size) ?: "",
             insulinTip = getString(R.string.gemini_meal_service_default_insulin_tip),
             isOfflineEstimate = true,
             modelUsed = getString(R.string.gemini_meal_service_offline_model_name)

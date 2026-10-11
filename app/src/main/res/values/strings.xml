@@ -83,10 +83,16 @@
     <string name="view_model_ai_error_generic">AI analysis error</string>
 
     <!-- Database Backup Manager -->
-    <string name="data_database_backup_manager_import_success_json">Successfully restored %1$d entries %2$s.</string>
+    <plurals name="data_database_backup_manager_import_success_json">
+        <item quantity="one">Successfully restored 1 entry %2$s.</item>
+        <item quantity="other">Successfully restored %1$d entries %2$s.</item>
+    </plurals>
     <string name="data_database_backup_manager_import_success_settings_and">and settings</string>
     <string name="data_database_backup_manager_csv_import_empty">No valid entries found in the CSV file.</string>
-    <string name="data_database_backup_manager_csv_import_success">Successfully imported %1$d entries from CSV.</string>
+    <plurals name="data_database_backup_manager_csv_import_success">
+        <item quantity="one">Successfully imported 1 entry from CSV.</item>
+        <item quantity="other">Successfully imported %1$d entries from CSV.</item>
+    </plurals>
 
     <!-- Logbook Export Helper -->
     <string name="logbook_export_helper_no_entries_for_period">Insulin Calculator Diary\nNo entries found for the selected period (%1$s).</string>
@@ -235,7 +241,10 @@
     <string name="logbook_delete_confirmation_dialog_confirm">Delete</string>
     <string name="logbook_delete_confirmation_dialog_cancel">Cancel</string>
     <string name="logbook_clear_all_dialog_title">Clear entire logbook?</string>
-    <string name="logbook_clear_all_dialog_message">Are you sure? All %1$d saved calculations will be irreversibly deleted from the database. It is recommended to create a backup or CSV export beforehand.</string>
+    <plurals name="logbook_clear_all_dialog_message">
+        <item quantity="one">Are you sure? The 1 saved calculation will be irreversibly deleted from the database. It is recommended to create a backup or CSV export beforehand.</item>
+        <item quantity="other">Are you sure? All %1$d saved calculations will be irreversibly deleted from the database. It is recommended to create a backup or CSV export beforehand.</item>
+    </plurals>
     <string name="logbook_clear_all_dialog_confirm">Delete all</string>
     <string name="logbook_clear_all_dialog_cancel">Cancel</string>
 
@@ -255,7 +264,10 @@
 
     <!-- Logbook LogbookScreen -->
     <string name="logbook_title">Insulin Logbook</string>
-    <string name="logbook_entry_count">%1$d of %2$d entries</string>
+    <plurals name="logbook_entry_count">
+        <item quantity="one">1 of 1 entry</item>
+        <item quantity="other">%1$d of %2$d entries</item>
+    </plurals>
     <string name="logbook_share_content_description">Share logbook</string>
     <string name="logbook_share_chooser_title">Share logbook (%1$s)</string>
     <string name="logbook_entry_deleted_toast">Entry deleted</string>
@@ -269,9 +281,15 @@
     <string name="logbook_filter_desc_today">Today</string>
     <string name="logbook_filter_desc_yesterday">Yesterday</string>
     <string name="logbook_filter_desc_last_7_days">Last 7 days</string>
-    <string name="logbook_filter_desc_7_days_offset">7 days (%1$d week(s) ago)</string>
+    <plurals name="logbook_filter_desc_7_days_offset">
+        <item quantity="one">7 days (1 week ago)</item>
+        <item quantity="other">7 days (%1$d weeks ago)</item>
+    </plurals>
     <string name="logbook_filter_desc_last_30_days">Last 30 days</string>
-    <string name="logbook_filter_desc_30_days_offset">30 days (%1$d month(s) ago)</string>
+    <plurals name="logbook_filter_desc_30_days_offset">
+        <item quantity="one">30 days (1 month ago)</item>
+        <item quantity="other">30 days (%1$d months ago)</item>
+    </plurals>
     <string name="logbook_filter_desc_custom_range">%1$s to %2$s</string>
 
     <!-- Logbook LogbookStatsHeader -->
@@ -339,7 +357,6 @@
     <string name="settings_components_factor_value_format">%1$s IE</string>
 
     <!-- Settings SettingsScreen -->
-    <string name="settings_database_cleared_toast">Diary &amp; data cleared</string>
     <string name="settings_screen_collapse_all">Collapse all</string>
     <string name="settings_screen_expand_all">Expand all</string>
     <string name="settings_screen_save_button">Save settings</string>
@@ -373,7 +390,10 @@
     <string name="gemini_meal_service_default_item_name">Ingredient</string>
     <string name="gemini_meal_service_default_item_portion">1 portion</string>
     <string name="gemini_meal_service_network_error">Network error during AI request: %1$s</string>
-    <string name="gemini_meal_service_offline_explanation">Offline result from integrated nutritional database (%1$d matches found).</string>
+    <plurals name="gemini_meal_service_offline_explanation">
+        <item quantity="one">Offline result from integrated nutritional database (1 match found).</item>
+        <item quantity="other">Offline result from integrated nutritional database (%1$d matches found).</item>
+    </plurals>
     <string name="gemini_meal_service_offline_model_name">Offline database</string>
     <string name="gemini_meal_service_prompt_template">You are an experienced diabetological nutritionist and expert in carbohydrate estimation (in grams, Bread Units, and Carbohydrate Units) as well as Fat-Protein Units (FPU).
 

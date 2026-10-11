@@ -6,7 +6,6 @@
 # Build-Artefakte & Caches
 /app/build/
 /app/debug/
-/app/lint-baseline.xml
 /app/release/
 /captures/
 .cxx/
