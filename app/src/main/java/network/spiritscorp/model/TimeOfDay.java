@@ -134,19 +134,15 @@ public enum TimeOfDay {
     }
 
     public static TimeOfDay fromHour(double timeInHours) {
-        if (timeInHours >= 6.0 && timeInHours < 10.5) {
+        if (timeInHours >= MORNING.startHour && timeInHours < MORNING.endHour) {
             return MORNING;
-        } else if (timeInHours >= 10.5 && timeInHours < 16.0) {
+        } else if (timeInHours >= NOON.startHour && timeInHours < NOON.endHour) {
             return NOON;
-        } else if (timeInHours >= 16.0 && timeInHours < 22.0) {
+        } else if (timeInHours >= EVENING.startHour && timeInHours < EVENING.endHour) {
             return EVENING;
         } else {
             return NIGHT;
         }
-    }
-
-    public static TimeOfDay fromHour(int hour) {
-        return fromHour((double) hour);
     }
 
     public static TimeOfDay fromTime(int hour, int minute) {

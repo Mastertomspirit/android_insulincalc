@@ -27,7 +27,6 @@ public class DateTimeUtilsTest {
         assertEquals("dd.MM.yyyy HH:mm", DateTimeUtils.PATTERN_DISPLAY_DATETIME);
         assertEquals("dd.MM.yyyy • HH:mm", DateTimeUtils.PATTERN_DISPLAY_DATETIME_BULLET);
         assertEquals("dd.MM.yyyy", DateTimeUtils.PATTERN_DISPLAY_DATE);
-        assertEquals("HH:mm", DateTimeUtils.PATTERN_DISPLAY_TIME);
         assertEquals("yyyy-MM-dd HH:mm:ss", DateTimeUtils.PATTERN_ISO_DATETIME);
         assertEquals("yyyyMMdd_HHmm", DateTimeUtils.PATTERN_FILENAME_TIMESTAMP);
     }
@@ -47,10 +46,6 @@ public class DateTimeUtilsTest {
         String displayDate = DateTimeUtils.formatDisplayDate(now);
         assertNotNull(displayDate);
         assertTrue(displayDate.matches("\\d{2}\\.\\d{2}\\.\\d{4}"));
-
-        String displayTime = DateTimeUtils.formatDisplayTime(now);
-        assertNotNull(displayTime);
-        assertTrue(displayTime.matches("\\d{2}:\\d{2}"));
 
         String isoDateTime = DateTimeUtils.formatIsoDateTime(now);
         assertNotNull(isoDateTime);

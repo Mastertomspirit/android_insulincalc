@@ -442,10 +442,6 @@ class InsulinCalculatorViewModel(
         }
     }
 
-    suspend fun getAllLogsDirect(): List<CalculationLog> = withContext(Dispatchers.IO) {
-        repository.allLogsDirect
-    }
-
     suspend fun exportJsonBackup(): String = withContext(Dispatchers.IO) {
         val settings = repository.settings
         val logs = repository.allLogsDirect
@@ -458,7 +454,7 @@ class InsulinCalculatorViewModel(
     }
 
     suspend fun importBackupContent(content: String): ImportResult = withContext(Dispatchers.IO) {
-        val manager = DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao())
+        val manager = DatabaseBackupManager(getApplication<Application>())
         val trimmed = content.trim()
         val result = if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             manager.importFromJson(trimmed)

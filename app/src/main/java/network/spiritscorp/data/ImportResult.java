@@ -38,15 +38,7 @@ public class ImportResult {
         this.message = message;
     }
 
-    public ImportResult(boolean success, @NonNull String message) {
-        this(success, 0, false, message);
-    }
-
     public boolean isSuccess() {
-        return success;
-    }
-
-    public boolean getSuccess() {
         return success;
     }
 
@@ -56,15 +48,6 @@ public class ImportResult {
 
     public boolean isImportedSettings() {
         return importedSettings;
-    }
-
-    public boolean getImportedSettings() {
-        return importedSettings;
-    }
-
-    @NonNull
-    public String getMessage() {
-        return message;
     }
 
     @Override

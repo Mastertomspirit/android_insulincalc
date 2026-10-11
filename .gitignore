@@ -26,10 +26,9 @@ debug/
 
 
 # Lokale Konfigurationen & Secrets
-REPOS.md
 local.properties
 .env
-.diff
+/stuff
 
 
 # Keystores & Schlüssel
