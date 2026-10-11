@@ -51,11 +51,14 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.Locale
 
-internal fun createInitialUiState(): CalculatorUiState {
+internal fun createInitialUiState(
+    showDisclaimerBanner: Boolean = true
+): CalculatorUiState {
     val currentTime = TimeOfDay.current()
     val initialFactor = currentTime.defaultFactor
     return CalculatorUiState(
         selectedTimeOfDay = currentTime,
+        showDisclaimerBanner = showDisclaimerBanner,
         calculationSummary = CalculationSummary(
             0.0,
             0.0,
@@ -142,7 +145,11 @@ class InsulinCalculatorViewModel(
         .map { it ?: UserSettings() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
 
-    private val _uiState = MutableStateFlow(createInitialUiState())
+    private val _uiState = MutableStateFlow(
+        createInitialUiState(
+            showDisclaimerBanner = disclaimerPreferences.shouldShowDisclaimer()
+        )
+    )
 
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
