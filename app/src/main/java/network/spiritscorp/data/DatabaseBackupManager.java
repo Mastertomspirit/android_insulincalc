@@ -119,7 +119,7 @@ public class DatabaseBackupManager {
                 true,
                 logsCount,
                 importedSettings,
-                getString(R.string.data_database_backup_manager_import_success_json, logsCount, importedSettings ? getString(R.string.data_database_backup_manager_import_success_settings_and) : "")
+                context != null ? context.getResources().getQuantityString(R.plurals.data_database_backup_manager_import_success_json, logsCount, logsCount, importedSettings ? getString(R.string.data_database_backup_manager_import_success_settings_and) : "") : ""
         );
     }
 
@@ -148,7 +148,7 @@ public class DatabaseBackupManager {
                 true,
                 logs.size(),
                 false,
-                getString(R.string.data_database_backup_manager_csv_import_success, logs.size())
+                context != null ? context.getResources().getQuantityString(R.plurals.data_database_backup_manager_csv_import_success, logs.size(), logs.size()) : ""
         );
     }
 

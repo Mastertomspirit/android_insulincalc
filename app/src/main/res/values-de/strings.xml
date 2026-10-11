@@ -83,10 +83,16 @@
     <string name="view_model_ai_error_generic">KI-Analysefehler</string>
 
     <!-- Database Backup Manager -->
-    <string name="data_database_backup_manager_import_success_json">Erfolgreich %1$d Einträge %2$s wiederhergestellt.</string>
+    <plurals name="data_database_backup_manager_import_success_json">
+        <item quantity="one">Erfolgreich 1 Eintrag %2$s wiederhergestellt.</item>
+        <item quantity="other">Erfolgreich %1$d Einträge %2$s wiederhergestellt.</item>
+    </plurals>
     <string name="data_database_backup_manager_import_success_settings_and">und Einstellungen</string>
     <string name="data_database_backup_manager_csv_import_empty">Keine gültigen Einträge in der CSV-Datei gefunden.</string>
-    <string name="data_database_backup_manager_csv_import_success">Erfolgreich %1$d Einträge aus CSV importiert.</string>
+    <plurals name="data_database_backup_manager_csv_import_success">
+        <item quantity="one">Erfolgreich 1 Eintrag aus CSV importiert.</item>
+        <item quantity="other">Erfolgreich %1$d Einträge aus CSV importiert.</item>
+    </plurals>
 
     <!-- Logbook Export Helper -->
     <string name="logbook_export_helper_no_entries_for_period">Insulin-Rechner Tagebuch\nKeine Einträge für den ausgewählten Zeitraum (%1$s) vorhanden.</string>
@@ -235,7 +241,10 @@
     <string name="logbook_delete_confirmation_dialog_confirm">Löschen</string>
     <string name="logbook_delete_confirmation_dialog_cancel">Abbrechen</string>
     <string name="logbook_clear_all_dialog_title">Gesamtes Tagebuch löschen?</string>
-    <string name="logbook_clear_all_dialog_message">Bist du sicher? Alle %1$d gespeicherten Berechnungen werden unwiderruflich aus der Datenbank gelöscht. Es wird empfohlen, vorher ein Backup oder CSV-Export zu erstellen.</string>
+    <plurals name="logbook_clear_all_dialog_message">
+        <item quantity="one">Bist du sicher? Die 1 gespeicherte Berechnung wird unwiderruflich aus der Datenbank gelöscht. Es wird empfohlen, vorher ein Backup oder CSV-Export zu erstellen.</item>
+        <item quantity="other">Bist du sicher? Alle %1$d gespeicherten Berechnungen werden unwiderruflich aus der Datenbank gelöscht. Es wird empfohlen, vorher ein Backup oder CSV-Export zu erstellen.</item>
+    </plurals>
     <string name="logbook_clear_all_dialog_confirm">Alle löschen</string>
     <string name="logbook_clear_all_dialog_cancel">Abbrechen</string>
 
@@ -255,7 +264,10 @@
 
     <!-- Logbook LogbookScreen -->
     <string name="logbook_title">Insulin-Tagebuch</string>
-    <string name="logbook_entry_count">%1$d von %2$d Einträgen</string>
+    <plurals name="logbook_entry_count">
+        <item quantity="one">1 von 1 Eintrag</item>
+        <item quantity="other">%1$d von %2$d Einträgen</item>
+    </plurals>
     <string name="logbook_share_content_description">Tagebuch teilen</string>
     <string name="logbook_share_chooser_title">Tagebuch teilen (%1$s)</string>
     <string name="logbook_entry_deleted_toast">Eintrag gelöscht</string>
@@ -269,9 +281,15 @@
     <string name="logbook_filter_desc_today">Heute</string>
     <string name="logbook_filter_desc_yesterday">Gestern</string>
     <string name="logbook_filter_desc_last_7_days">Letzte 7 Tage</string>
-    <string name="logbook_filter_desc_7_days_offset">7 Tage (%1$d Woche(n) her)</string>
+    <plurals name="logbook_filter_desc_7_days_offset">
+        <item quantity="one">7 Tage (vor 1 Woche)</item>
+        <item quantity="other">7 Tage (vor %1$d Wochen)</item>
+    </plurals>
     <string name="logbook_filter_desc_last_30_days">Letzte 30 Tage</string>
-    <string name="logbook_filter_desc_30_days_offset">30 Tage (%1$d Monat(e) her)</string>
+    <plurals name="logbook_filter_desc_30_days_offset">
+        <item quantity="one">30 Tage (vor 1 Monat)</item>
+        <item quantity="other">30 Tage (vor %1$d Monaten)</item>
+    </plurals>
     <string name="logbook_filter_desc_custom_range">%1$s bis %2$s</string>
 
     <!-- Logbook LogbookStatsHeader -->
@@ -339,7 +357,6 @@
     <string name="settings_components_factor_value_format">%1$s IE</string>
 
     <!-- Settings SettingsScreen -->
-    <string name="settings_database_cleared_toast">Tagebuch &amp; Daten wurden gelöscht</string>
     <string name="settings_screen_collapse_all">Alle einklappen</string>
     <string name="settings_screen_expand_all">Alle ausklappen</string>
     <string name="settings_screen_save_button">Einstellungen speichern</string>
@@ -373,7 +390,10 @@
     <string name="gemini_meal_service_default_item_name">Zutat</string>
     <string name="gemini_meal_service_default_item_portion">1 Portion</string>
     <string name="gemini_meal_service_network_error">Netzwerkfehler bei der KI-Anfrage: %1$s</string>
-    <string name="gemini_meal_service_offline_explanation">Offline-Ergebnis aus integrierter Nährwerttabelle (%1$d Treffer gefunden).</string>
+    <plurals name="gemini_meal_service_offline_explanation">
+        <item quantity="one">Offline-Ergebnis aus integrierter Nährwerttabelle (1 Treffer gefunden).</item>
+        <item quantity="other">Offline-Ergebnis aus integrierter Nährwerttabelle (%1$d Treffer gefunden).</item>
+    </plurals>
     <string name="gemini_meal_service_offline_model_name">Offline-Datenbank</string>
     <string name="gemini_meal_service_prompt_template">Du bist ein erfahrener diabetologischer Ernährungsberater und Experte für Kohlenhydratschätzung (KE/BE und Gramm KH) sowie Fett-Protein-Einheiten (FPE).
 
