@@ -419,7 +419,7 @@ Return the result STRICTLY in the following JSON format (without markdown backti
       "notes": "Slow absorption thanks to fiber. Contains Xg fat / Yg protein (FPU relevant)."
     }
   ],
-  "explanation": "Breakdown of ingredients and detailed nutritional justification of the estimation including blood glucose progression.",
+  "explanation": "Provide total fat and protein amounts first. Then list main ingredients with their individual fat/protein values if multiple ingredients. Add a very short tip or important note. Keep it concise (1-2 sentences).",
   "insulinTip": "Practical advice for diabetics (e.g. pre-bolus time, FPU calculation for delayed blood glucose spikes due to fat and protein)"
 }</string>
 

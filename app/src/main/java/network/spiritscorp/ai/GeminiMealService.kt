@@ -95,9 +95,9 @@ class GeminiMealService(
      * OkHttpClient configured with generous timeouts for AI inference calls.
      */
     private val client = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
     /**
@@ -254,12 +254,12 @@ class GeminiMealService(
         val cleaned = jsonText.replace("```json", "").replace("```", "").trim()
         val parsedResult = JSONObject(cleaned)
 
-        val mealTitle = parsedResult.optString("mealTitle", fallbackTitle.take(30))
+        val mealTitle = parsedResult.optString("mealTitle", fallbackTitle.take(30)).trim()
         val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
         val totalFat = parsedResult.optDouble("totalFatGrams", 0.0)
         val totalProtein = parsedResult.optDouble("totalProteinGrams", 0.0)
-        val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation))
-        val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip))
+        val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation)).trim()
+        val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip)).trim()
 
         val itemsList = mutableListOf<MealItemDetail>()
         val itemsJsonArray = parsedResult.optJSONArray("items")
@@ -273,13 +273,13 @@ class GeminiMealService(
 
                     itemsList.add(
                         MealItemDetail(
-                            name = itemObj.optString("name", getString(R.string.gemini_meal_service_default_item_name)),
-                            portion = itemObj.optString("portion", getString(R.string.gemini_meal_service_default_item_portion)),
+                            name = itemObj.optString("name", getString(R.string.gemini_meal_service_default_item_name)).trim(),
+                            portion = itemObj.optString("portion", getString(R.string.gemini_meal_service_default_item_portion)).trim(),
                             carbsGrams = itemObj.optDouble("carbsGrams", 0.0),
                             fatGrams = fat,
                             proteinGrams = protein,
                             calories = itemObj.optInt("calories", 0),
-                            notes = itemObj.optString("notes", "")
+                            notes = itemObj.optString("notes", "").trim()
                         )
                     )
                 }
@@ -335,14 +335,14 @@ class GeminiMealService(
         }
 
         return MealEstimateResult(
-            mealTitle = foodDescription.take(35),
+            mealTitle = foodDescription.take(35).trim(),
             totalCarbsGrams = totalCarbs,
             totalFatGrams = totalFat,
             totalProteinGrams = totalProtein,
             items = items,
             // TODO check if this is correct
             explanation = context?.resources?.getQuantityString(R.plurals.gemini_meal_service_offline_explanation, items.size, items.size) ?: "",
-            insulinTip = getString(R.string.gemini_meal_service_default_insulin_tip),
+            insulinTip = getString(R.string.gemini_meal_service_default_insulin_tip).trim(),
             isOfflineEstimate = true,
             modelUsed = getString(R.string.gemini_meal_service_offline_model_name)
         )

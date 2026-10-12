@@ -419,7 +419,7 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
       "notes": "Langsame Resorption dank Ballaststoffen. Enthält Xg Fett / Yg Protein (FPE-relevant)."
     }
   ],
-  "explanation": "Aufzählung der Zutaten und detaillierte ernährungswissenschaftliche Begründung der Schätzung inklusive Blutzuckerverlauf.",
+  "explanation": "Gib zuerst die Gesamtmengen an Fett und Protein an. Dann die wichtigsten Zutaten mit ihren einzelnen Fett-/Protein-Werten bei mehreren Zutaten. Füge einen sehr kurzen Hinweis/Tipp oder wichtige Info hinzu. Halte es kurz (1-2 Sätze).",
   "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
 }</string>
 
