@@ -33,22 +33,43 @@ import java.util.List;
 
 /**
  * Handles CSV export formatting and parsing for insulin calculation logs.
+ * <p>
+ * Provides robust serialization of {@link CalculationLog} entities into comma-separated values (CSV)
+ * and parses external CSV files back into structured log objects while handling quoted fields,
+ * escaped quotes, comments, and version headers.
  */
 public class CsvBackupHandler {
 
+    /**
+     * Logging tag used for debugging and error reporting.
+     */
     private static final String TAG = "CsvBackupHandler";
 
     /**
-     * CSV Schema Format Version.
+     * CSV Schema Format Version obtained from {@link AppConstants#CSV_BACKUP_VERSION}.
      */
     private static final int CSV_FORMAT_VERSION = AppConstants.CSV_BACKUP_VERSION;
 
+    /**
+     * Comment line indicating the CSV schema format version.
+     */
     private static final String CSV_VERSION = "# CSV Format Version: " + CSV_FORMAT_VERSION;
+
+    /**
+     * Standard CSV header defining the exact column structure for calculation logs.
+     */
     private static final String CSV_HEADER = "ID,Timestamp,Date,MealTitle,RawCarbInput,CarbUnit,CarbGrams,BE,KE,TimeOfDay,InsulinFactor,MealInsulin,BloodGlucose,TargetGlucose,CorrectionFactor,CorrectionInsulin,TotalInsulin,RoundedInsulin,Notes";
-    static final String CSV_HEAD = String.format("%s\n%s\n",CSV_VERSION, CSV_HEADER);
+
+    /**
+     * Combined CSV head string containing the format version comment and the column headers, followed by newlines.
+     */
+    static final String CSV_HEAD = String.format("%s\n%s\n", CSV_VERSION, CSV_HEADER);
 
     /**
      * Exports a list of calculation logs to standard CSV format.
+     *
+     * @param logs The list of {@link CalculationLog} entries to export.
+     * @return A formatted CSV string containing the version comment, header, and serialized log data rows.
      */
     public String exportToCsv(List<CalculationLog> logs) {
         StringBuilder sb = new StringBuilder();
@@ -85,6 +106,12 @@ public class CsvBackupHandler {
 
     /**
      * Parses a CSV string into a list of CalculationLog entries.
+     * <p>
+     * Automatically skips version comment lines, header rows, and empty lines while validating
+     * required column token counts.
+     *
+     * @param csvContent The raw CSV file content string.
+     * @return A list of parsed {@link CalculationLog} objects.
      */
     public List<CalculationLog> parseCsv(@NonNull String csvContent) {
         if (csvContent.trim().isEmpty()) {
@@ -98,7 +125,7 @@ public class CsvBackupHandler {
             String trimmedLine = line.trim();
             if (trimmedLine.isEmpty()) continue;
             List<String> tokens = splitCsvLine(line);
-            if (isFirstLine && !tokens.isEmpty() && tokens.get(0).startsWith("#")){
+            if (isFirstLine && !tokens.isEmpty() && tokens.get(0).startsWith("#")) {
                 continue; // Skip comments
             }
             if (isFirstLine && !tokens.isEmpty() && tokens.get(0).equals("ID")) {
@@ -106,7 +133,7 @@ public class CsvBackupHandler {
                 continue; // Skip header row
             }
 
-            if (tokens.size() < 18){
+            if (tokens.size() < 18) {
                 Log.w(TAG, "Skipping malformed CSV line (" + tokens.size() + " fields): " + line);
                 continue; // Fields 0-17 mandatory, field 18 (notes) optional
             }
@@ -138,6 +165,9 @@ public class CsvBackupHandler {
 
     /**
      * Splits a CSV line handling quoted fields and escaped internal quotes.
+     *
+     * @param line A single line of CSV text.
+     * @return A list of extracted column tokens.
      */
     public List<String> splitCsvLine(String line) {
         List<String> tokens = new ArrayList<>();
@@ -164,11 +194,25 @@ public class CsvBackupHandler {
         return tokens;
     }
 
+    /**
+     * Escapes a string for safe inclusion in a CSV field by wrapping it in double quotes
+     * and escaping any internal double quotes.
+     *
+     * @param input The raw string input.
+     * @return The escaped CSV-safe string.
+     */
     String escapeCsv(String input) {
         if (input == null) return "\"\"";
         return "\"" + input.replace("\"", "\"\"") + "\"";
     }
 
+    /**
+     * Safely parses a string into a primitive double value, returning a default value on failure.
+     *
+     * @param val        The string value to parse.
+     * @param defaultVal The fallback default double.
+     * @return The parsed double or default value.
+     */
     private double parseDoubleSafe(String val, double defaultVal) {
         if (val == null || val.trim().isEmpty()) return defaultVal;
         try {
@@ -178,6 +222,12 @@ public class CsvBackupHandler {
         }
     }
 
+    /**
+     * Safely parses a string into a nullable Double object, returning null on failure or empty input.
+     *
+     * @param val The string value to parse.
+     * @return The parsed {@link Double} or null.
+     */
     private Double parseNullableDouble(String val) {
         if (val == null || val.trim().isEmpty()) return null;
         try {
@@ -187,6 +237,13 @@ public class CsvBackupHandler {
         }
     }
 
+    /**
+     * Safely parses a string into a primitive long value, returning a default value on failure.
+     *
+     * @param val        The string value to parse.
+     * @param defaultVal The fallback default long.
+     * @return The parsed long or default value.
+     */
     private long parseLongSafe(String val, long defaultVal) {
         if (val == null || val.trim().isEmpty()) return defaultVal;
         try {

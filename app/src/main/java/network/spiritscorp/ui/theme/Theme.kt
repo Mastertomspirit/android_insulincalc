@@ -30,6 +30,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import network.spiritscorp.R
 
+/**
+ * Enumeration of available color themes for the application.
+ * Each theme provides a unique palette matching medical and material design aesthetics.
+ *
+ * @property displayNameRes Resource ID for the localized human-readable theme name.
+ * @property previewColor Primary swatch color used in settings theme preview indicators.
+ */
 enum class AppTheme(val displayNameRes: Int, val previewColor: Color) {
     MEDICAL_TEAL(R.string.app_theme_medical_teal, Color(0xFF006874)),
     OCEAN_BLUE(R.string.app_theme_ocean_blue, Color(0xFF0061A4)),
@@ -38,6 +45,9 @@ enum class AppTheme(val displayNameRes: Int, val previewColor: Color) {
     BERRY_VIOLET(R.string.app_theme_berry_violet, Color(0xFF834C77)),
     MIDNIGHT_DARK(R.string.app_theme_midnight_dark, Color(0xFF9965F4));
 
+    /**
+     * Dark/Light mode preference options for the application.
+     */
     enum class Mode(val displayNameRes: Int) {
         SYSTEM(R.string.app_theme_mode_system),
         DARK(R.string.app_theme_mode_dark),
@@ -246,6 +256,16 @@ private val MidnightColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFCAC4D0)
 )
 
+/**
+ * Main application theme wrapper supporting multiple customizable themes (Medical Teal,
+ * Ocean Blue, Emerald Green, Sunset Amber, Berry Violet, and Midnight Dark AMOLED),
+ * dynamic Material You coloring (on Android 12+), and explicit dark/light theme modes.
+ *
+ * @param selectedTheme The active [AppTheme] palette chosen by the user.
+ * @param darkTheme Boolean indicating whether dark theme mode is currently active.
+ * @param dynamicColor Boolean indicating whether Android Dynamic (Material You) colors should be used.
+ * @param content The composable content lambda to be wrapped inside the theme.
+ */
 @Composable
 fun MyApplicationTheme(
     selectedTheme: AppTheme = AppTheme.MEDICAL_TEAL,

@@ -37,6 +37,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
 
+/**
+ * Statistics header card showing aggregated logbook data: total calculation entries, summed carbs (g KH),
+ * summed insulin (IE), and average blood glucose (if available). Used to provide quick insights into filtered log periods.
+ *
+ * @param totalCarbs Sum of carbohydrate amounts across all included logs in grams (KH).
+ * @param totalInsulin Sum of insulin doses across all included logs in International Units (IE).
+ * @param entryCount Total number of calculation entries in the selected filter range.
+ * @param avgBloodGlucose Average blood glucose level if logs contain glucose measurements; null otherwise.
+ * @param modifier Optional {@link Modifier} for layout styling and positioning.
+ */
 @Composable
 fun LogbookStatsHeader(
     totalCarbs: Double,

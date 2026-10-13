@@ -40,25 +40,50 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Handles JSON serialization and deserialization for therapy configuration and calculation logs.
+ * Handles JSON serialization and deserialization for therapy configuration settings and calculation history logs.
+ * <p>
+ * Provides robust versioned backup export strings and flexible JSON parser implementations
+ * capable of handling legacy format variations and missing keys safely.
  */
 public class JsonBackupHandler {
 
+    /**
+     * Logging tag used for debugging and error reporting during export/import operations.
+     */
     private static final String TAG = "JsonBackupHandler";
+
+    /**
+     * Version identifier for backup file compatibility tracking.
+     */
     private static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
 
+    /**
+     * ISO date/time formatter used for serializing export timestamps in backups.
+     */
     private final SimpleDateFormat isoDateFormat;
 
+    /**
+     * Constructs a JsonBackupHandler using the standard ISO date-time formatter.
+     */
     public JsonBackupHandler() {
         this(DateTimeUtils.getIsoDateTimeFormatter());
     }
 
+    /**
+     * Constructs a JsonBackupHandler with a custom date formatter.
+     *
+     * @param dateFormat The {@link SimpleDateFormat} instance for parsing/formatting export dates.
+     */
     public JsonBackupHandler(SimpleDateFormat dateFormat) {
         this.isoDateFormat = dateFormat;
     }
 
     /**
-     * Serializes UserSettings and CalculationLogs into a formatted JSON string.
+     * Serializes UserSettings and a list of CalculationLogs into a formatted, versioned JSON string.
+     *
+     * @param settings The active {@link UserSettings} configuration to back up.
+     * @param logs     The list of saved {@link CalculationLog} history items.
+     * @return A formatted JSON string representation of the backup, or empty JSON object "{}" on failure.
      */
     public String exportToJson(UserSettings settings, List<CalculationLog> logs) {
         try {
@@ -98,7 +123,12 @@ public class JsonBackupHandler {
     }
 
     /**
-     * Parses a JSON backup string into UserSettings and a list of CalculationLogs.
+     * Parses a JSON backup string into a {@link Pair} containing restored {@link UserSettings}
+     * and a list of {@link CalculationLog} items.
+     * Handles both root backup objects containing settings+logs and standalone JSON arrays of logs.
+     *
+     * @param jsonString The raw JSON string from a backup file or import source.
+     * @return A {@link Pair} holding optional UserSettings and parsed CalculationLogs, or null if parsing fails.
      */
     public Pair<UserSettings, List<CalculationLog>> parseJson(String jsonString) {
         if (jsonString == null || jsonString.trim().isEmpty()) {
@@ -138,6 +168,13 @@ public class JsonBackupHandler {
         }
     }
 
+    /**
+     * Serializes a list of {@link CalculationLog} objects into a {@link JSONArray}.
+     *
+     * @param logs List of log entries to convert.
+     * @return A {@link JSONArray} containing serialized log JSON objects.
+     * @throws JSONException If JSON construction fails.
+     */
     @NonNull
     private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
         JSONArray logsArray = new JSONArray();
@@ -176,6 +213,12 @@ public class JsonBackupHandler {
         return logsArray;
     }
 
+    /**
+     * Deserializes a {@link JSONObject} representing user configuration settings into a {@link UserSettings} object.
+     *
+     * @param obj JSON object containing settings key-value pairs.
+     * @return Fully populated {@link UserSettings} object with fallback defaults for missing keys.
+     */
     private UserSettings parseUserSettingsJson(JSONObject obj) {
         UserSettings settings = new UserSettings();
         settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor"));
@@ -195,6 +238,14 @@ public class JsonBackupHandler {
         return settings;
     }
 
+    /**
+     * Flexibly retrieves a double value from a JSON object trying multiple candidate key names and parsing String numbers.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted double value or defaultVal.
+     */
     private double getDoubleFlexible(JSONObject obj, double defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -212,6 +263,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves an integer value from a JSON object trying multiple candidate key names.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted integer value or defaultVal.
+     */
     private int getIntFlexible(JSONObject obj, int defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -229,6 +288,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves a String value from a JSON object trying multiple candidate key names.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted String value or defaultVal.
+     */
     private String getStringFlexible(JSONObject obj, String defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -238,6 +305,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves a boolean value from a JSON object trying multiple candidate key names and String values.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted boolean value or defaultVal.
+     */
     private boolean getBooleanFlexible(JSONObject obj, boolean defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -252,6 +327,12 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Parses a {@link JSONArray} of calculation log JSON objects into a list of {@link CalculationLog} items.
+     *
+     * @param array JSON array containing serialized log entries.
+     * @return List of parsed {@link CalculationLog} instances.
+     */
     private List<CalculationLog> parseLogsArray(JSONArray array) {
         List<CalculationLog> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {

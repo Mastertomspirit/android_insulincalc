@@ -89,6 +89,16 @@ enum class HistoryFilter(@StringRes val titleRes: Int) {
 
 }
 
+/**
+ * Main Logbook Screen composable displaying calculation history logs, statistical summaries,
+ * filter options, date range pickers, and deletion/sharing actions. Orchestrates the entire logbook flow,
+ * including filtering by time period (ALL, TODAY, LAST_7, LAST_30, CUSTOM), slice navigation for "TODAY" views,
+ * export/share dialogs, and empty state handling.
+ *
+ * @param viewModel The {@link InsulinCalculatorViewModel} handling log deletions, clear-all operations, and data state.
+ * @param logs      The complete list of saved {@link CalculationLog} items available for filtering.
+ * @param modifier  Optional {@link Modifier} for layout styling.
+ */
 @Composable
 fun LogbookScreen(
     viewModel: InsulinCalculatorViewModel,
@@ -104,7 +114,7 @@ fun LogbookScreen(
     var customStartDateMillis by remember { mutableLongStateOf(System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000) }
     var customEndDateMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    // Filter computation
+    // Filter computation based on selected HistoryFilter and slice offsets
     val filteredLogs by remember(logs, selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
             val now = Calendar.getInstance()
@@ -155,6 +165,7 @@ fun LogbookScreen(
         }
     }
 
+    // Statistics calculations for the filtered log items
     val totalCarbs = remember(filteredLogs) { filteredLogs.sumOf { it.carbGrams } }
     val totalInsulin = remember(filteredLogs) { filteredLogs.sumOf { it.roundedInsulin } }
     val avgBloodGlucose = remember(filteredLogs) {
@@ -169,7 +180,7 @@ fun LogbookScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            // Header & Actions
+            // Header & Actions (Title, Entry Count, Share/Delete Icons)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -227,7 +238,7 @@ fun LogbookScreen(
         }
 
         item {
-            // Filter Bar with timeframe navigators
+            // Filter Bar with timeframe navigators (< >) and custom date picker
             LogbookFilterBar(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { filter ->
@@ -255,7 +266,7 @@ fun LogbookScreen(
 
         if (filteredLogs.isNotEmpty()) {
             item {
-                // Statistical Summary Header
+                // Statistical Summary Header (Entries Count, Carbs, Insulin, Avg BG)
                 LogbookStatsHeader(
                     totalCarbs = totalCarbs,
                     totalInsulin = totalInsulin,
@@ -335,7 +346,7 @@ fun LogbookScreen(
         }
     }
 
-    // Dialogs
+    // Single Log Deletion Confirmation Dialog
     logToDelete?.let { targetItem ->
         SingleLogDeleteDialog(
             log = targetItem,
@@ -347,6 +358,7 @@ fun LogbookScreen(
         )
     }
 
+    // Clear All Logs Confirmation Dialog
     if (showClearAllDialog) {
         ClearAllLogsDialog(
             totalLogsCount = logs.size,
@@ -358,6 +370,18 @@ fun LogbookScreen(
         )
     }
 }
+
+/**
+ * Helper function computing human-readable filter descriptions for the LogbookFilterBar.
+ * Handles ALL, TODAY (with day offsets), LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges with proper formatting.
+ *
+ * @param context Android context for string resources.
+ * @param filter The currently selected {@link HistoryFilter}.
+ * @param sliceOffset Current time offset index for TODAY filters (e.g., today, yesterday).
+ * @param customStart Custom start timestamp in milliseconds for CUSTOM range filter.
+ * @param customEnd Custom end timestamp in milliseconds for CUSTOM range filter.
+ * @return Formatted description string matching the active filter state and user preferences.
+ */
 private fun getFilterDescription(
     context: Context,
     filter: HistoryFilter,

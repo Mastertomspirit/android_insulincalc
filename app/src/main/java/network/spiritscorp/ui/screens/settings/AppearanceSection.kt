@@ -60,6 +60,18 @@ import androidx.compose.ui.res.stringResource
 import network.spiritscorp.R
 import network.spiritscorp.ui.theme.AppTheme
 
+/**
+ * Settings section composable for managing app appearance, including dynamic color schemes
+ * and dark/light/system theme modes.
+ *
+ * @param selectedTheme        The currently selected {@link AppTheme}.
+ * @param onThemeSelected      Callback invoked when a new color theme is selected.
+ * @param themeMode            The currently active {@link AppTheme.Mode} (Light, Dark, System).
+ * @param onThemeModeSelected  Callback invoked when the theme mode changes.
+ * @param modifier             Optional {@link Modifier} for layout styling.
+ * @param isExpanded           Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand       Callback invoked to toggle section expansion.
+ */
 @Composable
 fun AppearanceSection(
     selectedTheme: AppTheme,
@@ -79,6 +91,7 @@ fun AppearanceSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Palette,
                 title = stringResource(R.string.settings_appearance_section_title),
@@ -87,6 +100,7 @@ fun AppearanceSection(
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -103,6 +117,7 @@ fun AppearanceSection(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // App Theme Chips Selection FlowRow
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -165,6 +180,7 @@ fun AppearanceSection(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // Theme Mode Selection Row (Light, Dark, System)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)

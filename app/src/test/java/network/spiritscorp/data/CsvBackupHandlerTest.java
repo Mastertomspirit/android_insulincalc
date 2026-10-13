@@ -1,4 +1,5 @@
 package network.spiritscorp.data;
+
 /*
  * Copyright (C) 2026 Tom Spirit
  *

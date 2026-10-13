@@ -31,6 +31,17 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
+/**
+ * Represents detailed nutritional information for a single food item parsed from a meal estimation.
+ *
+ * @property name The name of the food item (e.g., "Mischbrot").
+ * @property portion The description of the portion size (e.g., "1 Scheibe (ca. 50g)").
+ * @property carbsGrams The total carbohydrate content in grams.
+ * @property fatGrams The total fat content in grams.
+ * @property proteinGrams The total protein content in grams.
+ * @property calories The estimated energy content in kilocalories (kcal). Defaults to 0.
+ * @property notes Additional dietary notes, glycemic index remarks, or observations. Defaults to empty string.
+ */
 data class MealItemDetail(
     val name: String,
     val portion: String,
@@ -41,6 +52,20 @@ data class MealItemDetail(
     val notes: String = ""
 )
 
+/**
+ * Represents the comprehensive aggregated result of a meal estimation, either from Gemini AI or offline fallback.
+ *
+ * @property mealTitle A concise descriptive title for the estimated meal.
+ * @property totalCarbsGrams The sum of carbohydrates across all meal items in grams.
+ * @property totalFatGrams The sum of fats across all meal items in grams.
+ * @property totalProteinGrams The sum of proteins across all meal items in grams.
+ * @property items A list of individual [MealItemDetail] components comprising the meal.
+ * @property explanation A dietary explanation or nutritional breakdown of the meal.
+ * @property insulinTip An advisory tip regarding insulin dosing considerations (e.g., fat-protein unit handling).
+ * @property rawThinking Optional internal reasoning or chain-of-thought text from the AI model. Defaults to empty string.
+ * @property isOfflineEstimate Flag indicating whether this estimate was generated offline using [StandardFoodDatabase]. Defaults to `false`.
+ * @property modelUsed The identifier of the AI model used to generate the estimate, or offline source name. Defaults to empty string.
+ */
 data class MealEstimateResult(
     val mealTitle: String,
     val totalCarbsGrams: Double,
@@ -54,20 +79,49 @@ data class MealEstimateResult(
     val modelUsed: String = ""
 )
 
+/**
+ * Service responsible for estimating meal composition and carbohydrate counts using the Google Gemini AI REST API
+ * or falling back to the local [StandardFoodDatabase] when API keys are unavailable.
+ *
+ * @property context Optional Android context used for resolving localized strings.
+ * @property baseUrl The base URL endpoint for Gemini API requests. Defaults to `"https://generativelanguage.googleapis.com"`.
+ */
 class GeminiMealService(
     private val context: Context? = null,
     private val baseUrl: String = "https://generativelanguage.googleapis.com"
 ) {
+
+    /**
+     * OkHttpClient configured with generous timeouts for AI inference calls.
+     */
     private val client = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(20, TimeUnit.SECONDS)
         .build()
 
+    /**
+     * Safely retrieves a localized string resource using the provided context, or returns an empty string if context is null.
+     *
+     * @param resId The string resource identifier.
+     * @param formatArgs Format arguments for the string template.
+     * @return The formatted localized string, or empty string if context is unavailable.
+     */
     private fun getString(resId: Int, vararg formatArgs: Any): String {
         return context?.getString(resId, *formatArgs) ?: ""
     }
 
+    /**
+     * Estimates carbohydrates, macronutrients, and insulin tips for a given natural language food description.
+     *
+     * Prioritizes user-provided custom API keys, then build-config API keys. If no valid API key is available,
+     * attempts to generate an intelligent offline estimate via [StandardFoodDatabase].
+     *
+     * @param foodDescription Natural language description of the meal or food items.
+     * @param customApiKey Optional user-supplied custom Gemini API key.
+     * @param selectedModel The [GeminiAiModel] to use for remote inference.
+     * @return A [Result] containing [MealEstimateResult] on success, or an exception on failure.
+     */
     suspend fun estimateCarbsFromDescription(
         foodDescription: String,
         customApiKey: String? = null,
@@ -153,6 +207,18 @@ class GeminiMealService(
         }
     }
 
+    /**
+     * Parses the raw JSON response returned by the Gemini AI API into a structured [MealEstimateResult].
+     *
+     * Extracts candidates, content parts, markdown code fences, and JSON properties including meal title,
+     * total macronutrients, item breakdown array, explanations, and insulin tips.
+     *
+     * @param responseBody The raw string response body from the API call.
+     * @param fallbackTitle Fallback title to use if the response omits a meal title.
+     * @param modelUsed The identifier of the AI model that generated the response.
+     * @return The parsed [MealEstimateResult].
+     * @throws IllegalArgumentException if the response text is blank or unparseable.
+     */
     fun parseGeminiApiResponse(
         responseBody: String,
         fallbackTitle: String = "",
@@ -233,6 +299,12 @@ class GeminiMealService(
         )
     }
 
+    /**
+     * Generates an offline fallback estimate by matching food description keywords against the [StandardFoodDatabase].
+     *
+     * @param foodDescription Natural language food description to match.
+     * @return A [MealEstimateResult] representing the offline estimation, or `null` if no matching food items were found.
+     */
     private fun createOfflineEstimation(foodDescription: String): MealEstimateResult? {
         val matches = StandardFoodDatabase.findMatches(foodDescription)
         if (matches.isEmpty()) {

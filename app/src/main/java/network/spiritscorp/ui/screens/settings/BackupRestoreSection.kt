@@ -68,6 +68,16 @@ import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
+/**
+ * Settings section composable for database backup export (JSON/CSV), sharing,
+ * restoring from files, and resetting all application data.
+ *
+ * @param viewModel             The {@link InsulinCalculatorViewModel} handling data operations.
+ * @param onShowResetDbDialog   Callback invoked to trigger the database reset confirmation dialog.
+ * @param modifier              Optional {@link Modifier} for layout styling.
+ * @param isExpanded            Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand        Callback invoked to toggle section expansion.
+ */
 @Composable
 fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
@@ -80,6 +90,8 @@ fun BackupRestoreSection(
     val backupManager = DatabaseBackupManager(context)
     val backupSuccess = stringResource(R.string.settings_backup_export_json_toast_success)
     val backupError = stringResource(R.string.settings_backup_export_json_toast_error)
+    
+    // File creation launcher for JSON backups
     val jsonExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -94,6 +106,8 @@ fun BackupRestoreSection(
 
     val backupSuccessCsv = stringResource(R.string.settings_backup_csv_toast_success)
     val backupErrorCsv = stringResource(R.string.settings_backup_csv_toast_error)
+    
+    // File creation launcher for CSV logbook exports
     val csvExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -108,6 +122,8 @@ fun BackupRestoreSection(
 
     val backupReadError = stringResource(R.string.settings_backup_read_error)
     val backupErrorImport = stringResource(R.string.settings_backup_import_toast_error)
+    
+    // File picker launcher for importing backup files
     val fileImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -135,6 +151,7 @@ fun BackupRestoreSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Save,
                 title = stringResource(R.string.settings_backup_section_title),
@@ -143,6 +160,7 @@ fun BackupRestoreSection(
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -152,6 +170,7 @@ fun BackupRestoreSection(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Export Buttons Row (JSON & CSV)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -202,6 +221,8 @@ fun BackupRestoreSection(
                     val shareSuccess = stringResource(R.string.settings_backup_share_json_subject)
                     val shareChooser = stringResource(R.string.settings_backup_share_json_chooser)
                     val shareError = stringResource(R.string.settings_backup_share_error_general)
+                    
+                    // Share Buttons Row (JSON & CSV sharing intents)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -274,6 +295,7 @@ fun BackupRestoreSection(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Import Button
                     Button(
                         onClick = {
                             fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
@@ -293,6 +315,7 @@ fun BackupRestoreSection(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Reset Data Button (Destructive)
                     OutlinedButton(
                         onClick = onShowResetDbDialog,
                         modifier = Modifier.fillMaxWidth().testTag("reset_all_data_button"),

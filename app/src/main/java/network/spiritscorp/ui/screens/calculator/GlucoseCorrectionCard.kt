@@ -67,8 +67,19 @@ import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
- * Expandable card allowing users to enter current blood glucose, target value,
- * and individual correction factor to calculate correction bolus doses.
+ *
+ * This composable provides an expandable section for blood glucose correction inputs.
+ * When expanded, users can enter their current blood glucose level, target blood glucose,
+ * and custom correction factor. It automatically calculates and displays the recommended
+ * correction bolus or highlights any potential hypoglycemia risks.
+ *
+ * @param uiState The current [CalculatorUiState] containing blood glucose values and expansion state.
+ * @param onToggleCorrection Callback invoked when the user expands or collapses the card.
+ * @param onGlucoseInputChange Callback invoked when the current blood glucose input changes.
+ * @param onTargetGlucoseChange Callback invoked when the target blood glucose input changes.
+ * @param onCorrectionFactorChange Callback invoked when the correction factor input changes.
+ * @param onDoneKeyboard Callback invoked when the keyboard's done action is triggered.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun GlucoseCorrectionCard(

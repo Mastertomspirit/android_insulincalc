@@ -45,6 +45,15 @@ import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.util.DateTimeUtils
 
+/**
+ * Confirmation dialog for deleting a single calculation log entry.
+ * Displays the log details (meal title, timestamp, insulin dosage) and allows
+ * user to confirm deletion or dismiss the dialog.
+ *
+ * @param log The {@link CalculationLog} to be deleted, displaying meal title, date, and insulin dosage.
+ * @param onConfirm Callback invoked when the user confirms deletion of this log entry.
+ * @param onDismiss Callback invoked when the dialog is dismissed (user clicks cancel or outside).
+ */
 @Composable
 fun SingleLogDeleteDialog(
     log: CalculationLog,
@@ -107,6 +116,14 @@ fun SingleLogDeleteDialog(
     )
 }
 
+/**
+ * Confirmation dialog for clearing all calculation logs from the logbook.
+ * Displays the total count of logs that will be deleted and requires explicit confirmation.
+ *
+ * @param totalLogsCount The total number of logs that will be cleared upon confirmation.
+ * @param onConfirm Callback invoked when the user confirms clearing all logs.
+ * @param onDismiss Callback invoked when the dialog is dismissed without action.
+ */
 @Composable
 fun ClearAllLogsDialog(
     totalLogsCount: Int,

@@ -66,6 +66,15 @@ import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 
+/**
+ * Main Settings Screen composable allowing users to configure therapy factors,
+ * carbohydrate units, blood glucose targets/units, app theme appearance, backups,
+ * and legal information.
+ *
+ * @param viewModel The {@link InsulinCalculatorViewModel} for database persistence and actions.
+ * @param settings  The current {@link UserSettings} state loaded from Room.
+ * @param modifier  Optional {@link Modifier} for layout styling and constraints.
+ */
 @Composable
 fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
@@ -75,6 +84,7 @@ fun SettingsScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // Local mutable state copies initialized from Room userSettings
     var morningFactor by remember(settings) { mutableDoubleStateOf(settings.morningFactor) }
     var noonFactor by remember(settings) { mutableDoubleStateOf(settings.noonFactor) }
     var eveningFactor by remember(settings) { mutableDoubleStateOf(settings.eveningFactor) }
@@ -109,6 +119,7 @@ fun SettingsScreen(
     var selectedTheme by remember(settings) { mutableStateOf(settings.selectedTheme) }
     var themeMode by remember(settings) { mutableStateOf(settings.themeMode) }
 
+    // Section expansion states for accordion cards
     var isFactorsExpanded by remember { mutableStateOf(false) }
     var isGlucoseExpanded by remember { mutableStateOf(false) }
     var isCarbUnitExpanded by remember { mutableStateOf(false) }
@@ -130,12 +141,13 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Quick Toggle Row (Alle aufklappen / einklappen für Abschnitte 1-5)
+        // QUICK TOGGLE ROW (Expand / Collapse All Sections Button)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Expand/Collapse All Button: Toggles visibility of all accordion sections at once for quick UI navigation
             TextButton(
                 onClick = {
                     val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded)
@@ -160,7 +172,7 @@ fun SettingsScreen(
             }
         }
 
-        // SECTION 1: Mahlzeiten-Faktoren & Rundung
+        // SECTION 1: Therapy Factors & Insulin Rounding (Accordion Card for morning/noon/evening/night factors + rounding step)
         TherapyFactorsSection(
             morningFactor = morningFactor,
             onMorningFactorChange = { morningFactor = it },
@@ -176,7 +188,7 @@ fun SettingsScreen(
             onToggleExpand = { isFactorsExpanded = !isFactorsExpanded }
         )
 
-        // SECTION 2: Blutzucker & Korrektur
+        // SECTION 2: Blood Glucose Targets & Correction Factors (Accordion Card for glucose unit, target BG, correction factor)
         GlucoseCorrectionSection(
             glucoseUnit = glucoseUnit,
             onGlucoseUnitChange = { newUnit ->
@@ -201,7 +213,7 @@ fun SettingsScreen(
             onToggleExpand = { isGlucoseExpanded = !isGlucoseExpanded }
         )
 
-        // SECTION 3: Kohlenhydrat-Einheit
+        // SECTION 3: Carbohydrate Units & BE Divisor (Accordion Card for selecting g KH/KE/BE and setting BE divisor)
         CarbUnitSection(
             defaultCarbUnit = defaultCarbUnit,
             onDefaultCarbUnitChange = { defaultCarbUnit = it },
@@ -211,7 +223,7 @@ fun SettingsScreen(
             onToggleExpand = { isCarbUnitExpanded = !isCarbUnitExpanded }
         )
 
-        // SECTION 4: Farbdesign & Erscheinungsbild
+        // SECTION 4: Appearance & Color Themes (Accordion Card for selecting color scheme and theme mode)
         AppearanceSection(
             selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL,
             onThemeSelected = { selectedTheme = it },
@@ -221,7 +233,7 @@ fun SettingsScreen(
             onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
         )
 
-        // SECTION 5: Datensicherung & Backup
+        // SECTION 5: Data Backup & Restore (Accordion Card for JSON/CSV export, sharing, import, and reset all data)
         BackupRestoreSection(
             viewModel = viewModel,
             onShowResetDbDialog = { showResetDbDialog = true },
@@ -229,7 +241,7 @@ fun SettingsScreen(
             onToggleExpand = { isBackupExpanded = !isBackupExpanded }
         )
 
-        // SAVE ACTION BUTTON
+        // SAVE SETTINGS ACTION BUTTON (Writes all user settings to Room database)
         Button(
             onClick = {
                 val targetNum = targetGlucose.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
@@ -271,12 +283,13 @@ fun SettingsScreen(
             )
         }
 
-        // SECTION 6: Medizinischer Hinweis & Version
+        // SECTION 6: Medical Disclaimer & App Version Info (Static card showing legal disclaimers and version name)
         AboutAndLegalSection()
 
         Spacer(modifier = Modifier.height(16.dp))
     }
 
+    // Confirmation dialog for resetting/clearing all calculation logs
     if (showResetDbDialog) {
         AlertDialog(
             onDismissRequest = { showResetDbDialog = false },

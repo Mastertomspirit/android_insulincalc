@@ -60,8 +60,20 @@ import network.spiritscorp.ui.components.UnitSelectorRow
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
- * Card for entering carbohydrates, selecting carb units (g KH, KE, BE),
- * quick adding increments, launching AI estimation, and viewing live unit equivalents.
+ * Card for entering carbohydrates, selecting carb units, and quick-adding increments.
+ *
+ * This composable provides inputs for entering carbohydrates in grams (g KH), KE, or BE units,
+ * selecting active units via toggle buttons, adding quick increments, viewing live unit equivalents,
+ * and providing a shortcut to launch the AI carb estimator assistant.
+ *
+ * @param uiState The current [CalculatorUiState] containing carb values and selected unit.
+ * @param onCarbInputChange Callback invoked when the carb input text changes.
+ * @param onClearCarbs Callback invoked to clear the current carb input.
+ * @param onUnitSelect Callback invoked when a new carb unit ([CarbUnit]) is selected.
+ * @param onQuickAdd Callback invoked when a quick-add increment button is tapped.
+ * @param onNavigateToAiEstimator Callback invoked to open the AI food carb estimator feature.
+ * @param onDoneKeyboard Callback invoked when the keyboard's done action is triggered.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun CarbsInputCard(

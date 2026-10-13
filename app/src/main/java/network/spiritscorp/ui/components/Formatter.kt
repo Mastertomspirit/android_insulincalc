@@ -20,6 +20,14 @@ package network.spiritscorp.ui.components
 import java.text.NumberFormat
 import java.util.Locale
 
+/**
+ * Formats a Double value into a localized display string with specified maximum decimal digits.
+ * Grouping (thousands separator) is disabled by default for clean diabetic dosage and carb presentation.
+ *
+ * @param maxDecimals Maximum number of fraction digits to display (defaults to 2).
+ * @param locale The locale to format the number for (e.g. Locale.GERMAN or Locale.US).
+ * @return Formatted string representation of the number.
+ */
 fun Double.toDisplayString(maxDecimals: Int = 2, locale: Locale): String {
     val nf = NumberFormat.getNumberInstance(locale).apply {
         maximumFractionDigits = maxDecimals

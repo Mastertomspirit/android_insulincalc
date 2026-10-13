@@ -56,8 +56,16 @@ import network.spiritscorp.ui.theme.InfoBlue
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
- * Prominent top hero card displaying calculated recommended insulin dosage,
- * breakdown by meal and correction, hypo alerts, and primary save action.
+ * Prominent top hero card displaying the calculated recommended insulin dosage.
+ *
+ * This composable renders the primary result card at the top of the calculator screen,
+ * summarizing the total insulin recommendation along with a detailed breakdown of meal
+ * bolus and correction doses. It also highlights potential hypoglycemia warnings and
+ * provides the primary action to save the calculation to the logbook.
+ *
+ * @param uiState The current state of the insulin calculator containing calculation results and inputs.
+ * @param onSaveToLogbook Callback invoked when the user clicks the "Save to Logbook" action button.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun CalculationResultHeroCard(
@@ -92,7 +100,7 @@ fun CalculationResultHeroCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Big rounded insulin units
+            // Display rounded total insulin dosage with extra bold typography
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
@@ -120,6 +128,7 @@ fun CalculationResultHeroCard(
                 )
             }
 
+            // Optional notice showing rounding step and raw unrounded calculation value
             if (uiState.calculationSummary.roundingStep() > 0.0) {
                 Text(
                     text = stringResource(R.string.calc_result_hero_rounded_format, uiState.calculationSummary.roundingStep(), uiState.calculationSummary.rawTotalInsulin()),
@@ -132,11 +141,12 @@ fun CalculationResultHeroCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Detailed breakdown
+            // Three-column breakdown showing Meal Insulin, Correction Insulin (if active), and Time of Day / Factor
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
+                // Column 1: Meal Bolus breakdown (Carbs & Carb Factor)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.calc_result_hero_breakdown_meal),
@@ -155,6 +165,7 @@ fun CalculationResultHeroCard(
                     )
                 }
 
+                // Column 2: Correction Bolus breakdown (Blood Glucose & Correction Factor) - visible only if correction is enabled
                 if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin() != 0.0) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -179,6 +190,7 @@ fun CalculationResultHeroCard(
                     }
                 }
 
+                // Column 3: Active Time of Day slot and corresponding insulin factor
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.calc_result_hero_breakdown_time),
@@ -198,6 +210,7 @@ fun CalculationResultHeroCard(
                 }
             }
 
+            // Advisory banner: Hypoglycemia warning (red) or normal status info (blue)
             if (uiState.calculationSummary.isHypoRisk) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
@@ -252,7 +265,7 @@ fun CalculationResultHeroCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Action: Save to logbook button
+            // Primary action button to save the calculated insulin dose and parameters to the logbook
             Button(
                 onClick = onSaveToLogbook,
                 modifier = Modifier

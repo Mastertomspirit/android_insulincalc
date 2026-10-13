@@ -57,6 +57,28 @@ import network.spiritscorp.ui.theme.MorningColor
 import network.spiritscorp.ui.theme.NightColor
 import network.spiritscorp.ui.theme.NoonColor
 
+/**
+ * Settings composable for therapy factors (morning, noon, evening, night, and rounding step).
+ *
+ * Displays the current factors and allows the user to edit them. Includes a collapsible
+ * expanded section that shows the rounding step options (0.5, 0.1, or 1.0). Uses colored
+ * icons for morning (twilight), noon (sunny), evening (darkness), and night (bedtime) to
+ * visually distinguish each factor type.
+ *
+ * @param morningFactor The current morning factor value.
+ * @param onMorningFactorChange Callback when the morning factor value is changed.
+ * @param noonFactor The current noon factor value.
+ * @param onNoonFactorChange Callback when the noon factor value is changed.
+ * @param eveningFactor The current evening factor value.
+ * @param onEveningFactorChange Callback when the evening factor value is changed.
+ * @param nightFactor The current night factor value.
+ * @param onNightFactorChange Callback when the night factor value is changed.
+ * @param roundingStep The current rounding step value (0.5, 0.1, or 1.0).
+ * @param onRoundingStepChange Callback when the rounding step value is changed.
+ * @param modifier Optional modifier for layout.
+ * @param isExpanded True if the expanded settings section should be visible.
+ * @param onToggleExpand Callback to toggle the expand state of the settings section.
+ */
 @Composable
 fun TherapyFactorsSection(
     morningFactor: Double,
@@ -82,6 +104,7 @@ fun TherapyFactorsSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header: Displays title, icon and toggle for expanding/collapsing settings
             SettingsSectionHeader(
                 icon = Icons.Default.Tune,
                 title = stringResource(R.string.settings_therapy_factors_section_title),
@@ -90,15 +113,18 @@ fun TherapyFactorsSection(
                 onToggle = onToggleExpand
             )
 
+            // Animated visibility controls whether the expanded settings section is shown
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
+                    // Divider and spacer above factor rows
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Morning factor row
                     FactorRow(
                         title = stringResource(R.string.settings_therapy_factors_morning_title),
                         subtitle = stringResource(R.string.settings_therapy_factors_morning_subtitle),
@@ -111,6 +137,7 @@ fun TherapyFactorsSection(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Noon factor row
                     FactorRow(
                         title = stringResource(R.string.settings_therapy_factors_noon_title),
                         subtitle = stringResource(R.string.settings_therapy_factors_noon_subtitle),
@@ -123,6 +150,7 @@ fun TherapyFactorsSection(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Evening factor row
                     FactorRow(
                         title = stringResource(R.string.settings_therapy_factors_evening_title),
                         subtitle = stringResource(R.string.settings_therapy_factors_evening_subtitle),
@@ -135,6 +163,7 @@ fun TherapyFactorsSection(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Night factor row
                     FactorRow(
                         title = stringResource(R.string.settings_therapy_factors_night_title),
                         subtitle = stringResource(R.string.settings_therapy_factors_night_subtitle),
@@ -146,9 +175,11 @@ fun TherapyFactorsSection(
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
+                    // Divider and spacer between factor rows and rounding step
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Rounding step label
                     Text(
                         text = stringResource(R.string.settings_therapy_factors_rounding_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -156,6 +187,7 @@ fun TherapyFactorsSection(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // List of rounding step options (0.5, 0.1, or 1.0)
                     val roundingOptions = listOf(
                         0.5 to stringResource(R.string.settings_therapy_factors_rounding_half),
                         0.1 to stringResource(R.string.settings_therapy_factors_rounding_tenth),

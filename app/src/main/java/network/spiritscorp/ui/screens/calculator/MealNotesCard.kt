@@ -66,7 +66,17 @@ import network.spiritscorp.R
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
- * Expandable card for entering meal titles (e.g., Breakfast, Pizza) and optional notes.
+ * Expandable card for entering a meal title (e.g., Breakfast) and optional notes.
+ *
+ * This composable provides an expandable section for adding optional meal metadata,
+ * such as a custom meal title or descriptive notes to be saved along with the insulin calculation
+ * into the logbook.
+ *
+ * @param uiState The current [CalculatorUiState] holding meal title and notes input values.
+ * @param onMealTitleChange Callback invoked when the meal title input changes.
+ * @param onNotesChange Callback invoked when the meal notes input changes.
+ * @param onDoneKeyboard Callback invoked when the keyboard's done action is triggered.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun MealNotesCard(

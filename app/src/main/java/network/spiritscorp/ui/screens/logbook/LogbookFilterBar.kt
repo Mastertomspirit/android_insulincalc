@@ -56,6 +56,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.R
 
+/**
+ * Filter bar composable for navigation through calculation history logs with time-based filters,
+ * date range picking, and slice offsets. Shows active filter chips, current date range, and
+ * slice navigation buttons (< >). Optionally displays a Material 3 DateRangePickerDialog.
+ *
+ * @param selectedFilter The currently active {@link HistoryFilter} (ALL, TODAY, LAST_7, LAST_30, CUSTOM).
+ * @param onFilterSelected Callback invoked when a user selects a new time filter.
+ * @param offsetIndex Current time slice index for multi-week/month views (used for TODAY filters only).
+ * @param onPreviousOffset Increment offset (move to previous week/month) when enabled.
+ * @param onNextOffset Decrement offset (move to next week/month) when enabled.
+ * @param onResetOffset Reset offset to show current month/week logs.
+ * @param filterDescription Human-readable date range string for active custom/sliced filters.
+ * @param showDatePickerDialog Flag indicating whether the DateRangePickerDialog should be shown.
+ * @param onShowDatePickerDialogChange Callback to show/hide the date picker dialog.
+ * @param onCustomRangeSelected Callback invoked when a custom date range is selected from the picker.
+ * @param modifier Optional {@link Modifier} for layout positioning and styling.
+ */
 @Composable
 fun LogbookFilterBar(
     selectedFilter: HistoryFilter,
@@ -84,6 +101,7 @@ fun LogbookFilterBar(
         ) {
             HistoryFilter.entries.forEach { filter ->
                 val isSelected = selectedFilter == filter
+                // Filter Chip Button: Allows selecting a time-based filter (ALL, TODAY, LAST_7, LAST_30, CUSTOM)
                 Surface(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
@@ -140,6 +158,7 @@ fun LogbookFilterBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Left Chevron Navigation Button: Increments slice offset (e.g., go to previous week/month)
                     IconButton(
                         onClick = onPreviousOffset,
                         modifier = Modifier.size(36.dp).testTag("filter_previous_slice_button")
@@ -157,12 +176,14 @@ fun LogbookFilterBar(
                             .weight(1f)
                             .clickable(enabled = offsetIndex > 0) { onResetOffset() }
                     ) {
+                        // Date Range Text: Shows current filtered period (e.g., "Today", "Yesterday", or custom date range)
                         Text(
                             text = filterDescription,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
+                        // "Back to Current" Hint: Shows when slice offset is used, prompting reset
                         if (offsetIndex > 0) {
                             Text(
                                 text = stringResource(R.string.logbook_filter_bar_back_to_current),
@@ -172,6 +193,7 @@ fun LogbookFilterBar(
                         }
                     }
 
+                    // Right Chevron Navigation Button: Decrements slice offset (e.g., go to next week/month)
                     IconButton(
                         onClick = onNextOffset,
                         enabled = offsetIndex > 0,

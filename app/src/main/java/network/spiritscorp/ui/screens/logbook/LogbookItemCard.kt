@@ -55,6 +55,16 @@ import androidx.compose.ui.platform.LocalLocale
 import network.spiritscorp.ui.components.toDisplayString
 import kotlin.math.abs
 
+/**
+ * Individual log item card displaying a single calculation entry with meal title, carb/insulin breakdown,
+ * glucose values (if available), correction insulin, timestamp, and action buttons for deletion/sharing.
+ *
+ * @param log The {@link CalculationLog} containing meal data, carb inputs, insulin dosage, and notes.
+ * @param glucoseUnit The {@link GlucoseUnit} (MG_DL or MMOL_L) used to display glucose values correctly.
+ * @param onDeleteRequest Callback invoked when the user clicks delete for this log entry, triggering confirmation dialog.
+ * @param modifier Optional {@link Modifier} for layout styling and positioning.
+ * @param onShareRequest Callback invoked when the user requests sharing of this log entry (e.g., via Share Intent).
+ */
 @Composable
 fun LogbookItemCard(
     log: CalculationLog,

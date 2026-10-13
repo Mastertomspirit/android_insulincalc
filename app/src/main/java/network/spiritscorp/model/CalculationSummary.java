@@ -20,12 +20,20 @@ package network.spiritscorp.model;
 import androidx.annotation.NonNull;
 import java.util.Objects;
 
+/**
+ * Immutable record representing the summary and intermediate results of an insulin calculation.
+ * Encapsulates carbohydrate amounts, insulin components (meal and correction), rounding details,
+ * hypo risk flags, and safety advisory notes.
+ */
 public record CalculationSummary(double carbGrams, double keValue, double beValue,
                                  double factorUsed, double mealInsulin, Double bloodGlucoseInput,
                                  Double targetGlucose, double correctionInsulin,
                                  double rawTotalInsulin, double roundedTotalInsulin,
                                  double roundingStep, boolean isHypoRisk, String advisoryNote) {
 
+    /**
+     * Compact constructor for {@link CalculationSummary} ensuring non-null initialization of advisory notes.
+     */
     public CalculationSummary(
             double carbGrams,
             double keValue,
