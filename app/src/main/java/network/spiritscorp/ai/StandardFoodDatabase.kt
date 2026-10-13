@@ -18,8 +18,22 @@ package network.spiritscorp.ai
  */
 
 /**
- * Standard food entries for offline carb estimation and nutritional reference.
- * Prepared for i18n via resource keys/enum structure.
+ * Standard food entries for offline carbohydrate estimation and nutritional reference.
+ *
+ * Provides a comprehensive pre-populated database of common food items, meals, baked goods,
+ * beverages, and fruits with their standard portion weights, carbohydrate contents per 100g,
+ * carbohydrates and calories per standard portion, glycemic index notes, and search keywords.
+ * Used by [GeminiMealService] to provide reliable offline estimations when no AI API key is configured.
+ *
+ * @property keyName Unique string key identifier for the food item.
+ * @property germanName Human-readable German name of the food item.
+ * @property standardPortionText Description of the standard serving size (e.g., "1 Scheibe (ca. 50g)").
+ * @property standardPortionGramsOrMl Weight in grams or volume in milliliters for the standard portion.
+ * @property carbsPer100g Carbohydrate content in grams per 100 grams of the food.
+ * @property carbsPerPortion Carbohydrate content in grams per standard portion.
+ * @property caloriesPerPortion Energy content in kilocalories (kcal) per standard portion.
+ * @property glycemicIndexNote Clinical or nutritional note regarding glycemic index and blood sugar absorption rate.
+ * @property keywords List of lowercase search terms and synonyms for robust keyword matching.
  */
 enum class StandardFoodDatabase(
     val keyName: String,

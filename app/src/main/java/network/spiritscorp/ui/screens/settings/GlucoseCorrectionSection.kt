@@ -59,6 +59,20 @@ import androidx.compose.ui.unit.sp
 import network.spiritscorp.R
 import network.spiritscorp.model.GlucoseUnit
 
+/**
+ * Settings section composable for configuring blood glucose units (mg/dl vs mmol/l),
+ * target blood glucose levels, and correction factors.
+ *
+ * @param glucoseUnit              The currently selected {@link GlucoseUnit}.
+ * @param onGlucoseUnitChange      Callback invoked when the glucose unit changes.
+ * @param targetGlucose            Target blood glucose string input value.
+ * @param onTargetGlucoseChange    Callback invoked when target glucose input changes.
+ * @param correctionFactor         Correction factor string input value.
+ * @param onCorrectionFactorChange Callback invoked when correction factor input changes.
+ * @param modifier                 Optional {@link Modifier} for layout styling.
+ * @param isExpanded               Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand           Callback invoked to toggle section expansion.
+ */
 @Composable
 fun GlucoseCorrectionSection(
     glucoseUnit: GlucoseUnit,
@@ -80,6 +94,7 @@ fun GlucoseCorrectionSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Opacity,
                 title = stringResource(R.string.settings_glucose_correction_section_title),
@@ -88,6 +103,7 @@ fun GlucoseCorrectionSection(
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -104,6 +120,7 @@ fun GlucoseCorrectionSection(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // Glucose Unit Selection Row (MG_DL vs MMOL_L)
                     Row(
                         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -141,6 +158,7 @@ fun GlucoseCorrectionSection(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    // Target Glucose & Correction Factor Input Fields
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

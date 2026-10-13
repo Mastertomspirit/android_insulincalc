@@ -73,6 +73,17 @@ import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.viewmodel.AiEstimateState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
+/**
+ * Main screen composable for AI-powered meal estimation using Gemini models.
+ * <p>
+ * Provides a user interface to input meal descriptions, select quick example queries,
+ * configure API credentials via {@link AiConfigCard}, trigger carb estimations,
+ * and view structured estimation results (`MealResultCard`).
+ *
+ * @param viewModel The {@link InsulinCalculatorViewModel} handling state and API requests.
+ * @param aiState   The current {@link AiEstimateState} (Idle, Loading, Success, Error).
+ * @param modifier  Optional {@link Modifier} for styling and layout positioning.
+ */
 @Composable
 fun AiMealEstimatorScreen(
     viewModel: InsulinCalculatorViewModel,
@@ -111,7 +122,7 @@ fun AiMealEstimatorScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Hero Header Card
+        // Hero Header Card describing AI estimator features
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -155,7 +166,7 @@ fun AiMealEstimatorScreen(
             }
         }
 
-        // AI Configuration (API Key & Model Selection)
+        // AI Configuration Card (API Key & Model Selection)
         AiConfigCard(
             userSettings = userSettings,
             onSaveConfig = { apiKey, modelId ->
@@ -163,7 +174,7 @@ fun AiMealEstimatorScreen(
             }
         )
 
-        // Input Card
+        // Meal Input Card with text field, estimate button and quick example chips
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -178,6 +189,7 @@ fun AiMealEstimatorScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Text field for natural language meal description
                 OutlinedTextField(
                     value = inputQuery,
                     onValueChange = { inputQuery = it },
@@ -198,6 +210,7 @@ fun AiMealEstimatorScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Submit button to trigger AI estimation
                 Button(
                     onClick = {
                         closeKeyboard()
@@ -242,6 +255,7 @@ fun AiMealEstimatorScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Quick example chips for fast querying
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -271,7 +285,7 @@ fun AiMealEstimatorScreen(
             }
         }
 
-        // Result presentation
+        // Result presentation section based on current AiEstimateState
         when (aiState) {
             is AiEstimateState.Loading -> {
                 Card(

@@ -56,6 +56,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLocale
 import network.spiritscorp.R
 
+/**
+ * Reusable section header component for settings categories with an icon, title,
+ * subtitle, and optional expand/collapse toggle behavior.
+ *
+ * @param icon       The {@link ImageVector} icon displayed in the header badge.
+ * @param title      Section title string.
+ * @param subtitle   Section descriptive subtitle string.
+ * @param isExpanded Optional boolean flag indicating whether the section is expanded.
+ * @param onToggle   Optional callback invoked when the header is clicked to toggle visibility.
+ */
 @Composable
 fun SettingsSectionHeader(
     icon: ImageVector,
@@ -79,6 +89,7 @@ fun SettingsSectionHeader(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Section Icon Badge Surface
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
@@ -106,6 +117,7 @@ fun SettingsSectionHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        // Expand/Collapse Chevron Indicator
         if (isExpanded != null) {
             Icon(
                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -117,6 +129,18 @@ fun SettingsSectionHeader(
     }
 }
 
+/**
+ * Reusable factor adjustment row component for modifying insulin therapy factors
+ * with decrement (-), current value display, and increment (+) buttons.
+ *
+ * @param title          Factor title (e.g. morning, noon).
+ * @param subtitle       Descriptive subtitle.
+ * @param icon           Category icon.
+ * @param iconColor      Color tint for the icon badge.
+ * @param factor         Current factor numeric value.
+ * @param onFactorChange Callback invoked with the updated factor value.
+ * @param tagPrefix      Unique test tag prefix for UI test automation.
+ */
 @Composable
 fun FactorRow(
     title: String,
@@ -171,11 +195,13 @@ fun FactorRow(
                 }
             }
 
+            // Controls Row: Decrement Button, Value Badge, Increment Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Decrement (-0.05) Button
                 Button(
                     onClick = {
                         val newF = BigDecimal(factor - 0.05).setScale(2, RoundingMode.HALF_UP).toDouble().coerceAtLeast(0.05)
@@ -197,6 +223,7 @@ fun FactorRow(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
+                // Current Factor Value Display Surface
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -218,6 +245,7 @@ fun FactorRow(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
+                // Increment (+0.05) Button
                 Button(
                     onClick = {
                         val newF = BigDecimal(factor + 0.05).setScale(2, RoundingMode.HALF_UP).toDouble().coerceAtMost(10.0)

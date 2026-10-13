@@ -44,6 +44,9 @@ import javax.crypto.spec.GCMParameterSpec;
  */
 public class DatabaseSecurityManager {
 
+    /**
+     * Logging tag used for debugging and security audits.
+     */
     private static final String TAG = "DatabaseSecurityManager";
     private static final String PREFS_FILE = AppConstants.SECURITY_PREFS_FILE;
 
@@ -175,6 +178,12 @@ public class DatabaseSecurityManager {
         return keyGenerator.generateKey();
     }
 
+    /**
+     * Encrypts the provided plaintext byte array using the Android KeyStore AES-GCM master key.
+     *
+     * @param plaintext Raw bytes to encrypt (e.g., database passphrase).
+     * @return [EncryptedData] containing the initialization vector (IV) and ciphertext, or null if KeyStore is unavailable.
+     */
     @Nullable
     EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
         try {
@@ -190,6 +199,13 @@ public class DatabaseSecurityManager {
         }
     }
 
+    /**
+     * Decrypts the provided ciphertext byte array using the Android KeyStore AES-GCM master key and IV.
+     *
+     * @param iv Initialization vector used during encryption.
+     * @param ciphertext Encrypted data bytes.
+     * @return Decrypted raw plaintext bytes, or null if decryption fails or KeyStore is unavailable.
+     */
     @Nullable
     byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
         try {
@@ -224,6 +240,9 @@ public class DatabaseSecurityManager {
         return new String(hexChars);
     }
 
+    /**
+     * Immutable container record holding encrypted ciphertext and its initialization vector.
+     */
     record EncryptedData(byte[] iv, byte[] ciphertext) {
     }
 }

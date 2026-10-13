@@ -44,6 +44,12 @@ import androidx.compose.ui.res.stringResource
 import network.spiritscorp.BuildConfig
 import network.spiritscorp.R
 
+/**
+ * Settings section composable displaying legal disclaimers regarding medical calculations,
+ * safety notices, and the current application build version name.
+ *
+ * @param modifier Optional {@link Modifier} for layout styling.
+ */
 @Composable
 fun AboutAndLegalSection(
     modifier: Modifier = Modifier
@@ -60,6 +66,7 @@ fun AboutAndLegalSection(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Medical Disclaimer Notice Card
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -94,6 +101,7 @@ fun AboutAndLegalSection(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // App Version Name Display Card
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),

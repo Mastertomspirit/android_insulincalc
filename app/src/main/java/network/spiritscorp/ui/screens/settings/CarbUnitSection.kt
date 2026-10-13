@@ -57,6 +57,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
 
+/**
+ * Settings composable for carbohydrate unit selection.
+ *
+ * Displays the current default carb unit and allows the user to select
+ * a different carb unit from the list. Includes a collapsible expanded
+ * section that shows the BE (Bedtime) divisor options (12 or 10).
+ *
+ * @param defaultCarbUnit The current default carbohydrate unit.
+ * @param onDefaultCarbUnitChange Callback when the default carb unit is changed.
+ * @param beDivisor The current BE divisor value (12 or 10).
+ * @param onBeDivisorChange Callback when the BE divisor value is changed.
+ * @param modifier Optional modifier for layout.
+ * @param isExpanded True if the expanded settings section should be visible.
+ * @param onToggleExpand Callback to toggle the expand state of the settings section.
+ */
 @Composable
 fun CarbUnitSection(
     defaultCarbUnit: CarbUnit,
@@ -76,6 +91,7 @@ fun CarbUnitSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Section header with icon and title/subtitle
             SettingsSectionHeader(
                 icon = Icons.Default.Scale,
                 title = stringResource(R.string.settings_carb_unit_section_title),
@@ -84,15 +100,18 @@ fun CarbUnitSection(
                 onToggle = onToggleExpand
             )
 
+            // Animated visibility controls whether the expanded settings section is shown
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
+                    // Divider and spacer above unit list
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Default unit label
                     Text(
                         text = stringResource(R.string.settings_carb_unit_default_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -100,6 +119,8 @@ fun CarbUnitSection(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // Row with clickable unit options
+                    // Each unit option is clickable to select the default carb unit
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -139,9 +160,11 @@ fun CarbUnitSection(
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
+                    // Divider and spacer between unit list and BE options
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // BE definition label
                     Text(
                         text = stringResource(R.string.settings_carb_unit_be_definition_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -149,6 +172,7 @@ fun CarbUnitSection(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // List of BE divisor options (12 and 10)
                     val beOptions = listOf(
                         12 to stringResource(R.string.settings_carb_unit_be_12),
                         10 to stringResource(R.string.settings_carb_unit_be_10)

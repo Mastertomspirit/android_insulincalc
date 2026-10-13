@@ -25,18 +25,25 @@ import network.spiritscorp.model.UserSettings;
 /**
  * Single source of truth repository managing data access for calculation logs
  * and personalized insulin therapy settings in Java.
+ *
+ * @param calculationLogDao DAO for accessing calculation history logs.
+ * @param userSettingsDao   DAO for accessing user therapy settings.
  */
 public record InsulinRepository(CalculationLogDao calculationLogDao, UserSettingsDao userSettingsDao) {
 
     /**
-     * Cold Flow emitting all historical calculation logs ordered chronologically descending.
+     * Observes all historical calculation logs ordered chronologically descending.
+     *
+     * @return A cold Kotlin {@link Flow} emitting list updates of {@link CalculationLog} items.
      */
     public Flow<List<CalculationLog>> getAllLogs() {
         return calculationLogDao.getAllLogs();
     }
 
     /**
-     * Cold Flow emitting current UserSettings updates reactively.
+     * Observes active user settings updates reactively.
+     *
+     * @return A cold Kotlin {@link Flow} emitting {@link UserSettings} updates.
      */
     public Flow<UserSettings> getSettingsFlow() {
         return userSettingsDao.getSettings();
@@ -44,6 +51,8 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Retrieves the current user settings or initializes and persists default settings if none exist yet.
+     *
+     * @return The active {@link UserSettings} instance.
      */
     public UserSettings getSettings() {
         UserSettings existing = userSettingsDao.getSettingsDirect();
@@ -57,6 +66,8 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Persists updated user settings into the database.
+     *
+     * @param settings The {@link UserSettings} to save.
      */
     public void saveSettings(UserSettings settings) {
         userSettingsDao.saveSettings(settings);
@@ -64,6 +75,8 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Retrieves a non-reactive snapshot list of all calculation logs.
+     *
+     * @return A list containing all saved {@link CalculationLog} items.
      */
     public List<CalculationLog> getAllLogsDirect() {
         return calculationLogDao.getAllLogsDirect();
@@ -71,6 +84,9 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Inserts a new calculation log into the database.
+     *
+     * @param log The {@link CalculationLog} to persist.
+     * @return The row ID of the inserted log.
      */
     public long saveCalculation(CalculationLog log) {
         return calculationLogDao.insertLog(log);
@@ -78,6 +94,9 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Inserts a batch of calculation logs.
+     *
+     * @param logs List of {@link CalculationLog} items to insert.
+     * @return Array of row IDs.
      */
     public long[] saveLogs(List<CalculationLog> logs) {
         return calculationLogDao.insertLogs(logs);
@@ -85,6 +104,8 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
 
     /**
      * Deletes a specific calculation log by its ID.
+     *
+     * @param logId The primary key ID of the log entry to delete.
      */
     public void deleteLog(long logId) {
         calculationLogDao.deleteLogById(logId);
