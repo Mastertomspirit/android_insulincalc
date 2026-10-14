@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,7 +70,49 @@ fun MealResultCard(
     onApply: (Double, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var customCarbs by remember(result) { mutableDoubleStateOf(result.totalCarbsGrams) }
+    val baseWeight = if (result.totalWeightGrams > 0.0) {
+        result.totalWeightGrams
+    } else {
+        result.items.sumOf { it.weightGrams }
+    }
+
+    var customWeight by remember(result) { mutableDoubleStateOf(baseWeight) }
+
+    val scaleFactor = if (baseWeight > 0.0) customWeight / baseWeight else 1.0
+
+    val scaledCarbs = result.totalCarbsGrams * scaleFactor
+    val scaledFat = result.totalFatGrams * scaleFactor
+    val scaledProtein = result.totalProteinGrams * scaleFactor
+    val scaledCalories = (result.totalCalories * scaleFactor).toInt()
+
+    if (!result.isOfflineEstimate) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.ai_estimation_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+    }
 
     Card(
         modifier = modifier
@@ -169,20 +212,6 @@ fun MealResultCard(
                     Surface(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { if (customCarbs >= 5.0) customCarbs -= 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = stringResource(R.string.meal_result_card_minus_5g),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
                             .clickable { if (customCarbs >= 10.0) customCarbs -= 10.0 },
                         shape = RoundedCornerShape(8.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant
@@ -190,21 +219,7 @@ fun MealResultCard(
                         Text(
                             text = stringResource(R.string.meal_result_card_minus_10g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { customCarbs += 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = stringResource(R.string.meal_result_card_plus_5g),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -218,7 +233,7 @@ fun MealResultCard(
                         Text(
                             text = stringResource(R.string.meal_result_card_plus_10g),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -267,7 +282,7 @@ fun MealResultCard(
                                     text = item.notes,
                                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                                     color = MaterialTheme.colorScheme.primary,
-                                    maxLines = 2,
+                                    maxLines = 4,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }

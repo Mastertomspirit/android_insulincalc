@@ -172,6 +172,7 @@
     <!-- MealResultCard -->
     <string name="meal_result_card_offline_badge">Offline-Datenbank</string>
     <string name="meal_result_card_live_ai_badge">Live-KI: %1$s</string>
+    <string name="ai_estimation_disclaimer">KI-Schätzungen können Fehler enthalten. Je ungenauer die Anfrage, desto wahrscheinlicher sind Abweichungen. Prüfe Antworten daher immer auf Plausibilität.</string>
     <string name="meal_result_card_carbs_format">%1$s g</string>
     <string name="meal_result_card_be_format">ca. %1$s BE</string>
     <string name="meal_result_card_fpe_summary_format">Fett: %1$sg • Eiweiß: %2$sg</string>

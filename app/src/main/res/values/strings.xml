@@ -172,6 +172,7 @@
     <!-- MealResultCard -->
     <string name="meal_result_card_offline_badge">Offline database</string>
     <string name="meal_result_card_live_ai_badge">Live AI: %1$s</string>
+    <string name="ai_estimation_disclaimer">AI estimates may contain errors. The less precise the prompt, the higher the likelihood of deviations. Always verify answers for plausibility.</string>
     <string name="meal_result_card_carbs_format">%1$s g</string>
     <string name="meal_result_card_be_format">ca. %1$s BU</string>
     <string name="meal_result_card_fpe_summary_format">Fat: %1$sg • Protein: %2$sg</string>
