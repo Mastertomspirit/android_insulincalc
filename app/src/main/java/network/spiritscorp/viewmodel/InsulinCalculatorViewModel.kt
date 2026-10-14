@@ -429,13 +429,24 @@ class InsulinCalculatorViewModel(
         _uiState.update { it.copy(notes = notes) }
     }
 
+    /**
+     * Called when the app resumes from background to refresh
+     * auto-detected time of day if active.
+     */
+    fun onResume() {
+        if (_uiState.value.isAutoTimeDetection) {
+            recalculate()
+        }
+    }
+
     private fun getEffectiveFactor(settings: UserSettings = cachedSettings): Double {
         val state = _uiState.value
         if (state.factorOverride != null) {
             return state.factorOverride
         }
         val effectiveSettings = if (settings.id != 0 || settings != UserSettings()) settings else (userSettings.value)
-        return getFactorForTime(state.selectedTimeOfDay, effectiveSettings)
+        val activeTimeOfDay = if (state.isAutoTimeDetection) TimeOfDay.current() else state.selectedTimeOfDay
+        return getFactorForTime(activeTimeOfDay, effectiveSettings)
     }
 
     private fun getFactorForTime(timeOfDay: TimeOfDay, settings: UserSettings): Double {
@@ -451,12 +462,11 @@ class InsulinCalculatorViewModel(
         val state = _uiState.value
         val rawInput = state.carbInput.replace(',','.').toDoubleOrNull() ?: 0.0
         val settings = passedSettings ?: cachedSettings
+        val activeTimeOfDay = if (state.isAutoTimeDetection) TimeOfDay.current() else state.selectedTimeOfDay
 
         val grams = InsulinMathEngine.convertToGrams(rawInput, state.selectedUnit, settings.beGramsDivisor)
-
         val ke = InsulinMathEngine.calculateKe(grams)
         val be = InsulinMathEngine.calculateBe(grams, settings.beGramsDivisor)
-
         val factor = getEffectiveFactor(settings)
         val mealInsulin = InsulinMathEngine.calculateMealInsulin(
             rawInput,
@@ -471,7 +481,7 @@ class InsulinCalculatorViewModel(
         val corrFactor = state.correctionFactorInput.replace(',', '.').toDoubleOrNull()
 
         var isHypoRisk = false
-        var advisory = getApplication<Application>().getString(R.string.view_model_advisory_standard)
+        var advisory = ""
         val gUnit = state.glucoseUnit
         val isMmol = (gUnit == GlucoseUnit.MMOL_L)
 
@@ -482,7 +492,7 @@ class InsulinCalculatorViewModel(
                 val unitStr = app.getString(gUnit.shortNameResId)
                 val thresholdStr = if (isMmol) "3.9 $unitStr" else "70 $unitStr"
                 advisory = app.getString(R.string.view_model_advisory_hypo, thresholdStr)
-            }else if (currentBg < targetBg) {
+            } else if (currentBg < targetBg) {
                 advisory = app.getString(R.string.view_model_advisory_below_target)
             } else if (currentBg > targetBg) {
                 advisory = app.getString(R.string.view_model_advisory_above_target)
@@ -494,6 +504,7 @@ class InsulinCalculatorViewModel(
 
         _uiState.update {
             it.copy(
+                selectedTimeOfDay = activeTimeOfDay,
                 calculationSummary = CalculationSummary(
                     InsulinMathEngine.roundToDecimals(grams, 1),
                     InsulinMathEngine.roundToDecimals(ke, 2),

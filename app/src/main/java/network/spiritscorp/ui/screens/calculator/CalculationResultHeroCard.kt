@@ -236,7 +236,7 @@ fun CalculationResultHeroCard(
                         )
                     }
                 }
-            } else {
+            } else if(uiState.calculationSummary.advisoryNote().isNotBlank()){
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),

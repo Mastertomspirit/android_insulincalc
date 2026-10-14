@@ -128,7 +128,7 @@ public class CalculatorEngineStateTest {
         assertEquals(7.50, summary.rawTotalInsulin(), DELTA);
         assertEquals(7.5, summary.roundedTotalInsulin(), DELTA);
         assertFalse(summary.isHypoRisk());
-        assertEquals(app.getString(R.string.view_model_advisory_standard), summary.advisoryNote());
+        assertTrue(summary.advisoryNote().isBlank());
     }
 
     @Test
