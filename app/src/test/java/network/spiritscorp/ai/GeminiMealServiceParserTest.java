@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit tests verifying the actual parsing logic inside GeminiMealService.
  * Tests full Gemini API HTTP response structure, Markdown backtick extraction,
- * carbohydrate/fat/protein macro parsing, automatic fallback sums, and default handling.
+ * weight, calories, carbohydrate/fat/protein macro parsing, automatic fallback sums, and default handling.
  */
 public class GeminiMealServiceParserTest {
 
@@ -49,7 +49,7 @@ public class GeminiMealServiceParserTest {
                       "content": {
                         "parts": [
                           {
-                            "text": "```json\\n{\\n  \\"mealTitle\\": \\"Haferflocken mit Beeren und Mandeln\\",\\n  \\"totalCarbsGrams\\": 55.0,\\n  \\"totalFatGrams\\": 12.0,\\n  \\"totalProteinGrams\\": 15.0,\\n  \\"items\\": [\\n    {\\n      \\"name\\": \\"Haferflocken\\",\\n      \\"portion\\": \\"60g\\",\\n      \\"carbsGrams\\": 40.0,\\n      \\"fatGrams\\": 4.0,\\n      \\"proteinGrams\\": 8.0,\\n      \\"calories\\": 220,\\n      \\"notes\\": \\"Komplexe Kohlenhydrate\\"\\n    },\\n    {\\n      \\"name\\": \\"Blaubeeren\\",\\n      \\"portion\\": \\"100g\\",\\n      \\"carbsGrams\\": 12.0,\\n      \\"fatGrams\\": 0.5,\\n      \\"proteinGrams\\": 1.0,\\n      \\"calories\\": 57,\\n      \\"notes\\": \\"Reich an Antioxidantien\\"\\n    },\\n    {\\n      \\"name\\": \\"Mandeln\\",\\n      \\"portion\\": \\"20g\\",\\n      \\"carbsGrams\\": 3.0,\\n      \\"fatGrams\\": 7.5,\\n      \\"proteinGrams\\": 6.0,\\n      \\"calories\\": 115,\\n      \\"notes\\": \\"Gesunde Fette\\"\\n    }\\n  ],\\n  \\"explanation\\": \\"Haferflocken liefern den Großteil der Kohlenhydrate.\\",\\n  \\"insulinTip\\": \\"Durch Ballaststoffe und Fette langsamere Resorption.\\"\\n}\\n```"
+                            "text": "```json\\n{\\n  \\"mealTitle\\": \\"Haferflocken mit Beeren und Mandeln\\",\\n  \\"totalWeightGrams\\": 180.0,\\n  \\"totalCarbsGrams\\": 55.0,\\n  \\"totalFatGrams\\": 12.0,\\n  \\"totalProteinGrams\\": 15.0,\\n  \\"totalCalories\\": 392,\\n  \\"items\\": [\\n    {\\n      \\"name\\": \\"Haferflocken\\",\\n      \\"portion\\": \\"60g\\",\\n      \\"weightGrams\\": 60.0,\\n      \\"carbsGrams\\": 40.0,\\n      \\"fatGrams\\": 4.0,\\n      \\"proteinGrams\\": 8.0,\\n      \\"calories\\": 220,\\n      \\"notes\\": \\"Komplexe Kohlenhydrate\\"\\n    },\\n    {\\n      \\"name\\": \\"Blaubeeren\\",\\n      \\"portion\\": \\"100g\\",\\n      \\"weightGrams\\": 100.0,\\n      \\"carbsGrams\\": 12.0,\\n      \\"fatGrams\\": 0.5,\\n      \\"proteinGrams\\": 1.0,\\n      \\"calories\\": 57,\\n      \\"notes\\": \\"Reich an Antioxidantien\\"\\n    },\\n    {\\n      \\"name\\": \\"Mandeln\\",\\n      \\"portion\\": \\"20g\\",\\n      \\"weightGrams\\": 20.0,\\n      \\"carbsGrams\\": 3.0,\\n      \\"fatGrams\\": 7.5,\\n      \\"proteinGrams\\": 6.0,\\n      \\"calories\\": 115,\\n      \\"notes\\": \\"Gesunde Fette\\"\\n    }\\n  ],\\n  \\"explanation\\": \\"Haferflocken liefern den Großteil der Kohlenhydrate.\\",\\n  \\"insulinTip\\": \\"Durch Ballaststoffe und Fette langsamere Resorption.\\"\\n}\\n```"
                           }
                         ]
                       }
@@ -65,9 +65,11 @@ public class GeminiMealServiceParserTest {
 
         assertNotNull(result);
         assertEquals("Haferflocken mit Beeren und Mandeln", result.getMealTitle());
+        assertEquals(180.0, result.getTotalWeightGrams(), DELTA);
         assertEquals(55.0, result.getTotalCarbsGrams(), DELTA);
         assertEquals(12.0, result.getTotalFatGrams(), DELTA);
         assertEquals(15.0, result.getTotalProteinGrams(), DELTA);
+        assertEquals(392, result.getTotalCalories());
         assertEquals("gemini-3.8-flash", result.getModelUsed());
         assertFalse(result.isOfflineEstimate());
 
@@ -76,6 +78,7 @@ public class GeminiMealServiceParserTest {
         MealItemDetail item1 = result.getItems().getFirst();
         assertEquals("Haferflocken", item1.getName());
         assertEquals("60g", item1.getPortion());
+        assertEquals(60.0, item1.getWeightGrams(), DELTA);
         assertEquals(40.0, item1.getCarbsGrams(), DELTA);
         assertEquals(4.0, item1.getFatGrams(), DELTA);
         assertEquals(8.0, item1.getProteinGrams(), DELTA);
@@ -84,6 +87,7 @@ public class GeminiMealServiceParserTest {
 
         MealItemDetail item3 = result.getItems().get(2);
         assertEquals("Mandeln", item3.getName());
+        assertEquals(20.0, item3.getWeightGrams(), DELTA);
         assertEquals(3.0, item3.getCarbsGrams(), DELTA);
         assertEquals(7.5, item3.getFatGrams(), DELTA);
         assertEquals(6.0, item3.getProteinGrams(), DELTA);
@@ -104,16 +108,20 @@ public class GeminiMealServiceParserTest {
                     {
                       "name": "Spaghetti",
                       "portion": "200g",
+                      "weightGrams": 200.0,
                       "carbsGrams": 70.0,
                       "fatGrams": 2.0,
-                      "proteinGrams": 8.0
+                      "proteinGrams": 8.0,
+                      "calories": 310
                     },
                     {
                       "name": "Bolognese Sauce",
                       "portion": "150g",
+                      "weightGrams": 150.0,
                       "carbsGrams": 5.0,
                       "fatGrams": 16.0,
-                      "proteinGrams": 16.0
+                      "proteinGrams": 16.0,
+                      "calories": 230
                     }
                   ],
                   "explanation": "Pasta Gericht",
@@ -123,6 +131,8 @@ public class GeminiMealServiceParserTest {
         MealEstimateResult result = service.parseGeminiApiResponse(directJson, "Spaghetti", "gemini-3.5-flash");
 
         assertEquals("Spaghetti Bolognese", result.getMealTitle());
+        assertEquals(350.0, result.getTotalWeightGrams(), DELTA); // Calculated from sum of item weights (200 + 150)
+        assertEquals(540, result.getTotalCalories()); // Calculated from sum of item calories (310 + 230)
         assertEquals(75.0, result.getTotalCarbsGrams(), DELTA);
         assertEquals(18.0, result.getTotalFatGrams(), DELTA);
         assertEquals(24.0, result.getTotalProteinGrams(), DELTA);
@@ -145,6 +155,8 @@ public class GeminiMealServiceParserTest {
 
         assertNotNull(result);
         assertEquals("Apfel & Nüsse", result.getMealTitle());
+        assertEquals(0.0, result.getTotalWeightGrams(), DELTA); // Does not default to 100!
+        assertEquals(0, result.getTotalCalories());
         assertEquals(30.5, result.getTotalCarbsGrams(), DELTA);
         assertEquals(0.0, result.getTotalFatGrams(), DELTA);
         assertEquals(0.0, result.getTotalProteinGrams(), DELTA);

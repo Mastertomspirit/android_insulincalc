@@ -35,10 +35,11 @@ import java.util.concurrent.TimeUnit
  * Represents detailed nutritional information for a single food item parsed from a meal estimation.
  *
  * @property name The name of the food item (e.g., "Mischbrot").
- * @property portion The description of the portion size (e.g., "1 Scheibe (ca. 50g)").
+ * @property portion The description of the portion size (e.g., "1 Scheibe").
  * @property carbsGrams The total carbohydrate content in grams.
  * @property fatGrams The total fat content in grams.
  * @property proteinGrams The total protein content in grams.
+ * @property weightGrams The estimated weight in grams or volume in ml for this item. Defaults to 0.0.
  * @property calories The estimated energy content in kilocalories (kcal). Defaults to 0.
  * @property notes Additional dietary notes, glycemic index remarks, or observations. Defaults to empty string.
  */
@@ -48,6 +49,7 @@ data class MealItemDetail(
     val carbsGrams: Double,
     val fatGrams: Double,
     val proteinGrams: Double,
+    val weightGrams: Double = 0.0,
     val calories: Int = 0,
     val notes: String = ""
 )
@@ -59,6 +61,8 @@ data class MealItemDetail(
  * @property totalCarbsGrams The sum of carbohydrates across all meal items in grams.
  * @property totalFatGrams The sum of fats across all meal items in grams.
  * @property totalProteinGrams The sum of proteins across all meal items in grams.
+ * @property totalWeightGrams The total weight in grams or volume in ml for the entire meal. Defaults to 0.0.
+ * @property totalCalories The total energy content in kilocalories (kcal). Defaults to 0.
  * @property items A list of individual [MealItemDetail] components comprising the meal.
  * @property explanation A dietary explanation or nutritional breakdown of the meal.
  * @property insulinTip An advisory tip regarding insulin dosing considerations (e.g., fat-protein unit handling).
@@ -71,6 +75,8 @@ data class MealEstimateResult(
     val totalCarbsGrams: Double,
     val totalFatGrams: Double,
     val totalProteinGrams: Double,
+    val totalWeightGrams: Double = 0.0,
+    val totalCalories: Int = 0,
     val items: List<MealItemDetail>,
     val explanation: String,
     val insulinTip: String,
@@ -258,6 +264,9 @@ class GeminiMealService(
         val totalCarbs = parsedResult.optDouble("totalCarbsGrams", 0.0)
         val totalFat = parsedResult.optDouble("totalFatGrams", 0.0)
         val totalProtein = parsedResult.optDouble("totalProteinGrams", 0.0)
+        val rawTotalWeight = parsedResult.optDouble("totalWeightGrams", 0.0)
+        val rawTotalCalories = parsedResult.optInt("totalCalories", 0)
+
         val explanation = parsedResult.optString("explanation", getString(R.string.gemini_meal_service_default_explanation)).trim()
         val insulinTip = parsedResult.optString("insulinTip", getString(R.string.gemini_meal_service_default_insulin_tip)).trim()
 
@@ -270,6 +279,8 @@ class GeminiMealService(
                 if (itemObj != null) {
                     val fat = itemObj.optDouble("fatGrams", 0.0)
                     val protein = itemObj.optDouble("proteinGrams", 0.0)
+                    val weight = itemObj.optDouble("weightGrams", 0.0)
+                    val cal = itemObj.optInt("calories", 0)
 
                     itemsList.add(
                         MealItemDetail(
@@ -278,7 +289,8 @@ class GeminiMealService(
                             carbsGrams = itemObj.optDouble("carbsGrams", 0.0),
                             fatGrams = fat,
                             proteinGrams = protein,
-                            calories = itemObj.optInt("calories", 0),
+                            weightGrams = weight,
+                            calories = cal,
                             notes = itemObj.optString("notes", "").trim()
                         )
                     )
@@ -286,11 +298,16 @@ class GeminiMealService(
             }
         }
 
+        val calculatedWeight = if (rawTotalWeight > 0.0) rawTotalWeight else itemsList.sumOf { it.weightGrams }
+        val calculatedCalories = if (rawTotalCalories > 0) rawTotalCalories else itemsList.sumOf { it.calories }
+
         return MealEstimateResult(
             mealTitle = mealTitle,
             totalCarbsGrams = totalCarbs,
             totalFatGrams = totalFat,
             totalProteinGrams = totalProtein,
+            totalWeightGrams = calculatedWeight,
+            totalCalories = calculatedCalories,
             items = itemsList,
             explanation = explanation,
             insulinTip = insulinTip,
@@ -314,9 +331,12 @@ class GeminiMealService(
         var totalCarbs = 0.0
         var totalFat = 0.0
         var totalProtein = 0.0
+        var totalWeight = 0.0
+        var totalCalories = 0
 
         // TODO create fat and protein in offline db
         for (food in matches) {
+            val weight = food.standardPortionGramsOrMl
             items.add(
                 MealItemDetail(
                     name = food.germanName,
@@ -326,12 +346,14 @@ class GeminiMealService(
                     notes = food.glycemicIndexNote,
                     fatGrams = 0.0,
                     proteinGrams = 0.0,
-
-                    )
+                    weightGrams = weight
+                )
             )
             totalCarbs += food.carbsPerPortion
             totalFat += 0.0
             totalProtein += 0.0
+            totalWeight += weight
+            totalCalories += food.caloriesPerPortion
         }
 
         return MealEstimateResult(
@@ -339,6 +361,8 @@ class GeminiMealService(
             totalCarbsGrams = totalCarbs,
             totalFatGrams = totalFat,
             totalProteinGrams = totalProtein,
+            totalWeightGrams = totalWeight,
+            totalCalories = totalCalories,
             items = items,
             // TODO check if this is correct
             explanation = context?.resources?.getQuantityString(R.plurals.gemini_meal_service_offline_explanation, items.size, items.size) ?: "",

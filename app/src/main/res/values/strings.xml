@@ -175,15 +175,15 @@
     <string name="ai_estimation_disclaimer">AI estimates may contain errors. The less precise the prompt, the higher the likelihood of deviations. Always verify answers for plausibility.</string>
     <string name="meal_result_card_carbs_format">%1$s g</string>
     <string name="meal_result_card_be_format">ca. %1$s BU</string>
-    <string name="meal_result_card_fpe_summary_format">Fat: %1$sg • Protein: %2$sg</string>
-    <string name="meal_result_card_adjust_title">Fine-tune portion:</string>
-    <string name="meal_result_card_minus_5g">-5g</string>
+    <string name="meal_result_card_total_weight_format">Weight: %1$d g</string>
+    <string name="meal_result_card_calories_format">%1$d kcal</string>
+    <string name="meal_result_card_adjust_title">Adjust total weight:</string>
     <string name="meal_result_card_minus_10g">-10g</string>
-    <string name="meal_result_card_plus_5g">+5g</string>
     <string name="meal_result_card_plus_10g">+10g</string>
     <string name="meal_result_card_ingredients_title">Ingredient breakdown:</string>
     <string name="meal_result_card_item_weight_format">%1$s g</string>
-    <string name="meal_result_card_item_fp_format">%1$sg Fat, %2$sg Protein</string>
+    <string name="meal_result_card_item_fp_format">%1$sg Fat • %2$sg Protein</string>
+    <string name="meal_result_card_item_portion_weight_format">%1$s (%2$d g)</string>
     <string name="meal_result_card_tip_title">Tip</string>
     <string name="meal_result_card_apply_button_format">%1$dg carbs to calculator</string>
 
@@ -401,26 +401,29 @@
 Analyze the following meal/food description:
 "%1$s"
 
-Accurately estimate the carbohydrate content ("carbsGrams") as well as fat and protein content (in grams) for individual components ("fatGrams", "proteinGrams") and the entire meal ("totalCarbsGrams", "totalFatGrams", "totalProteinGrams") to calculate FPU (Fat-Protein Units).
+Accurately estimate the weight in grams or ml ("weightGrams" for items, "totalWeightGrams" for total meal), carbohydrate content ("carbsGrams"), fat ("fatGrams"), protein ("proteinGrams"), and energy content in kcal ("calories" for items, "totalCalories" for total meal) for individual components and the entire meal ("totalCarbsGrams", "totalFatGrams", "totalProteinGrams").
 If no quantity is specified, assume a realistic, slightly conservative standard portion – lean toward a safer, lower estimate to prevent over-insulinization, without drastically reducing it.
 Return the result STRICTLY in the following JSON format (without markdown backticks or any text outside the JSON):
 {
   "mealTitle": "Short name of the meal",
+  "totalWeightGrams": 300.0,
   "totalCarbsGrams": 45.0,
   "totalFatGrams": 15.0,
   "totalProteinGrams": 20.0,
+  "totalCalories": 375,
   "items": [
     {
       "name": "Ingredient 1 (e.g. whole grain bread)",
-      "portion": "2 slices (approx. 90 g)",
+      "portion": "2 slices",
+      "weightGrams": 90.0,
       "carbsGrams": 36.0,
       "fatGrams": 2.0,
       "proteinGrams": 6.0,
       "calories": 190,
-      "notes": "Slow absorption thanks to fiber. Contains Xg fat / Yg protein (FPU relevant)."
+      "notes": "Slow absorption thanks to fiber."
     }
   ],
-  "explanation": "Provide total fat and protein amounts first. Then list main ingredients with their individual fat/protein values if multiple ingredients. Add a very short tip or important note. Keep it concise (1-2 sentences).",
+  "explanation": "Provide total weight, fat and protein amounts first. Then list main ingredients with their individual fat/protein values if multiple ingredients. Add a very short tip or important note. Keep it concise (1-2 sentences).",
   "insulinTip": "Practical advice for diabetics (e.g. pre-bolus time, FPU calculation for delayed blood glucose spikes due to fat and protein)"
 }</string>
 
