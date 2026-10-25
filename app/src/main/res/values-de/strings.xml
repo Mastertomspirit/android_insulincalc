@@ -65,7 +65,7 @@
     <!-- Main Activity & Navigation -->
     <string name="main_top_bar_calculator">Insulin-Rechner</string>
     <string name="main_top_bar_ai_estimator">KI-Mahlzeiten-Schätzer</string>
-    <string name="main_top_bar_logbook">Insulin-Tagebuch</string>
+    <string name="main_top_bar_logbook">Mahlzeiten-Tagebuch</string>
     <string name="main_top_bar_settings">Einstellungen &amp; Faktoren</string>
     <string name="main_nav_calculator_label">Rechner</string>
     <string name="main_nav_ai_estimator_label">KI-Schätzer</string>
