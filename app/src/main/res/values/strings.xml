@@ -65,7 +65,7 @@
     <!-- Main Activity & Navigation -->
     <string name="main_top_bar_calculator">Insulin Calculator</string>
     <string name="main_top_bar_ai_estimator">AI Meal Estimator</string>
-    <string name="main_top_bar_logbook">Insulin Logbook</string>
+    <string name="main_top_bar_logbook">Meal Logbook</string>
     <string name="main_top_bar_settings">Settings &amp; Factors</string>
     <string name="main_nav_calculator_label">Calculator</string>
     <string name="main_nav_ai_estimator_label">AI Estimator</string>
