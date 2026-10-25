@@ -248,9 +248,9 @@ fun MealResultCard(
                         }
                         Surface(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(16.dp))
                                 .clickable { customWeight += 10.0 },
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Text(
