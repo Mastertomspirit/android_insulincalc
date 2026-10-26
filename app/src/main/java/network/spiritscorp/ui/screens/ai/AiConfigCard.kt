@@ -47,7 +47,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -69,9 +69,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import network.spiritscorp.R
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,7 +82,17 @@ import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.model.UserSettings
 import androidx.core.net.toUri
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * An expandable configuration card composable for managing Gemini AI API settings.
+ * <p>
+ * Allows users to input/clear their custom API key, select their preferred Gemini model
+ * from a dropdown menu, view the current configuration status, and open Google AI Studio
+ * to obtain an API key.
+ *
+ * @param userSettings The current {@link UserSettings} object loaded from the database.
+ * @param onSaveConfig Callback invoked when the user saves new configuration settings (apiKey, modelId).
+ * @param modifier     Optional {@link Modifier} for styling and layout positioning.
+ */
 @Composable
 fun AiConfigCard(
     userSettings: UserSettings?,
@@ -91,10 +103,10 @@ fun AiConfigCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH.modelId
+    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE
 
     var apiKeyInput by remember { mutableStateOf(savedApiKey) }
-    var selectedModel by remember { mutableStateOf(GeminiAiModel.fromModelId(savedModelId)) }
+    var selectedModel by remember { mutableStateOf(savedModelId) }
     var showApiKey by remember { mutableStateOf(false) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
@@ -102,18 +114,20 @@ fun AiConfigCard(
     LaunchedEffect(userSettings) {
         if (userSettings != null) {
             apiKeyInput = userSettings.geminiApiKey
-            selectedModel = GeminiAiModel.fromModelId(userSettings.selectedAiModel)
+            selectedModel = userSettings.selectedAiModel
         }
     }
 
     val hasCustomKey = apiKeyInput.isNotBlank()
+    @Suppress("KotlinConstantConditions", "SimplifyBooleanWithConstants")
     val isDevKeyPresent = try {
-        BuildConfig.GEMINI_API_KEY.isNotBlank() && 
+        BuildConfig.GEMINI_API_KEY.isNotBlank() &&
         BuildConfig.GEMINI_API_KEY != "MY_GEMINI_API_KEY"
     } catch (_: Throwable) {
         false
     }
 
+    // Main container card for AI configuration
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -123,7 +137,7 @@ fun AiConfigCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header Row (Clickable to expand/collapse)
+            // Header Row (Clickable to expand/collapse card details)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,6 +148,7 @@ fun AiConfigCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Key icon indicator
                     Icon(
                         imageVector = Icons.Default.Key,
                         contentDescription = null,
@@ -142,16 +157,21 @@ fun AiConfigCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
+                        // Title text
                         Text(
-                            text = "KI-Modell & API-Schlüssel",
+                            text = stringResource(R.string.ai_config_title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                        val model = stringResource(selectedModel.displayName)
+                        @Suppress("KotlinConstantConditions")
                         val statusText = when {
-                            hasCustomKey -> "Eigener Key aktiv\n(${selectedModel.displayName})"
-                            isDevKeyPresent -> "Entwickler-Key aktiv\n(${selectedModel.displayName})"
-                            else -> "Kein Key hinterlegt\n(Offline-Schätzung aktiv)"
+                            hasCustomKey -> stringResource(R.string.ai_config_status_custom, model)
+                            isDevKeyPresent -> stringResource(R.string.ai_config_status_dev, model)
+                            else -> stringResource(R.string.ai_config_status_none)
                         }
+                        // Subtitle status indicator
+                        @Suppress("KotlinConstantConditions")
                         Text(
                             text = statusText,
                             style = MaterialTheme.typography.bodySmall,
@@ -160,6 +180,7 @@ fun AiConfigCard(
                     }
                 }
 
+                // Expand/collapse chevron icon
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
@@ -167,7 +188,7 @@ fun AiConfigCard(
                 )
             }
 
-            // Expandable Content
+            // Expandable Content Section
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -179,24 +200,25 @@ fun AiConfigCard(
                 ) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 
+                    // Descriptive help text
                     Text(
-                        text = "Für datenschutzfreundliche & unbegrenzte Mahlzeitanalysen kannst du hier deinen eigenen kostenlosen Gemini API-Schlüssel eintragen. Dieser wird militärisch AES-256 verschlüsselt nur lokal auf deinem Gerät gespeichert.",
+                        text = stringResource(R.string.ai_config_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
                     )
 
-                    // Model Selection Dropdown
+                    // Model Selection Dropdown Menu Box
                     ExposedDropdownMenuBox(
                         expanded = dropdownExpanded,
                         onExpandedChange = { dropdownExpanded = it },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = selectedModel.displayName,
+                            value = stringResource(selectedModel.displayName),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Gemini KI-Modell") },
+                            label = { Text(stringResource(R.string.ai_config_model_label)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
                             modifier = Modifier
                                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
@@ -205,6 +227,7 @@ fun AiConfigCard(
                             shape = RoundedCornerShape(12.dp)
                         )
 
+                        // Dropdown items listing available Gemini models
                         ExposedDropdownMenu(
                             expanded = dropdownExpanded,
                             onDismissRequest = { dropdownExpanded = false }
@@ -214,11 +237,11 @@ fun AiConfigCard(
                                     text = {
                                         Column {
                                             Text(
-                                                text = model.displayName,
+                                                text = stringResource(model.displayName),
                                                 fontWeight = if (model == selectedModel) FontWeight.Bold else FontWeight.Normal
                                             )
                                             Text(
-                                                text = model.description,
+                                                text = stringResource(model.description),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -233,12 +256,12 @@ fun AiConfigCard(
                         }
                     }
 
-                    // API Key Field with Paste, Show/Hide and Clear Buttons
+                    // API Key Input Field with Paste, Show/Hide and Clear Action Buttons
                     OutlinedTextField(
                         value = apiKeyInput,
                         onValueChange = { apiKeyInput = it },
-                        label = { Text("Google Gemini API-Key") },
-                        placeholder = { Text("AIzaSy...") },
+                        label = { Text(stringResource(R.string.ai_config_api_key_label)) },
+                        placeholder = { Text(stringResource(R.string.ai_config_api_key_placeholder)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("ai_api_key_input"),
@@ -248,6 +271,7 @@ fun AiConfigCard(
                         visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Clear API key button (visible when text is non-empty)
                                 if (apiKeyInput.isNotEmpty()) {
                                     IconButton(
                                         onClick = { apiKeyInput = "" },
@@ -255,18 +279,19 @@ fun AiConfigCard(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = "Key löschen",
+                                            contentDescription = stringResource(R.string.ai_config_delete_key_desc),
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                     }
                                 }
+                                // Toggle password visibility button
                                 IconButton(
                                     onClick = { showApiKey = !showApiKey },
                                     modifier = Modifier.testTag("toggle_show_api_key_button")
                                 ) {
                                     Icon(
                                         imageVector = if (showApiKey) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                        contentDescription = if (showApiKey) "Verbergen" else "Anzeigen",
+                                        contentDescription = if (showApiKey) stringResource(R.string.ai_config_hide_key_desc) else stringResource(R.string.ai_config_show_key_desc),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -274,7 +299,7 @@ fun AiConfigCard(
                         }
                     )
 
-                    // Link to Google AI Studio
+                    // External Link Surface to Google AI Studio API Key Console
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -294,7 +319,7 @@ fun AiConfigCard(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Kostenlosen Key bei Google AI Studio erstellen",
+                                text = stringResource(R.string.ai_config_aistudio_link),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -307,7 +332,7 @@ fun AiConfigCard(
                         }
                     }
 
-                    // Save / Clear Action Buttons
+                    // Save Action Button Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -328,7 +353,7 @@ fun AiConfigCard(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Key & Modell speichern")
+                            Text(stringResource(R.string.ai_config_save_button))
                         }
                     }
                 }

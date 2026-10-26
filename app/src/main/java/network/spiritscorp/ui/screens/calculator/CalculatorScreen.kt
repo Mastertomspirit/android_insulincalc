@@ -27,8 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,13 +38,21 @@ import network.spiritscorp.viewmodel.CalculatorUiState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
 /**
- * Main Calculator Screen orchestrating the modular calculation cards:
- * - Medical Disclaimer Banner
- * - CalculationResultHeroCard (Recommended dose & save to logbook)
- * - CarbsInputCard (Carb inputs, quick adds, AI estimator shortcut)
- * - TimeOfDaySelector (Target factors & daytime slot)
- * - GlucoseCorrectionCard (Expandable blood sugar correction inputs)
- * - MealNotesCard (Expandable meal title & notes)
+ * Main Calculator Screen orchestrating the modular calculation cards.
+ *
+ * This screen manages the layout and state for insulin calculation inputs, rendering cards
+ * from top to bottom:
+ * - Medical Disclaimer Banner (optional)
+ * - [CalculationResultHeroCard] for recommended dose and logbook saving
+ * - [CarbsInputCard] for carbohydrate entry, unit selection, and AI estimation
+ * - [TimeOfDaySelector] for time slot and target factors
+ * - [GlucoseCorrectionCard] for expandable blood glucose correction inputs
+ * - [MealNotesCard] for optional meal title and notes
+ *
+ * @param viewModel The [InsulinCalculatorViewModel] holding calculator business logic.
+ * @param uiState The current [CalculatorUiState] representing input values and results.
+ * @param onNavigateToAiEstimator Callback to trigger navigation to the AI carb estimator screen.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun CalculatorScreen(
@@ -58,7 +64,6 @@ fun CalculatorScreen(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val settings by viewModel.userSettings.collectAsState(initial = null)
 
     val closeKeyboard = {
         focusManager.clearFocus()
@@ -78,7 +83,7 @@ fun CalculatorScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // 1. Optional Medical Disclaimer Banner
-        if (settings?.isShowDisclaimer == true) {
+        if (uiState.showDisclaimerBanner) {
             MedicalDisclaimerBanner(
                 onDismiss = {
                     closeKeyboard()

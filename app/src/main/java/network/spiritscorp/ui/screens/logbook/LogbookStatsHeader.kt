@@ -30,11 +30,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.R
 
+/**
+ * Statistics header card showing aggregated logbook data: total calculation entries, summed carbs (g KH),
+ * summed insulin (IE), and average blood glucose (if available). Used to provide quick insights into filtered log periods.
+ *
+ * @param totalCarbs Sum of carbohydrate amounts across all included logs in grams (KH).
+ * @param totalInsulin Sum of insulin doses across all included logs in International Units (IE).
+ * @param entryCount Total number of calculation entries in the selected filter range.
+ * @param avgBloodGlucose Average blood glucose level if logs contain glucose measurements; null otherwise.
+ * @param modifier Optional {@link Modifier} for layout styling and positioning.
+ */
 @Composable
 fun LogbookStatsHeader(
     totalCarbs: Double,
@@ -59,7 +71,7 @@ fun LogbookStatsHeader(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Einträge",
+                    text = stringResource(R.string.logbook_stats_header_entries),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -72,12 +84,12 @@ fun LogbookStatsHeader(
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Gesamt KH",
+                    text = stringResource(R.string.logbook_stats_header_total_carbs),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(LocalLocale.current.platformLocale, "%.0f", totalCarbs)} g",
+                    text = stringResource(R.string.logbook_stats_header_carbs_unit, totalCarbs.toInt()),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -85,12 +97,12 @@ fun LogbookStatsHeader(
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Gesamt Insulin",
+                    text = stringResource(R.string.logbook_stats_header_total_insulin),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${String.format(LocalLocale.current.platformLocale, "%.1f", totalInsulin)} IE",
+                    text = stringResource(R.string.logbook_stats_header_insulin_unit, String.format(LocalLocale.current.platformLocale, "%.1f", totalInsulin)),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -99,7 +111,7 @@ fun LogbookStatsHeader(
             if (avgBloodGlucose != null) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Ø BZ",
+                        text = stringResource(R.string.logbook_stats_header_avg_bg),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

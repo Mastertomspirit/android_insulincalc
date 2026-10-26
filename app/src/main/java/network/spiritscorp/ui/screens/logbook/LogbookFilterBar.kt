@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,12 +49,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Filter bar composable for navigation through calculation history logs with time-based filters,
+ * date range picking, and slice offsets. Shows active filter chips, current date range, and
+ * slice navigation buttons (< >). Optionally displays a Material 3 DateRangePickerDialog.
+ *
+ * @param selectedFilter The currently active {@link HistoryFilter} (ALL, TODAY, LAST_7, LAST_30, CUSTOM).
+ * @param onFilterSelected Callback invoked when a user selects a new time filter.
+ * @param offsetIndex Current time slice index for multi-week/month views (used for TODAY filters only).
+ * @param onPreviousOffset Increment offset (move to previous week/month) when enabled.
+ * @param onNextOffset Decrement offset (move to next week/month) when enabled.
+ * @param onResetOffset Reset offset to show current month/week logs.
+ * @param filterDescription Human-readable date range string for active custom/sliced filters.
+ * @param showDatePickerDialog Flag indicating whether the DateRangePickerDialog should be shown.
+ * @param onShowDatePickerDialogChange Callback to show/hide the date picker dialog.
+ * @param onCustomRangeSelected Callback invoked when a custom date range is selected from the picker.
+ * @param modifier Optional {@link Modifier} for layout positioning and styling.
+ */
 @Composable
 fun LogbookFilterBar(
     selectedFilter: HistoryFilter,
@@ -84,6 +101,7 @@ fun LogbookFilterBar(
         ) {
             HistoryFilter.entries.forEach { filter ->
                 val isSelected = selectedFilter == filter
+                // Filter Chip Button: Allows selecting a time-based filter (ALL, TODAY, LAST_7, LAST_30, CUSTOM)
                 Surface(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
@@ -140,13 +158,14 @@ fun LogbookFilterBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Left Chevron Navigation Button: Increments slice offset (e.g., go to previous week/month)
                     IconButton(
                         onClick = onPreviousOffset,
                         modifier = Modifier.size(36.dp).testTag("filter_previous_slice_button")
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = "Vorheriger Zeitraum",
+                            contentDescription = stringResource(R.string.logbook_filter_bar_previous_slice_desc),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -157,21 +176,24 @@ fun LogbookFilterBar(
                             .weight(1f)
                             .clickable(enabled = offsetIndex > 0) { onResetOffset() }
                     ) {
+                        // Date Range Text: Shows current filtered period (e.g., "Today", "Yesterday", or custom date range)
                         Text(
                             text = filterDescription,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
+                        // "Back to Current" Hint: Shows when slice offset is used, prompting reset
                         if (offsetIndex > 0) {
                             Text(
-                                text = "Tippen für Zurück zu Aktuell",
+                                text = stringResource(R.string.logbook_filter_bar_back_to_current),
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
 
+                    // Right Chevron Navigation Button: Decrements slice offset (e.g., go to next week/month)
                     IconButton(
                         onClick = onNextOffset,
                         enabled = offsetIndex > 0,
@@ -179,7 +201,7 @@ fun LogbookFilterBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Nächster Zeitraum",
+                            contentDescription = stringResource(R.string.logbook_filter_bar_next_slice_desc),
                             tint = if (offsetIndex > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                         )
                     }
@@ -204,12 +226,12 @@ fun LogbookFilterBar(
                         onShowDatePickerDialogChange(false)
                     }
                 ) {
-                    Text("Auswählen", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.logbook_filter_bar_select), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onShowDatePickerDialogChange(false) }) {
-                    Text("Abbrechen")
+                    Text(stringResource(R.string.logbook_delete_confirmation_dialog_cancel))
                 }
             }
         ) {
@@ -217,7 +239,7 @@ fun LogbookFilterBar(
                 state = dateRangePickerState,
                 title = {
                     Text(
-                        text = "Zeitraum auswählen",
+                        text = stringResource(R.string.logbook_filter_bar_picker_title),
                         modifier = Modifier.padding(start = 24.dp, top = 16.dp),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )

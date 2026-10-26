@@ -26,6 +26,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import network.spiritscorp.R;
+import network.spiritscorp.ai.GeminiAiModel;
+import network.spiritscorp.ui.theme.AppTheme;
+
 /**
  * Comprehensive domain unit tests for core diabetes medical formulas,
  * units conversion, boundary checks, and time-of-day interval logic.
@@ -48,8 +52,8 @@ public class InsulinDomainAndCalculationTest {
     @Test
     public void testCarbUnitGramsConversions() {
         CarbUnit unit = CarbUnit.GRAMS;
-        assertEquals("g KH", unit.getShortName());
-        assertEquals("Gramm Kohlenhydrate", unit.getLabel());
+        assertEquals(R.string.carb_unit_grams_short, unit.getShortNameResId());
+        assertEquals(R.string.carb_unit_grams_label, unit.getLabelResId());
         assertEquals(100.0, unit.toGrams(100.0), DELTA);
         assertEquals(0.0, unit.toGrams(0.0), DELTA);
         assertEquals(75.5, unit.fromGrams(75.5), DELTA);
@@ -58,8 +62,8 @@ public class InsulinDomainAndCalculationTest {
     @Test
     public void testCarbUnitKEConversions() {
         CarbUnit unit = CarbUnit.KE;
-        assertEquals("KE", unit.getShortName());
-        assertEquals("Kohlenhydrateinheit (10g)", unit.getLabel());
+        assertEquals(R.string.carb_unit_ke_short, unit.getShortNameResId());
+        assertEquals(R.string.carb_unit_ke_label, unit.getLabelResId());
         // 1 KE = 10g
         assertEquals(10.0, unit.toGrams(1.0), DELTA);
         assertEquals(35.0, unit.toGrams(3.5), DELTA);
@@ -69,8 +73,8 @@ public class InsulinDomainAndCalculationTest {
     @Test
     public void testCarbUnitBEConversions() {
         CarbUnit unit = CarbUnit.BE;
-        assertEquals("BE", unit.getShortName());
-        assertEquals("Broteinheit (12g)", unit.getLabel());
+        assertEquals(R.string.carb_unit_be_short, unit.getShortNameResId());
+        assertEquals(R.string.carb_unit_be_label, unit.getLabelResId());
         // 1 BE = 12g (standard German divisor)
         assertEquals(12.0, unit.toGrams(1.0), DELTA);
         assertEquals(48.0, unit.toGrams(4.0), DELTA);
@@ -80,12 +84,12 @@ public class InsulinDomainAndCalculationTest {
     @Test
     public void testGlucoseUnitConversionsAndFormulas() {
         GlucoseUnit mgDlUnit = GlucoseUnit.MG_DL;
-        assertEquals("mg/dl", mgDlUnit.getShortName());
+        assertEquals(R.string.glucose_unit_mg_dl_short, mgDlUnit.getShortNameResId());
         assertEquals(120.0, mgDlUnit.toMgDl(120.0), DELTA);
         assertEquals(120.0, mgDlUnit.fromMgDl(120.0), DELTA);
 
         GlucoseUnit mmolUnit = GlucoseUnit.MMOL_L;
-        assertEquals("mmol/l", mmolUnit.getShortName());
+        assertEquals(R.string.glucose_unit_mmol_l_short, mmolUnit.getShortNameResId());
         // Conversion factor: 18.0182
         double mgDlValue = 180.182;
         double expectedMmol = 10.0;
@@ -129,8 +133,8 @@ public class InsulinDomainAndCalculationTest {
     @Test
     public void testTimeOfDayMetadataAndProperties() {
         for (TimeOfDay tod : TimeOfDay.values()) {
-            assertNotNull(tod.getTitle());
-            assertNotNull(tod.getSubtitle());
+            assertTrue(tod.getTitleResId() != 0);
+            assertTrue(tod.getSubtitleResId() != 0);
             assertTrue(tod.getDefaultFactor() > 0.0);
             assertTrue(tod.getStartHour() >= 0.0);
             assertTrue(tod.getEndHour() >= 0.0);
@@ -204,21 +208,23 @@ public class InsulinDomainAndCalculationTest {
                 1.25,
                 1.5,
                 0.75,
-                "KE",
+                CarbUnit.KE,
                 10,
-                "mg/dl",
+                GlucoseUnit.MG_DL,
                 110.0,
                 35.0,
                 0.1,
                 false,
-                "EMERALD_MINT",
-                "SYSTEM"
+                AppTheme.EMERALD_GREEN,
+                AppTheme.Mode.SYSTEM,
+                "",
+                GeminiAiModel.GEMINI_3_6_FLASH
         );
 
         assertEquals(2.0, customSettings.getMorningFactor(), DELTA);
         assertEquals(10, customSettings.getBeGramsDivisor());
-        assertEquals("KE", customSettings.getDefaultCarbUnit());
-        assertEquals("EMERALD_MINT", customSettings.getSelectedTheme());
+        assertEquals(CarbUnit.KE, customSettings.getDefaultCarbUnit());
+        assertEquals(AppTheme.EMERALD_GREEN, customSettings.getSelectedTheme());
         assertFalse(customSettings.isShowDisclaimer());
     }
 }

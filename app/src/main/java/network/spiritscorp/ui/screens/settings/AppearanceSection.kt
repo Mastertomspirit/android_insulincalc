@@ -28,7 +28,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,15 +56,28 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import network.spiritscorp.R
 import network.spiritscorp.ui.theme.AppTheme
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Settings section composable for managing app appearance, including dynamic color schemes
+ * and dark/light/system theme modes.
+ *
+ * @param selectedTheme        The currently selected {@link AppTheme}.
+ * @param onThemeSelected      Callback invoked when a new color theme is selected.
+ * @param themeMode            The currently active {@link AppTheme.Mode} (Light, Dark, System).
+ * @param onThemeModeSelected  Callback invoked when the theme mode changes.
+ * @param modifier             Optional {@link Modifier} for layout styling.
+ * @param isExpanded           Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand       Callback invoked to toggle section expansion.
+ */
 @Composable
 fun AppearanceSection(
-    selectedThemeName: String,
-    onThemeSelected: (String) -> Unit,
-    themeMode: String,
-    onThemeModeSelected: (String) -> Unit,
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+    themeMode: AppTheme.Mode,
+    onThemeModeSelected: (AppTheme.Mode) -> Unit,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     onToggleExpand: () -> Unit = {},
@@ -79,14 +91,16 @@ fun AppearanceSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Palette,
-                title = "4. Farbdesign & Design",
-                subtitle = "Akzentfarben und Hell-/Dunkel-Modus",
+                title = stringResource(R.string.settings_appearance_section_title),
+                subtitle = stringResource(R.string.settings_appearance_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -97,23 +111,24 @@ fun AppearanceSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Farbschema:",
+                        text = stringResource(R.string.settings_appearance_color_scheme_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // App Theme Chips Selection FlowRow
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         AppTheme.entries.forEach { appTheme ->
-                            val isSelected = selectedThemeName == appTheme.name
+                            val isSelected = selectedTheme == appTheme
                             Surface(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onThemeSelected(appTheme.name) }
+                                    .clickable { onThemeSelected(appTheme) }
                                     .testTag("theme_chip_${appTheme.name.lowercase()}"),
                                 shape = RoundedCornerShape(12.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
@@ -134,7 +149,7 @@ fun AppearanceSection(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = appTheme.displayName,
+                                        text = stringResource(appTheme.displayNameRes),
                                         style = MaterialTheme.typography.bodySmall.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                         ),
@@ -159,35 +174,30 @@ fun AppearanceSection(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Erscheinungsbild:",
+                        text = stringResource(R.string.settings_appearance_mode_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // Theme Mode Selection Row (Light, Dark, System)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val modes = listOf(
-                            "SYSTEM" to "System",
-                            "LIGHT" to "Hell",
-                            "DARK" to "Dunkel"
-                        )
-
-                        modes.forEach { (modeKey, modeTitle) ->
-                            val isModeSelected = themeMode == modeKey
+                        AppTheme.Mode.entries.forEach { mode ->
+                            val isModeSelected = themeMode == mode
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .clickable { onThemeModeSelected(modeKey) },
+                                    .clickable { onThemeModeSelected(mode) },
                                 shape = RoundedCornerShape(10.dp),
                                 color = if (isModeSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                                 border = if (isModeSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null
                             ) {
                                 Text(
-                                    text = modeTitle,
+                                    text = stringResource(mode.displayNameRes),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = if (isModeSelected) FontWeight.Bold else FontWeight.Normal
                                     ),

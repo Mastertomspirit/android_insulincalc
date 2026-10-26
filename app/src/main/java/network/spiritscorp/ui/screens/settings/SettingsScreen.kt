@@ -17,7 +17,6 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.widget.Toast
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,62 +53,73 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
+import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Locale
 
+/**
+ * Main Settings Screen composable allowing users to configure therapy factors,
+ * carbohydrate units, blood glucose targets/units, app theme appearance, backups,
+ * and legal information.
+ *
+ * @param viewModel The {@link InsulinCalculatorViewModel} for database persistence and actions.
+ * @param settings  The current {@link UserSettings} state loaded from Room.
+ * @param modifier  Optional {@link Modifier} for layout styling and constraints.
+ */
 @Composable
 fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
-    settings: UserSettings?,
+    settings: UserSettings,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val currentSettings = settings ?: UserSettings()
 
-    var morningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.morningFactor) }
-    var noonFactor by remember(settings) { mutableDoubleStateOf(currentSettings.noonFactor) }
-    var eveningFactor by remember(settings) { mutableDoubleStateOf(currentSettings.eveningFactor) }
-    var nightFactor by remember(settings) { mutableDoubleStateOf(currentSettings.nightFactor) }
+    // Local mutable state copies initialized from Room userSettings
+    var morningFactor by remember(settings) { mutableDoubleStateOf(settings.morningFactor) }
+    var noonFactor by remember(settings) { mutableDoubleStateOf(settings.noonFactor) }
+    var eveningFactor by remember(settings) { mutableDoubleStateOf(settings.eveningFactor) }
+    var nightFactor by remember(settings) { mutableDoubleStateOf(settings.nightFactor) }
 
-    var defaultCarbUnit by remember(settings) { mutableStateOf(currentSettings.defaultCarbUnit) }
-    var beDivisor by remember(settings) { mutableIntStateOf(currentSettings.beGramsDivisor) }
+    var defaultCarbUnit by remember(settings) { mutableStateOf(settings.defaultCarbUnit) }
+    var beDivisor by remember(settings) { mutableIntStateOf(settings.beGramsDivisor) }
 
     var glucoseUnit by remember(settings) {
-        mutableStateOf(GlucoseUnit.fromString(currentSettings.glucoseUnit))
+        mutableStateOf(settings.glucoseUnit)
     }
 
     var targetGlucose by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.targetGlucoseMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(settings.targetGlucoseMgDl))
         } else {
-            currentSettings.targetGlucoseMgDl.toInt().toString()
+            settings.targetGlucoseMgDl.toInt().toString()
         }
         mutableStateOf(initialVal)
     }
 
     var correctionFactor by remember(settings, glucoseUnit) {
         val initialVal = if (glucoseUnit == GlucoseUnit.MMOL_L) {
-            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentSettings.correctionFactorMgDl))
+            String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(settings.correctionFactorMgDl))
         } else {
-            currentSettings.correctionFactorMgDl.toInt().toString()
+            settings.correctionFactorMgDl.toInt().toString()
         }
         mutableStateOf(initialVal)
     }
 
-    var roundingStep by remember(settings) { mutableDoubleStateOf(currentSettings.roundingStep) }
-    var selectedThemeName by remember(settings) { mutableStateOf(currentSettings.selectedTheme) }
-    var themeMode by remember(settings) { mutableStateOf(currentSettings.themeMode) }
+    var roundingStep by remember(settings) { mutableDoubleStateOf(settings.roundingStep) }
+    var selectedTheme by remember(settings) { mutableStateOf(settings.selectedTheme) }
+    var themeMode by remember(settings) { mutableStateOf(settings.themeMode) }
 
+    // Section expansion states for accordion cards
     var isFactorsExpanded by remember { mutableStateOf(false) }
     var isGlucoseExpanded by remember { mutableStateOf(false) }
     var isCarbUnitExpanded by remember { mutableStateOf(false) }
@@ -131,12 +141,13 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Quick Toggle Row (Alle aufklappen / einklappen für Abschnitte 1-5)
+        // QUICK TOGGLE ROW (Expand / Collapse All Sections Button)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Expand/Collapse All Button: Toggles visibility of all accordion sections at once for quick UI navigation
             TextButton(
                 onClick = {
                     val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded)
@@ -155,13 +166,13 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = if (allExpanded) "Alle einklappen" else "Alle ausklappen",
+                    text = if (allExpanded) stringResource(R.string.settings_screen_collapse_all) else stringResource(R.string.settings_screen_expand_all),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
         }
 
-        // SECTION 1: Mahlzeiten-Faktoren & Rundung
+        // SECTION 1: Therapy Factors & Insulin Rounding (Accordion Card for morning/noon/evening/night factors + rounding step)
         TherapyFactorsSection(
             morningFactor = morningFactor,
             onMorningFactorChange = { morningFactor = it },
@@ -177,13 +188,13 @@ fun SettingsScreen(
             onToggleExpand = { isFactorsExpanded = !isFactorsExpanded }
         )
 
-        // SECTION 2: Blutzucker & Korrektur
+        // SECTION 2: Blood Glucose Targets & Correction Factors (Accordion Card for glucose unit, target BG, correction factor)
         GlucoseCorrectionSection(
             glucoseUnit = glucoseUnit,
             onGlucoseUnitChange = { newUnit ->
                 if (newUnit != glucoseUnit) {
-                    val currentTarget = targetGlucose.toDoubleOrNull() ?: 120.0
-                    val currentCorr = correctionFactor.toDoubleOrNull() ?: 50.0
+                    val currentTarget = targetGlucose.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                    val currentCorr = correctionFactor.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
                     if (newUnit == GlucoseUnit.MMOL_L) {
                         targetGlucose = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentTarget))
                         correctionFactor = String.format(Locale.getDefault(), "%.1f", GlucoseUnit.MMOL_L.fromMgDl(currentCorr))
@@ -202,7 +213,7 @@ fun SettingsScreen(
             onToggleExpand = { isGlucoseExpanded = !isGlucoseExpanded }
         )
 
-        // SECTION 3: Kohlenhydrat-Einheit
+        // SECTION 3: Carbohydrate Units & BE Divisor (Accordion Card for selecting g KH/KE/BE and setting BE divisor)
         CarbUnitSection(
             defaultCarbUnit = defaultCarbUnit,
             onDefaultCarbUnitChange = { defaultCarbUnit = it },
@@ -212,17 +223,17 @@ fun SettingsScreen(
             onToggleExpand = { isCarbUnitExpanded = !isCarbUnitExpanded }
         )
 
-        // SECTION 4: Farbdesign & Erscheinungsbild
+        // SECTION 4: Appearance & Color Themes (Accordion Card for selecting color scheme and theme mode)
         AppearanceSection(
-            selectedThemeName = selectedThemeName,
-            onThemeSelected = { selectedThemeName = it },
-            themeMode = themeMode,
+            selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL,
+            onThemeSelected = { selectedTheme = it },
+            themeMode = themeMode ?: AppTheme.Mode.SYSTEM,
             onThemeModeSelected = { themeMode = it },
             isExpanded = isAppearanceExpanded,
             onToggleExpand = { isAppearanceExpanded = !isAppearanceExpanded }
         )
 
-        // SECTION 5: Datensicherung & Backup
+        // SECTION 5: Data Backup & Restore (Accordion Card for JSON/CSV export, sharing, import, and reset all data)
         BackupRestoreSection(
             viewModel = viewModel,
             onShowResetDbDialog = { showResetDbDialog = true },
@@ -230,30 +241,29 @@ fun SettingsScreen(
             onToggleExpand = { isBackupExpanded = !isBackupExpanded }
         )
 
-        // SAVE ACTION BUTTON
+        // SAVE SETTINGS ACTION BUTTON (Writes all user settings to Room database)
         Button(
             onClick = {
-                val targetNum = targetGlucose.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
-                val corrNum = correctionFactor.toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
+                val targetNum = targetGlucose.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 6.7 else 120.0)
+                val corrNum = correctionFactor.replace(',', '.').toDoubleOrNull() ?: (if (glucoseUnit == GlucoseUnit.MMOL_L) 2.8 else 50.0)
 
                 val targetMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(targetNum) else targetNum
                 val corrMgDl = if (glucoseUnit == GlucoseUnit.MMOL_L) GlucoseUnit.MMOL_L.toMgDl(corrNum) else corrNum
 
-                val updated = currentSettings.copy()
+                val updated = settings.copy()
                 updated.morningFactor = morningFactor
                 updated.noonFactor = noonFactor
                 updated.eveningFactor = eveningFactor
                 updated.nightFactor = nightFactor
                 updated.defaultCarbUnit = defaultCarbUnit
                 updated.beGramsDivisor = beDivisor
-                updated.glucoseUnit = glucoseUnit.shortName
+                updated.glucoseUnit = glucoseUnit
                 updated.targetGlucoseMgDl = targetMgDl
                 updated.correctionFactorMgDl = corrMgDl
                 updated.roundingStep = roundingStep
-                updated.selectedTheme = selectedThemeName
-                updated.themeMode = themeMode
+                updated.selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL
+                updated.themeMode = themeMode ?: AppTheme.Mode.SYSTEM
                 viewModel.updateUserSettings(updated)
-                Toast.makeText(context, "Einstellungen gespeichert", Toast.LENGTH_SHORT).show()
                 focusManager.clearFocus()
                 keyboardController?.hide()
             },
@@ -268,17 +278,18 @@ fun SettingsScreen(
             Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Einstellungen speichern",
+                text = stringResource(R.string.settings_screen_save_button),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
             )
         }
 
-        // SECTION 6: Medizinischer Hinweis & Version
+        // SECTION 6: Medical Disclaimer & App Version Info (Static card showing legal disclaimers and version name)
         AboutAndLegalSection()
 
         Spacer(modifier = Modifier.height(16.dp))
     }
 
+    // Confirmation dialog for resetting/clearing all calculation logs
     if (showResetDbDialog) {
         AlertDialog(
             onDismissRequest = { showResetDbDialog = false },
@@ -290,20 +301,19 @@ fun SettingsScreen(
                     modifier = Modifier.size(32.dp)
                 )
             },
-            title = { Text("Komplette Datenbank löschen?") },
+            title = { Text(stringResource(R.string.settings_screen_reset_dialog_title)) },
             text = {
-                Text("Bist du sicher? Dies löscht alle gespeicherten Tagebucheinträge und setzt die Einstellungen zurück. Es wird empfohlen, vorher ein JSON- oder CSV-Backup zu erstellen.")
+                Text(stringResource(R.string.settings_screen_reset_dialog_message))
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.clearAllLogs()
                         showResetDbDialog = false
-                        Toast.makeText(context, "Tagebuch & Daten wurden gelöscht", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.testTag("confirm_reset_all_data_button")
                 ) {
-                    Text("Unwiderruflich löschen", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_screen_reset_dialog_confirm), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -311,7 +321,7 @@ fun SettingsScreen(
                     onClick = { showResetDbDialog = false },
                     modifier = Modifier.testTag("cancel_reset_all_data_button")
                 ) {
-                    Text("Abbrechen")
+                    Text(stringResource(R.string.settings_screen_reset_dialog_cancel))
                 }
             }
         )

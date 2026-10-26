@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,10 +51,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.ai.MealEstimateResult
+import network.spiritscorp.ui.components.toDisplayString
 
 /**
  * Result display card for AI meal estimation featuring ingredient breakdown,
@@ -62,10 +67,52 @@ import network.spiritscorp.ai.MealEstimateResult
 @Composable
 fun MealResultCard(
     result: MealEstimateResult,
-    onApply: (Double, String) -> Unit,
+    onApply: (Double, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var customCarbs by remember(result) { mutableDoubleStateOf(result.totalCarbsGrams) }
+    val baseWeight = if (result.totalWeightGrams > 0.0) {
+        result.totalWeightGrams
+    } else {
+        result.items.sumOf { it.weightGrams }
+    }
+
+    var customWeight by remember(result) { mutableDoubleStateOf(baseWeight) }
+
+    val scaleFactor = if (baseWeight > 0.0) customWeight / baseWeight else 1.0
+
+    val scaledCarbs = result.totalCarbsGrams * scaleFactor
+    val scaledFat = result.totalFatGrams * scaleFactor
+    val scaledProtein = result.totalProteinGrams * scaleFactor
+    val scaledCalories = (result.totalCalories * scaleFactor).toInt()
+
+    if (!result.isOfflineEstimate) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.ai_estimation_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+    }
 
     Card(
         modifier = modifier
@@ -76,16 +123,19 @@ fun MealResultCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            val locale = LocalLocale.current.platformLocale
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = result.mealTitle,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -96,7 +146,11 @@ fun MealResultCard(
                             color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = if (result.isOfflineEstimate) "Offline-Datenbank" else "Live KI: ${result.modelUsed}",
+                                text = if (result.isOfflineEstimate) {
+                                    stringResource(R.string.meal_result_card_offline_badge)
+                                } else {
+                                    stringResource(R.string.meal_result_card_live_ai_badge, result.modelUsed)
+                                },
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
                                 color = if (result.isOfflineEstimate) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -114,15 +168,29 @@ fun MealResultCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "${customCarbs.toInt()} g KH",
+                            text = stringResource( R.string.meal_result_card_carbs_format, scaledCarbs.toInt()),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "ca. ${String.format(LocalLocale.current.platformLocale, "%.1f", customCarbs / 10.0)} KE",
+                            text = stringResource(
+                                R.string.meal_result_card_be_format,
+                                String.format(locale, "%.1f", scaledCarbs / 12.0)
+                            ),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                        if ((scaledFat > 0.0) || (scaledProtein > 0.0)) {
+                            Text(
+                                text = stringResource(
+                                    R.string.meal_result_card_item_fp_format,
+                                    scaledFat.toDisplayString(1, locale),
+                                    scaledProtein.toDisplayString(1, locale)
+                                ),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                            )
+                        }
                     }
                 }
             }
@@ -136,66 +204,62 @@ fun MealResultCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Menge feinanpassen:",
+                    text = stringResource(R.string.meal_result_card_adjust_title),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { if (customCarbs >= 5.0) customCarbs -= 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
                     ) {
                         Text(
-                            text = "-5g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = if (scaledCalories > 0) {
+                                "${stringResource(R.string.meal_result_card_total_weight_format, customWeight.toInt())} • ${stringResource(R.string.meal_result_card_calories_format, scaledCalories)}"
+                            } else {
+                                stringResource(R.string.meal_result_card_total_weight_format, customWeight.toInt())
+                            },
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { if (customCarbs >= 10.0) customCarbs -= 10.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
+                    Spacer(modifier = Modifier.height(1.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
-                        Text(
-                            text = "-10g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { customCarbs += 5.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = "+5g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { customCarbs += 10.0 },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            text = "+10g",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { if (customWeight >= 10.0) customWeight -= 10.0 },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Text(
+                                text = stringResource(R.string.meal_result_card_minus_10g),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { customWeight += 10.0 },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Text(
+                                text = stringResource(R.string.meal_result_card_plus_10g),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -205,13 +269,18 @@ fun MealResultCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Aufschlüsselung der Zutaten:",
+                text = stringResource(R.string.meal_result_card_ingredients_title),
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             result.items.forEach { item ->
+                val itemCarbs = item.carbsGrams * scaleFactor
+                val itemFat = item.fatGrams * scaleFactor
+                val itemProtein = item.proteinGrams * scaleFactor
+                val itemWeight = item.weightGrams * scaleFactor
+
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -233,7 +302,15 @@ fun MealResultCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = item.portion,
+                                text = if (itemWeight > 0.0) {
+                                    stringResource(
+                                        R.string.meal_result_card_item_portion_weight_format,
+                                        item.portion,
+                                        itemWeight.toInt()
+                                    )
+                                } else {
+                                    item.portion
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -241,16 +318,31 @@ fun MealResultCard(
                                 Text(
                                     text = item.notes,
                                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
 
-                        Text(
-                            text = "${item.carbsGrams.toInt()} g",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = stringResource(R.string.meal_result_card_item_weight_format, itemCarbs.toInt()),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if ((itemFat > 0.0) || (itemProtein > 0.0)) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.meal_result_card_item_fp_format,
+                                        itemFat.toDisplayString(1, locale),
+                                        itemProtein.toDisplayString(1, locale)
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -267,7 +359,7 @@ fun MealResultCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lightbulb,
-                            contentDescription = "Tipp",
+                            contentDescription = stringResource(R.string.meal_result_card_tip_title),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(20.dp)
                         )
@@ -284,7 +376,7 @@ fun MealResultCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { onApply(customCarbs, result.mealTitle) },
+                onClick = { onApply(scaledCarbs, result.mealTitle, result.explanation) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("apply_ai_carbs_button"),
@@ -298,7 +390,7 @@ fun MealResultCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${customCarbs.toInt()}g KH in den Rechner übernehmen",
+                    text = stringResource(R.string.meal_result_card_apply_button_format, scaledCarbs.toInt()),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

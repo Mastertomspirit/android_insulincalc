@@ -4,7 +4,9 @@
 
 
 # Build-Artefakte & Caches
+/app/**/*.jar
 /app/build/
+/app/debug/
 /app/release/
 /captures/
 .cxx/
@@ -13,6 +15,7 @@
 .kotlin/
 build/
 release/
+debug/
 
 
 # Output-Dateien
@@ -22,10 +25,9 @@ release/
 
 
 # Lokale Konfigurationen & Secrets
-REPOS.md
 local.properties
 .env
-.diff
+/stuff
 
 
 # Keystores & Schlüssel

@@ -18,9 +18,11 @@ package network.spiritscorp.data;
  */
 
 import android.content.Context;
+
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
@@ -86,6 +88,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             DATABASE_NAME
                     )
                             .openHelperFactory(supportFactory)
+                            .addMigrations(DatabaseMigrations.MIGRATION_1_2)
+                            .addMigrations(DatabaseMigrations.MIGRATION_2_3)
                             .fallbackToDestructiveMigration(false)
                             .build();
                 }

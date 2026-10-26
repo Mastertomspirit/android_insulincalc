@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,28 +39,45 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.ui.components.toDisplayString
+import kotlin.math.abs
 
+/**
+ * Individual log item card displaying a single calculation entry with meal title, carb/insulin breakdown,
+ * glucose values (if available), correction insulin, timestamp, and action buttons for deletion/sharing.
+ *
+ * @param log The {@link CalculationLog} containing meal data, carb inputs, insulin dosage, and notes.
+ * @param glucoseUnit The {@link GlucoseUnit} (MG_DL or MMOL_L) used to display glucose values correctly.
+ * @param onDeleteRequest Callback invoked when the user clicks delete for this log entry, triggering confirmation dialog.
+ * @param modifier Optional {@link Modifier} for layout styling and positioning.
+ * @param onShareRequest Callback invoked when the user requests sharing of this log entry (e.g., via Share Intent).
+ */
 @Composable
 fun LogbookItemCard(
     log: CalculationLog,
+    //TODO:  Workaround  use GlucoseUnit from log
+    glucoseUnit: network.spiritscorp.model.GlucoseUnit,
     onDeleteRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onShareRequest: () -> Unit = {}
 ) {
     val dateString = remember(log.timestamp) { DateTimeUtils.formatDisplayDateTimeBullet(log.timestamp) }
-
+    val locale = LocalLocale.current.platformLocale
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -80,7 +98,10 @@ fun LogbookItemCard(
                     Text(
                         text = log.mealTitle,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Surface(
@@ -88,10 +109,10 @@ fun LogbookItemCard(
                         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
                     ) {
                         Text(
-                            text = log.timeOfDay,
+                            text = stringResource(log.timeOfDay.titleResId),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
                 }
@@ -99,26 +120,46 @@ fun LogbookItemCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "${log.carbGrams}g KH (${log.beValue} BE • ${log.keValue} KE) • Faktor: ${log.insulinFactor}",
+                    text = stringResource(R.string.logbook_item_card_carb_format,
+                        log.carbGrams.toDisplayString(maxDecimals = 0, locale = locale),
+                        log.beValue.toDisplayString(maxDecimals = 2, locale = locale),
+                        log.keValue.toDisplayString(maxDecimals = 2, locale = locale),
+                        log.insulinFactor.toDisplayString(maxDecimals = 2, locale = locale)
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (log.bloodGlucose != null) {
-                    val bzDisplay = if (log.bloodGlucose % 1.0 == 0.0) log.bloodGlucose.toInt().toString() else String.format(LocalLocale.current.platformLocale, "%.1f", log.bloodGlucose)
-                    val corr = log.correctionInsulin ?: 0.0
+                val bgGlucose = log.bloodGlucose
+                if (bgGlucose != null) {
+                    val corrIns = log.correctionInsulin ?: 0.0
+                    val corrSign = when {
+                        corrIns > 0 -> "+"
+                        corrIns < 0 -> "-"
+                        else -> ""
+                    }
                     Text(
-                        text = "BZ: $bzDisplay (Korrektur: ${if (corr > 0) "+" else ""}$corr IE)",
+                        text = stringResource(
+                            R.string.logbook_item_card_bg_format,
+                            bgGlucose.toDisplayString(
+                                maxDecimals = 1,
+                                locale = locale
+                            ),
+                            // TODO: Create an entry in calculationLog for individual view
+                            stringResource(glucoseUnit.shortNameResId),
+                            corrSign,
+                            abs(corrIns).toDisplayString(maxDecimals = 1, locale = locale)
+                        ),
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 4.dp)
                     )
                 }
-
                 if (log.notes.isNotBlank()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 1.dp)
+                        modifier = Modifier.padding(vertical = 1.dp).absolutePadding(right = 20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Notes,
@@ -133,7 +174,9 @@ fun LogbookItemCard(
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 11.sp
                             ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 5,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -144,7 +187,7 @@ fun LogbookItemCard(
                     color = MaterialTheme.colorScheme.outline
                 )
             }
-
+            Spacer(modifier = Modifier.width(10.dp))
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -154,7 +197,7 @@ fun LogbookItemCard(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "${log.roundedInsulin} IE",
+                        text = stringResource(R.string.logbook_item_card_insulin_format, log.roundedInsulin.toDisplayString(1, locale)),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -173,7 +216,7 @@ fun LogbookItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Eintrag teilen",
+                            contentDescription = stringResource(R.string.logbook_item_card_share_desc),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(17.dp)
                         )
@@ -187,7 +230,7 @@ fun LogbookItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Eintrag löschen",
+                            contentDescription = stringResource(R.string.logbook_item_card_delete_desc),
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(18.dp)
                         )

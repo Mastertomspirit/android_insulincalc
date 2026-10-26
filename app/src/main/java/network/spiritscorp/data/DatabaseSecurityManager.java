@@ -44,13 +44,16 @@ import javax.crypto.spec.GCMParameterSpec;
  */
 public class DatabaseSecurityManager {
 
+    /**
+     * Logging tag used for debugging and security audits.
+     */
     private static final String TAG = "DatabaseSecurityManager";
     private static final String PREFS_FILE = AppConstants.SECURITY_PREFS_FILE;
 
     // Android KeyStore Alias & Cipher specifications
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
-    public static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
-    public static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
+    private static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
+    private static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int PASSPHRASE_BYTE_LENGTH = 32; // 256-bit AES Key
@@ -175,8 +178,14 @@ public class DatabaseSecurityManager {
         return keyGenerator.generateKey();
     }
 
+    /**
+     * Encrypts the provided plaintext byte array using the Android KeyStore AES-GCM master key.
+     *
+     * @param plaintext Raw bytes to encrypt (e.g., database passphrase).
+     * @return [EncryptedData] containing the initialization vector (IV) and ciphertext, or null if KeyStore is unavailable.
+     */
     @Nullable
-    public EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
+    EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
         try {
             SecretKey secretKey = getOrCreateKeyStoreMasterKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
@@ -190,8 +199,15 @@ public class DatabaseSecurityManager {
         }
     }
 
+    /**
+     * Decrypts the provided ciphertext byte array using the Android KeyStore AES-GCM master key and IV.
+     *
+     * @param iv Initialization vector used during encryption.
+     * @param ciphertext Encrypted data bytes.
+     * @return Decrypted raw plaintext bytes, or null if decryption fails or KeyStore is unavailable.
+     */
     @Nullable
-    public byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
+    byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
         try {
             SecretKey secretKey = getOrCreateKeyStoreMasterKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
@@ -211,7 +227,7 @@ public class DatabaseSecurityManager {
      * @return Hexadecimal representation.
      */
     @NonNull
-    public static String bytesToHex(@Nullable byte[] bytes) {
+   static String bytesToHex(@Nullable byte[] bytes) {
         if (bytes == null || bytes.length == 0) {
             return "";
         }
@@ -224,6 +240,9 @@ public class DatabaseSecurityManager {
         return new String(hexChars);
     }
 
-    public record EncryptedData(byte[] iv, byte[] ciphertext) {
+    /**
+     * Immutable container record holding encrypted ciphertext and its initialization vector.
+     */
+    record EncryptedData(byte[] iv, byte[] ciphertext) {
     }
 }

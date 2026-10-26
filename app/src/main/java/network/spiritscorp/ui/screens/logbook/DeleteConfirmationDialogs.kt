@@ -36,13 +36,24 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.util.DateTimeUtils
-import androidx.compose.ui.platform.LocalLocale
 
+/**
+ * Confirmation dialog for deleting a single calculation log entry.
+ * Displays the log details (meal title, timestamp, insulin dosage) and allows
+ * user to confirm deletion or dismiss the dialog.
+ *
+ * @param log The {@link CalculationLog} to be deleted, displaying meal title, date, and insulin dosage.
+ * @param onConfirm Callback invoked when the user confirms deletion of this log entry.
+ * @param onDismiss Callback invoked when the dialog is dismissed (user clicks cancel or outside).
+ */
 @Composable
 fun SingleLogDeleteDialog(
     log: CalculationLog,
@@ -61,10 +72,10 @@ fun SingleLogDeleteDialog(
                 modifier = Modifier.size(28.dp)
             )
         },
-        title = { Text("Eintrag löschen?") },
+        title = { Text(stringResource(R.string.logbook_delete_confirmation_dialog_title)) },
         text = {
             Column {
-                Text("Möchtest du diesen Eintrag wirklich aus deinem Tagebuch entfernen?")
+                Text(stringResource(R.string.logbook_delete_confirmation_dialog_message))
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -91,7 +102,7 @@ fun SingleLogDeleteDialog(
                 onClick = onConfirm,
                 modifier = Modifier.testTag("confirm_delete_single_log_button")
             ) {
-                Text("Löschen", color = AlertRed, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.logbook_delete_confirmation_dialog_confirm), color = AlertRed, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
@@ -99,12 +110,20 @@ fun SingleLogDeleteDialog(
                 onClick = onDismiss,
                 modifier = Modifier.testTag("cancel_delete_single_log_button")
             ) {
-                Text("Abbrechen")
+                Text(stringResource(R.string.logbook_delete_confirmation_dialog_cancel))
             }
         }
     )
 }
 
+/**
+ * Confirmation dialog for clearing all calculation logs from the logbook.
+ * Displays the total count of logs that will be deleted and requires explicit confirmation.
+ *
+ * @param totalLogsCount The total number of logs that will be cleared upon confirmation.
+ * @param onConfirm Callback invoked when the user confirms clearing all logs.
+ * @param onDismiss Callback invoked when the dialog is dismissed without action.
+ */
 @Composable
 fun ClearAllLogsDialog(
     totalLogsCount: Int,
@@ -121,16 +140,16 @@ fun ClearAllLogsDialog(
                 modifier = Modifier.size(32.dp)
             )
         },
-        title = { Text("Komplettes Tagebuch leeren?") },
+        title = { Text(stringResource(R.string.logbook_clear_all_dialog_title)) },
         text = {
-            Text("Bist du sicher? Alle $totalLogsCount gespeicherten Berechnungen werden unwiderruflich aus der Datenbank gelöscht. Es wird empfohlen, vorher ein Backup oder einen CSV-Export zu erstellen.")
+            Text(pluralStringResource(R.plurals.logbook_clear_all_dialog_message, totalLogsCount, totalLogsCount))
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
                 modifier = Modifier.testTag("confirm_clear_all_logs_button")
             ) {
-                Text("Alles löschen", color = AlertRed, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.logbook_clear_all_dialog_confirm), color = AlertRed, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
@@ -138,7 +157,7 @@ fun ClearAllLogsDialog(
                 onClick = onDismiss,
                 modifier = Modifier.testTag("cancel_clear_all_logs_button")
             ) {
-                Text("Abbrechen")
+                Text(stringResource(R.string.logbook_clear_all_dialog_cancel))
             }
         }
     )

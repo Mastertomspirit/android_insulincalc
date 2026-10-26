@@ -50,11 +50,6 @@ public final class DateTimeUtils {
     public static final String PATTERN_DISPLAY_DATE = "dd.MM.yyyy";
 
     /**
-     * Standard 24-hour time-only pattern (e.g., "14:30").
-     */
-    public static final String PATTERN_DISPLAY_TIME = "HH:mm";
-
-    /**
      * ISO-like standard timestamp for database/CSV interoperability (e.g., "2026-09-01 14:30:00").
      */
     public static final String PATTERN_ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
@@ -78,10 +73,6 @@ public final class DateTimeUtils {
 
     public static SimpleDateFormat getDisplayDateFormatter() {
         return new SimpleDateFormat(PATTERN_DISPLAY_DATE, Locale.getDefault());
-    }
-
-    public static SimpleDateFormat getDisplayTimeFormatter() {
-        return new SimpleDateFormat(PATTERN_DISPLAY_TIME, Locale.getDefault());
     }
 
     public static SimpleDateFormat getIsoDateTimeFormatter() {
@@ -108,19 +99,11 @@ public final class DateTimeUtils {
         return getDisplayDateFormatter().format(new Date(timestampMillis));
     }
 
-    public static String formatDisplayTime(long timestampMillis) {
-        return getDisplayTimeFormatter().format(new Date(timestampMillis));
-    }
-
     public static String formatIsoDateTime(long timestampMillis) {
         return getIsoDateTimeFormatter().format(new Date(timestampMillis));
     }
 
     public static String getFilenameTimestamp() {
         return getFilenameTimestampFormatter().format(new Date());
-    }
-
-    public static String getFilenameTimestamp(Date date) {
-        return getFilenameTimestampFormatter().format(date);
     }
 }

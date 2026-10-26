@@ -3,10 +3,12 @@
 /libraries/
 /shelf/
 
+/androidTestResultsUserPreferences.xml
 /assetWizardSettings.xml
 /deploymentTargetSelector.xml
 /gradle.xml
-/kotlinc.xml
 /modules.xml
 /navEditor.xml
+/project.prompts.xml
 /workspace.xml
+

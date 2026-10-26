@@ -52,8 +52,20 @@ import java.math.RoundingMode
 
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLocale
+import network.spiritscorp.R
 
+/**
+ * Reusable section header component for settings categories with an icon, title,
+ * subtitle, and optional expand/collapse toggle behavior.
+ *
+ * @param icon       The {@link ImageVector} icon displayed in the header badge.
+ * @param title      Section title string.
+ * @param subtitle   Section descriptive subtitle string.
+ * @param isExpanded Optional boolean flag indicating whether the section is expanded.
+ * @param onToggle   Optional callback invoked when the header is clicked to toggle visibility.
+ */
 @Composable
 fun SettingsSectionHeader(
     icon: ImageVector,
@@ -77,6 +89,7 @@ fun SettingsSectionHeader(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Section Icon Badge Surface
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
@@ -104,10 +117,11 @@ fun SettingsSectionHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        // Expand/Collapse Chevron Indicator
         if (isExpanded != null) {
             Icon(
                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (isExpanded) "Einklappen" else "Ausklappen",
+                contentDescription = if (isExpanded) stringResource(R.string.settings_components_collapse) else stringResource(R.string.settings_components_expand),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
@@ -115,6 +129,18 @@ fun SettingsSectionHeader(
     }
 }
 
+/**
+ * Reusable factor adjustment row component for modifying insulin therapy factors
+ * with decrement (-), current value display, and increment (+) buttons.
+ *
+ * @param title          Factor title (e.g. morning, noon).
+ * @param subtitle       Descriptive subtitle.
+ * @param icon           Category icon.
+ * @param iconColor      Color tint for the icon badge.
+ * @param factor         Current factor numeric value.
+ * @param onFactorChange Callback invoked with the updated factor value.
+ * @param tagPrefix      Unique test tag prefix for UI test automation.
+ */
 @Composable
 fun FactorRow(
     title: String,
@@ -169,11 +195,13 @@ fun FactorRow(
                 }
             }
 
+            // Controls Row: Decrement Button, Value Badge, Increment Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Decrement (-0.05) Button
                 Button(
                     onClick = {
                         val newF = BigDecimal(factor - 0.05).setScale(2, RoundingMode.HALF_UP).toDouble().coerceAtLeast(0.05)
@@ -190,11 +218,12 @@ fun FactorRow(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
                 ) {
-                    Text(text = "-0,05", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(text = stringResource(R.string.settings_components_factor_decrement_label), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 }
 
                 Spacer(modifier = Modifier.width(10.dp))
 
+                // Current Factor Value Display Surface
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -202,7 +231,10 @@ fun FactorRow(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = "${String.format(LocalLocale.current.platformLocale, "%.2f", factor)} IE",
+                            text = stringResource(
+                                R.string.settings_components_factor_value_format,
+                                String.format(LocalLocale.current.platformLocale, "%.2f", factor)
+                            ),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -213,6 +245,7 @@ fun FactorRow(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
+                // Increment (+0.05) Button
                 Button(
                     onClick = {
                         val newF = BigDecimal(factor + 0.05).setScale(2, RoundingMode.HALF_UP).toDouble().coerceAtMost(10.0)
@@ -229,7 +262,7 @@ fun FactorRow(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
                 ) {
-                    Text(text = "+0,05", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(text = stringResource(R.string.settings_components_factor_increment_label), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }

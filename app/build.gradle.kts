@@ -16,12 +16,14 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 8
-    versionName = "1.3.7"
+    versionCode = 1030800
+    versionName = "1.3.8"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
-
+  lint {
+    baseline = file("lint-baseline.xml")
+  }
   val localProperties = Properties().apply {
     val localFile = rootProject.file("local.properties")
     if (localFile.exists()) {
@@ -44,8 +46,19 @@ android {
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
+      buildConfigField(
+        "String",
+        "GEMINI_API_KEY",
+        "\"MY_GEMINI_API_KEY\""
+      )
     }
-    debug { }
+    debug {
+      buildConfigField(
+        "String",
+        "GEMINI_API_KEY",
+        "\"${localProperties.getProperty("GEMINI_API_KEY")}\""
+      )
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -57,16 +70,17 @@ android {
   }
   testOptions {
     unitTests {
+      isReturnDefaultValues = true
       isIncludeAndroidResources = true
       all {
-        val testTask = this as? Test
-        testTask?.jvmArgs(
+        it.useJUnitPlatform()
+        it.jvmArgs(
           "--enable-native-access=ALL-UNNAMED",
           "-XX:+EnableDynamicAgentLoading"
         )
         val jvmMajor = JavaVersion.current().majorVersion.toIntOrNull() ?: 21
         if (jvmMajor >= 24) {
-          testTask?.jvmArgs("--sun-misc-unsafe-memory-access=allow")
+          it.jvmArgs("--sun-misc-unsafe-memory-access=allow")
         }
       }
     }
@@ -76,6 +90,7 @@ android {
     includeInBundle = true
   }
   buildToolsVersion = "36.0.0"
+  base.archivesName.set("${defaultConfig.applicationId}_v${defaultConfig.versionName}")
 }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.spiritscorp files
@@ -83,7 +98,6 @@ android {
 secrets {
   propertiesFileName = ".env"
   defaultPropertiesFileName = ".env.spiritscorp"
-  ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
 dependencies {
@@ -99,6 +113,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.material3)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.sqlcipher.android)
@@ -111,13 +126,21 @@ dependencies {
   implementation(libs.retrofit)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
+  testImplementation(libs.junit.jupiter.api)
+  testImplementation(libs.junit.jupiter.params)
+  testRuntimeOnly(libs.junit.platform.launcher)
+  testRuntimeOnly(libs.junit.jupiter.engine)
+  testRuntimeOnly(libs.junit.vintage.engine)
   testImplementation(libs.junit)
+  testImplementation(libs.mockito.core)
+  testImplementation(libs.mockito.inline)
   testImplementation(libs.json)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.robolectric)
   testImplementation(libs.roborazzi)
   testImplementation(libs.roborazzi.compose)
   testImplementation(libs.roborazzi.junit.rule)
+  testImplementation(libs.mockwebserver)
   androidTestImplementation(platform(libs.androidx.compose.bom))
   androidTestImplementation(libs.androidx.compose.ui.test.junit4)
   androidTestImplementation(libs.androidx.espresso.core)

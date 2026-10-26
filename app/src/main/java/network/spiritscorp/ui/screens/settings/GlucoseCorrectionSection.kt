@@ -50,13 +50,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.model.GlucoseUnit
 
+/**
+ * Settings section composable for configuring blood glucose units (mg/dl vs mmol/l),
+ * target blood glucose levels, and correction factors.
+ *
+ * @param glucoseUnit              The currently selected {@link GlucoseUnit}.
+ * @param onGlucoseUnitChange      Callback invoked when the glucose unit changes.
+ * @param targetGlucose            Target blood glucose string input value.
+ * @param onTargetGlucoseChange    Callback invoked when target glucose input changes.
+ * @param correctionFactor         Correction factor string input value.
+ * @param onCorrectionFactorChange Callback invoked when correction factor input changes.
+ * @param modifier                 Optional {@link Modifier} for layout styling.
+ * @param isExpanded               Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand           Callback invoked to toggle section expansion.
+ */
 @Composable
 fun GlucoseCorrectionSection(
     glucoseUnit: GlucoseUnit,
@@ -78,14 +94,16 @@ fun GlucoseCorrectionSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Opacity,
-                title = "2. Blutzucker & Korrektur",
-                subtitle = "Einheit, Zielblutzucker und Korrekturfaktor (ISF)",
+                title = stringResource(R.string.settings_glucose_correction_section_title),
+                subtitle = stringResource(R.string.settings_glucose_correction_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -96,12 +114,13 @@ fun GlucoseCorrectionSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Glukose-Messeinheit:",
+                        text = stringResource(R.string.settings_glucose_correction_section_unit_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // Glucose Unit Selection Row (MG_DL vs MMOL_L)
                     Row(
                         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -124,7 +143,7 @@ fun GlucoseCorrectionSection(
                                     modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp)
                                 ) {
                                     Text(
-                                        text = "${unit.label}\n(${unit.shortName})",
+                                        text = "${stringResource(unit.labelResId)}\n(${stringResource(unit.shortNameResId)})",
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                         ),
@@ -139,6 +158,7 @@ fun GlucoseCorrectionSection(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    // Target Glucose & Correction Factor Input Fields
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -148,8 +168,8 @@ fun GlucoseCorrectionSection(
                         OutlinedTextField(
                             value = targetGlucose,
                             onValueChange = onTargetGlucoseChange,
-                            label = { Text("Ziel-BZ") },
-                            suffix = { Text(glucoseUnit.shortName) },
+                            label = { Text(stringResource(R.string.settings_glucose_correction_section_target_label)) },
+                            suffix = { Text(stringResource(glucoseUnit.shortNameResId)) },
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
@@ -162,8 +182,8 @@ fun GlucoseCorrectionSection(
                         OutlinedTextField(
                             value = correctionFactor,
                             onValueChange = onCorrectionFactorChange,
-                            label = { Text("Korrekturfaktor (ISF)") },
-                            suffix = { Text("${glucoseUnit.shortName}/IE") },
+                            label = { Text(stringResource(R.string.settings_glucose_correction_section_correction_factor_label)) },
+                            suffix = { Text("${stringResource(glucoseUnit.shortNameResId)}/IE") },
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
@@ -176,7 +196,7 @@ fun GlucoseCorrectionSection(
 
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Um wie viel ${glucoseUnit.shortName} senkt 1 IE Insulin deinen Blutzucker?",
+                        text = stringResource(R.string.settings_glucose_correction_section_hint_format, stringResource(glucoseUnit.shortNameResId)),
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

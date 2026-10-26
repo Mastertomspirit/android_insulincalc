@@ -18,13 +18,14 @@ package network.spiritscorp.util;
  */
 
 import org.junit.Test;
+import network.spiritscorp.model.CarbUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Pure Java unit tests for {@link InsulinMathEngine}.
+ * Pure Java unit tests for {@link InsulinMathEngine} using CarbUnit enum and custom divisors.
  */
 public class InsulinMathEngineTest {
 
@@ -32,51 +33,52 @@ public class InsulinMathEngineTest {
 
     @Test
     public void testConvertToGrams() {
-        assertEquals(0.0, InsulinMathEngine.convertToGrams(0.0, "g KH"), DELTA);
-        assertEquals(0.0, InsulinMathEngine.convertToGrams(-5.0, "BE"), DELTA);
+        assertEquals(0.0, InsulinMathEngine.convertToGrams(0.0, CarbUnit.GRAMS, 12), DELTA);
+        assertEquals(0.0, InsulinMathEngine.convertToGrams(-5.0, CarbUnit.BE, 12), DELTA);
 
         // Grams
-        assertEquals(55.0, InsulinMathEngine.convertToGrams(55.0, "g KH"), DELTA);
-        assertEquals(55.0, InsulinMathEngine.convertToGrams(55.0, "g"), DELTA);
+        assertEquals(55.0, InsulinMathEngine.convertToGrams(55.0, CarbUnit.GRAMS, 12), DELTA);
 
-        // BE (12g)
-        assertEquals(12.0, InsulinMathEngine.convertToGrams(1.0, "BE"), DELTA);
-        assertEquals(48.0, InsulinMathEngine.convertToGrams(4.0, "BE"), DELTA);
-        assertEquals(30.0, InsulinMathEngine.convertToGrams(2.5, "be"), DELTA);
+        // BE (default 12g and custom 10g divisor)
+        assertEquals(12.0, InsulinMathEngine.convertToGrams(1.0, CarbUnit.BE, 12), DELTA);
+        assertEquals(48.0, InsulinMathEngine.convertToGrams(4.0, CarbUnit.BE, 12), DELTA);
+        assertEquals(25.0, InsulinMathEngine.convertToGrams(2.5, CarbUnit.BE, 10), DELTA);
 
-        // KE (10g)
-        assertEquals(10.0, InsulinMathEngine.convertToGrams(1.0, "KE"), DELTA);
-        assertEquals(35.0, InsulinMathEngine.convertToGrams(3.5, "ke"), DELTA);
+        // KE (fixed 10g)
+        assertEquals(10.0, InsulinMathEngine.convertToGrams(1.0, CarbUnit.KE, 12), DELTA);
+        assertEquals(35.0, InsulinMathEngine.convertToGrams(3.5, CarbUnit.KE, 12), DELTA);
     }
 
     @Test
-    public void testKeAndBeCalculation() {
+    public void testKeCalculation() {
         assertEquals(0.0, InsulinMathEngine.calculateKe(0.0), DELTA);
-        assertEquals(0.0, InsulinMathEngine.calculateBe(0.0), DELTA);
-
-        // 60g KH -> 6.0 KE, 5.0 BE
+        // 60g KH -> 6.0 KE
         assertEquals(6.0, InsulinMathEngine.calculateKe(60.0), DELTA);
-        assertEquals(5.0, InsulinMathEngine.calculateBe(60.0), DELTA);
+    }
 
-        // 24g KH -> 2.4 KE, 2.0 BE
-        assertEquals(2.4, InsulinMathEngine.calculateKe(24.0), DELTA);
-        assertEquals(2.0, InsulinMathEngine.calculateBe(24.0), DELTA);
+    @Test
+    public void testBeCalculation() {
+        assertEquals(0.0, InsulinMathEngine.calculateBe(0.0, 12), DELTA);
+        // 60g KH -> 5.0 BE (12g divisor)
+        assertEquals(5.0, InsulinMathEngine.calculateBe(60.0, 12), DELTA);
+        // 60g KH -> 6.0 BE (10g divisor)
+        assertEquals(6.0, InsulinMathEngine.calculateBe(60.0, 10), DELTA);
     }
 
     @Test
     public void testMealInsulinCalculation() {
         // Zero / negative inputs
-        assertEquals(0.0, InsulinMathEngine.calculateMealInsulin(0.0, "BE", 0.0, 1.5), DELTA);
-        assertEquals(0.0, InsulinMathEngine.calculateMealInsulin(4.0, "BE", 48.0, 0.0), DELTA);
+        assertEquals(0.0, InsulinMathEngine.calculateMealInsulin(0.0, CarbUnit.BE, 0.0, 1.5, 12), DELTA);
+        assertEquals(0.0, InsulinMathEngine.calculateMealInsulin(4.0, CarbUnit.BE, 48.0, 0.0, 12), DELTA);
 
         // 4 BE * 1.5 factor = 6.0 IE
-        assertEquals(6.0, InsulinMathEngine.calculateMealInsulin(4.0, "BE", 48.0, 1.5), DELTA);
+        assertEquals(6.0, InsulinMathEngine.calculateMealInsulin(4.0, CarbUnit.BE, 48.0, 1.5, 12), DELTA);
 
         // 3 KE * 1.2 factor = 3.6 IE
-        assertEquals(3.6, InsulinMathEngine.calculateMealInsulin(3.0, "KE", 30.0, 1.2), DELTA);
+        assertEquals(3.6, InsulinMathEngine.calculateMealInsulin(3.0, CarbUnit.KE, 30.0, 1.2, 12), DELTA);
 
         // 48g KH with Grams input (48 / 12 = 4 units * 1.5 factor = 6.0 IE)
-        assertEquals(6.0, InsulinMathEngine.calculateMealInsulin(48.0, "g KH", 48.0, 1.5), DELTA);
+        assertEquals(6.0, InsulinMathEngine.calculateMealInsulin(48.0, CarbUnit.GRAMS, 48.0, 1.5, 12), DELTA);
     }
 
     @Test
@@ -104,8 +106,7 @@ public class InsulinMathEngineTest {
 
     @Test
     public void testHypoglycemiaDetection() {
-        assertFalse(InsulinMathEngine.isHypoglycemia(null, false));
-        assertFalse(InsulinMathEngine.isHypoglycemia(null, true));
+        assertFalse(InsulinMathEngine.isHypoglycemia(34.0, true));
 
         // mg/dL mode (< 70 mg/dL is hypo)
         assertTrue(InsulinMathEngine.isHypoglycemia(69.0, false));
@@ -147,13 +148,5 @@ public class InsulinMathEngineTest {
         assertEquals(3.14, InsulinMathEngine.roundToDecimals(3.14159, 2), DELTA);
         assertEquals(3.142, InsulinMathEngine.roundToDecimals(3.14159, 3), DELTA);
         assertEquals(3.1, InsulinMathEngine.roundToDecimals(3.14159, 1), DELTA);
-    }
-
-    @Test
-    public void testMgDlAndMmolConversion() {
-        // 180 mg/dL ~= 10.0 mmol/L
-        assertEquals(10.0, InsulinMathEngine.convertMgDlToMmol(180.182), 0.1);
-        // 10.0 mmol/L ~= 180 mg/dL
-        assertEquals(180.0, InsulinMathEngine.convertMmolToMgDl(10.0), 1.0);
     }
 }

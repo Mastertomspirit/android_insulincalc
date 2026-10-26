@@ -17,8 +17,9 @@ package network.spiritscorp.ui.screens.logbook
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.content.Context
 import android.content.Intent
-import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -53,27 +55,50 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 import java.util.Calendar
-import java.util.Date
 
 /**
  * Filter options for the calculation history.
+ *
+ * @param titleRes Resource ID pointing to the localized display string.
+ *                 This decouples the enum from Android Context while guaranteeing full i18n support.
  */
-enum class HistoryFilter(val title: String) {
-    ALL("Alle"),
-    TODAY("Heute"),
-    DAYS_7("7 Tage"),
-    DAYS_30("30 Tage"),
-    CUSTOM("Zeitraum")
+enum class HistoryFilter(@StringRes val titleRes: Int) {
+    ALL(R.string.history_filter_all),
+    TODAY(R.string.history_filter_today),
+    DAYS_7(R.string.history_filter_7_days),
+    DAYS_30(R.string.history_filter_30_days),
+    CUSTOM(R.string.history_filter_custom);
+
+    /**
+     * Backward-compatible property or helper to retrieve the translated label via a Composable.
+     */
+    val title: String
+        @Composable
+        get() = stringResource(titleRes)
+
 }
 
+/**
+ * Main Logbook Screen composable displaying calculation history logs, statistical summaries,
+ * filter options, date range pickers, and deletion/sharing actions. Orchestrates the entire logbook flow,
+ * including filtering by time period (ALL, TODAY, LAST_7, LAST_30, CUSTOM), slice navigation for "TODAY" views,
+ * export/share dialogs, and empty state handling.
+ *
+ * @param viewModel The {@link InsulinCalculatorViewModel} handling log deletions, clear-all operations, and data state.
+ * @param logs      The complete list of saved {@link CalculationLog} items available for filtering.
+ * @param modifier  Optional {@link Modifier} for layout styling.
+ */
 @Composable
 fun LogbookScreen(
     viewModel: InsulinCalculatorViewModel,
@@ -89,7 +114,7 @@ fun LogbookScreen(
     var customStartDateMillis by remember { mutableLongStateOf(System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000) }
     var customEndDateMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    // Filter computation
+    // Filter computation based on selected HistoryFilter and slice offsets
     val filteredLogs by remember(logs, selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
             val now = Calendar.getInstance()
@@ -132,14 +157,15 @@ fun LogbookScreen(
         }
     }
 
-    val exportHelper = remember { LogbookExportHelper() }
+    val exportHelper = remember(context) { LogbookExportHelper(context) }
 
     val filterDescription by remember(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis) {
         derivedStateOf {
-            getFilterDescription(selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis)
+            getFilterDescription( context,selectedFilter, sliceOffset, customStartDateMillis, customEndDateMillis)
         }
     }
 
+    // Statistics calculations for the filtered log items
     val totalCarbs = remember(filteredLogs) { filteredLogs.sumOf { it.carbGrams } }
     val totalInsulin = remember(filteredLogs) { filteredLogs.sumOf { it.roundedInsulin } }
     val avgBloodGlucose = remember(filteredLogs) {
@@ -154,7 +180,7 @@ fun LogbookScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            // Header & Actions
+            // Header & Actions (Title, Entry Count, Share/Delete Icons)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -162,27 +188,28 @@ fun LogbookScreen(
             ) {
                 Column {
                     Text(
-                        text = "Insulin-Tagebuch",
+                        text = stringResource(R.string.logbook_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "${filteredLogs.size} von ${logs.size} Einträgen",
+                        text = pluralStringResource(R.plurals.logbook_entry_count, filteredLogs.size, filteredLogs.size, logs.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val shareChooserTitle = stringResource(R.string.logbook_share_chooser_title, filterDescription)
                     IconButton(
                         onClick = {
-                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription)
+                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription, viewModel.userSettings.value.glucoseUnit)
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
                                 putExtra(Intent.EXTRA_TEXT, exportText)
                                 type = "text/plain"
                             }
-                            val shareIntent = Intent.createChooser(sendIntent, "Tagebuch teilen ($filterDescription)")
+                            val shareIntent = Intent.createChooser( sendIntent, shareChooserTitle )
                             context.startActivity(shareIntent)
                         },
                         enabled = filteredLogs.isNotEmpty(),
@@ -190,7 +217,7 @@ fun LogbookScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Tagebuch teilen",
+                            contentDescription = stringResource(R.string.logbook_share_content_description),
                             tint = if (filteredLogs.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -202,7 +229,7 @@ fun LogbookScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Tagebuch leeren",
+                            contentDescription = stringResource(R.string.logbook_cleared_toast),
                             tint = if (logs.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -211,7 +238,7 @@ fun LogbookScreen(
         }
 
         item {
-            // Filter Bar with timeframe navigators
+            // Filter Bar with timeframe navigators (< >) and custom date picker
             LogbookFilterBar(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { filter ->
@@ -239,7 +266,7 @@ fun LogbookScreen(
 
         if (filteredLogs.isNotEmpty()) {
             item {
-                // Statistical Summary Header
+                // Statistical Summary Header (Entries Count, Carbs, Insulin, Avg BG)
                 LogbookStatsHeader(
                     totalCarbs = totalCarbs,
                     totalInsulin = totalInsulin,
@@ -271,14 +298,22 @@ fun LogbookScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = if (logs.isEmpty()) "Noch keine Berechnungen gespeichert" else "Keine Einträge für diesen Zeitraum",
+                            text = if (logs.isEmpty()) {
+                                stringResource(R.string.logbook_empty_title_no_logs)
+                            } else {
+                                stringResource(R.string.logbook_empty_title_filtered)
+                            },
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (logs.isEmpty()) "Berechne im Rechner eine Dosis und tippe auf 'Im Tagebuch speichern'." else "Wähle oben einen anderen Filter oder springe im Zeitraum.",
+                            text = if (logs.isEmpty()) {
+                                stringResource(R.string.logbook_empty_desc_no_logs)
+                            } else {
+                                stringResource(R.string.logbook_empty_desc_filtered)
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -288,16 +323,21 @@ fun LogbookScreen(
             }
         } else {
             items(items = filteredLogs, key = { it.id }) { log ->
+                val shareSingleTitle = stringResource(R.string.logbook_share_single_title, log.mealTitle)
                 LogbookItemCard(
                     log = log,
+                    viewModel.userSettings.collectAsState().value.glucoseUnit,
                     onShareRequest = {
-                        val shareText = exportHelper.formatSingleLogShare(log)
+                        val shareText = exportHelper.formatSingleLogShare(log, viewModel.userSettings.value.glucoseUnit)
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, shareText)
                             type = "text/plain"
                         }
-                        val shareIntent = Intent.createChooser(sendIntent, "Eintrag teilen (${log.mealTitle})")
+                        val shareIntent = Intent.createChooser(
+                            sendIntent,
+                            shareSingleTitle
+                        )
                         context.startActivity(shareIntent)
                     },
                     onDeleteRequest = { logToDelete = log }
@@ -306,33 +346,44 @@ fun LogbookScreen(
         }
     }
 
-    // Dialogs
+    // Single Log Deletion Confirmation Dialog
     logToDelete?.let { targetItem ->
         SingleLogDeleteDialog(
             log = targetItem,
             onConfirm = {
                 viewModel.deleteLog(targetItem.id)
                 logToDelete = null
-                Toast.makeText(context, "Eintrag gelöscht", Toast.LENGTH_SHORT).show()
             },
             onDismiss = { logToDelete = null }
         )
     }
 
+    // Clear All Logs Confirmation Dialog
     if (showClearAllDialog) {
         ClearAllLogsDialog(
             totalLogsCount = logs.size,
             onConfirm = {
                 viewModel.clearAllLogs()
                 showClearAllDialog = false
-                Toast.makeText(context, "Tagebuch vollständig geleert", Toast.LENGTH_SHORT).show()
             },
             onDismiss = { showClearAllDialog = false }
         )
     }
 }
 
+/**
+ * Helper function computing human-readable filter descriptions for the LogbookFilterBar.
+ * Handles ALL, TODAY (with day offsets), LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges with proper formatting.
+ *
+ * @param context Android context for string resources.
+ * @param filter The currently selected {@link HistoryFilter}.
+ * @param sliceOffset Current time offset index for TODAY filters (e.g., today, yesterday).
+ * @param customStart Custom start timestamp in milliseconds for CUSTOM range filter.
+ * @param customEnd Custom end timestamp in milliseconds for CUSTOM range filter.
+ * @return Formatted description string matching the active filter state and user preferences.
+ */
 private fun getFilterDescription(
+    context: Context,
     filter: HistoryFilter,
     sliceOffset: Int,
     customStart: Long,
@@ -340,11 +391,11 @@ private fun getFilterDescription(
 ): String {
     val sdf = DateTimeUtils.getDisplayDateFormatter()
     return when (filter) {
-        HistoryFilter.ALL -> "Alle Einträge"
+        HistoryFilter.ALL -> context.getString(R.string.logbook_filter_desc_all)
         HistoryFilter.TODAY -> {
             when (sliceOffset) {
-                0 -> "Heute"
-                1 -> "Gestern"
+                0 -> context.getString(R.string.logbook_filter_desc_today)
+                1 -> context.getString(R.string.logbook_filter_desc_yesterday)
                 else -> {
                     val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -sliceOffset) }
                     sdf.format(cal.time)
@@ -352,13 +403,17 @@ private fun getFilterDescription(
             }
         }
         HistoryFilter.DAYS_7 -> {
-            if (sliceOffset == 0) "Letzte 7 Tage"
-            else "7 Tage (vor $sliceOffset Woche(n))"
+            if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_7_days)
+            else context.resources.getQuantityString(R.plurals.logbook_filter_desc_7_days_offset, sliceOffset, sliceOffset)
         }
         HistoryFilter.DAYS_30 -> {
-            if (sliceOffset == 0) "Letzte 30 Tage"
-            else "30 Tage (vor $sliceOffset Monat(en))"
+            if (sliceOffset == 0) context.getString(R.string.logbook_filter_desc_last_30_days)
+            else context.resources.getQuantityString(R.plurals.logbook_filter_desc_30_days_offset, sliceOffset, sliceOffset)
         }
-        HistoryFilter.CUSTOM -> "${DateTimeUtils.formatDisplayDate(customStart)} bis ${DateTimeUtils.formatDisplayDate(customEnd)}"
+        HistoryFilter.CUSTOM -> context.getString(
+            R.string.logbook_filter_desc_custom_range,
+            DateTimeUtils.formatDisplayDate(customStart),
+            DateTimeUtils.formatDisplayDate(customEnd)
+        )
     }
 }

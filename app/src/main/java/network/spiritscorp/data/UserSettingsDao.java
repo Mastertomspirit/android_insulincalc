@@ -26,13 +26,17 @@ import network.spiritscorp.model.UserSettings;
 import kotlinx.coroutines.flow.Flow;
 
 /**
- * Data Access Object (DAO) for persisting and observing personalized UserSettings.
+ * Data Access Object (DAO) for managing {@link UserSettings} in the Room database.
+ * <p>
+ * Provides methods for persisting and querying user therapy configuration settings.
  */
 @Dao
 public interface UserSettingsDao {
 
     /**
      * Observes the active user settings (singleton row with ID = 1) reactively.
+     *
+     * @return A cold Kotlin {@link Flow} emitting {@link UserSettings} updates.
      */
     @NonNull
     @Query("SELECT * FROM user_settings WHERE id = 1")
@@ -40,12 +44,16 @@ public interface UserSettingsDao {
 
     /**
      * Retrieves the current user settings directly without establishing a reactive stream.
+     *
+     * @return The active {@link UserSettings} snapshot, or null if uninitialized.
      */
     @Query("SELECT * FROM user_settings WHERE id = 1")
     UserSettings getSettingsDirect();
 
     /**
      * Saves or updates the user settings configuration.
+     *
+     * @param settings The {@link UserSettings} to persist.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void saveSettings(@NonNull UserSettings settings);

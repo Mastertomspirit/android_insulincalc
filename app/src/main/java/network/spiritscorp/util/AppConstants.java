@@ -34,17 +34,17 @@ public final class AppConstants {
     /**
      * Room SQLite Database Schema Version.
      */
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 3;
 
     /**
      * JSON Backup Payload Format Version.
      */
-    public static final int JSON_BACKUP_VERSION = 2;
+    public static final int JSON_BACKUP_VERSION = 3;
 
     /**
      * CSV Export & Import Format Version.
      */
-    public static final int CSV_BACKUP_VERSION = 1;
+    public static final int CSV_BACKUP_VERSION = 2;
 
     /**
      * Android KeyStore Encryption Key Vault Version.
@@ -69,4 +69,13 @@ public final class AppConstants {
      * SharedPreferences file name for cryptographic key metadata.
      */
     public static final String SECURITY_PREFS_FILE = "secure_db_vault_prefs";
+
+    // =========================================================================
+    // Preference & Timeout Constants
+    // =========================================================================
+
+    /**
+     * Time duration in milliseconds before the medical disclaimer is shown again (30 days).
+     */
+    public static final long DISCLAIMER_RE_SHOW_INTERVAL_MS = 30L * 24 * 60 * 60 * 1000;
 }

@@ -18,9 +18,13 @@ package network.spiritscorp.ui.screens.settings
  */
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,22 +56,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import network.spiritscorp.R
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.ui.text.style.TextAlign
-
+/**
+ * Settings section composable for database backup export (JSON/CSV), sharing,
+ * restoring from files, and resetting all application data.
+ *
+ * @param viewModel             The {@link InsulinCalculatorViewModel} handling data operations.
+ * @param onShowResetDbDialog   Callback invoked to trigger the database reset confirmation dialog.
+ * @param modifier              Optional {@link Modifier} for layout styling.
+ * @param isExpanded            Boolean flag indicating whether the accordion section is expanded.
+ * @param onToggleExpand        Callback invoked to toggle section expansion.
+ */
 @Composable
 fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
@@ -78,7 +88,10 @@ fun BackupRestoreSection(
 ) {
     val context = LocalContext.current
     val backupManager = DatabaseBackupManager(context)
-
+    val backupSuccess = stringResource(R.string.settings_backup_export_json_toast_success)
+    val backupError = stringResource(R.string.settings_backup_export_json_toast_error)
+    
+    // File creation launcher for JSON backups
     val jsonExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -86,17 +99,15 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val json = viewModel.exportJsonBackup()
                 val success = backupManager.writeTextToUri(context, uri, json)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(context, "JSON-Backupdatei erfolgreich gespeichert!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, "Fehler beim Speichern der JSON-Datei.", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                viewModel.showToast(if (success) backupSuccess else backupError)
             }
         }
     }
 
+    val backupSuccessCsv = stringResource(R.string.settings_backup_csv_toast_success)
+    val backupErrorCsv = stringResource(R.string.settings_backup_csv_toast_error)
+    
+    // File creation launcher for CSV logbook exports
     val csvExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -104,17 +115,15 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val csv = viewModel.exportCsvBackup()
                 val success = backupManager.writeTextToUri(context, uri, csv)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(context, "Tagebuch erfolgreich als CSV gespeichert!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, "Fehler beim Speichern der CSV-Datei.", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                viewModel.showToast(if (success) backupSuccessCsv else backupErrorCsv)
             }
         }
     }
 
+    val backupReadError = stringResource(R.string.settings_backup_read_error)
+    val backupErrorImport = stringResource(R.string.settings_backup_import_toast_error)
+    
+    // File picker launcher for importing backup files
     val fileImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -122,18 +131,14 @@ fun BackupRestoreSection(
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 val content = backupManager.readTextFromUri(context, uri)
                 if (content.isNullOrBlank()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Konnte Datei nicht lesen oder Datei ist leer.", Toast.LENGTH_LONG).show()
-                    }
+                    viewModel.showToast(backupReadError)
                     return@launch
                 }
                 val result = viewModel.importBackupContent(content)
-                withContext(Dispatchers.Main) {
-                    if (result.isSuccess) {
-                        Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(context, "Import fehlgeschlagen: ${result.message}", Toast.LENGTH_LONG).show()
-                    }
+                if (result.isSuccess) {
+                    viewModel.showToast(result.message)
+                } else {
+                    viewModel.showToast(backupErrorImport + result.message)
                 }
             }
         }
@@ -146,14 +151,16 @@ fun BackupRestoreSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Accordion Section Header
             SettingsSectionHeader(
                 icon = Icons.Default.Save,
-                title = "5. Datensicherung & Backup",
-                subtitle = "Sichere deine Daten lokal oder importiere Backups",
+                title = stringResource(R.string.settings_backup_section_title),
+                subtitle = stringResource(R.string.settings_backup_section_subtitle),
                 isExpanded = isExpanded,
                 onToggle = onToggleExpand
             )
 
+            // Expandable Content
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -163,6 +170,7 @@ fun BackupRestoreSection(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Export Buttons Row (JSON & CSV)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -182,15 +190,15 @@ fun BackupRestoreSection(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Backup\nExport",
+                                text = stringResource(R.string.settings_backup_export_json_button),
                                 textAlign = TextAlign.Center
                             )
                         }
-
+                        val dateTag = DateTimeUtils.getFilenameTimestamp()
+                        val fileName = stringResource(R.string.settings_backup_file_name_csv, dateTag )
                         Button(
                             onClick = {
-                                val dateTag = DateTimeUtils.getFilenameTimestamp()
-                                csvExportLauncher.launch("insulin_tagebuch_$dateTag.csv")
+                                csvExportLauncher.launch(fileName)
                             },
                             modifier = Modifier.weight(1f).testTag("export_csv_file_button"),
                             shape = RoundedCornerShape(10.dp)
@@ -202,7 +210,7 @@ fun BackupRestoreSection(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Tagebuch\nExport",
+                                text = stringResource(R.string.settings_backup_export_csv_button),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -210,6 +218,11 @@ fun BackupRestoreSection(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    val shareSuccess = stringResource(R.string.settings_backup_share_json_subject)
+                    val shareChooser = stringResource(R.string.settings_backup_share_json_chooser)
+                    val shareError = stringResource(R.string.settings_backup_share_error_general)
+                    
+                    // Share Buttons Row (JSON & CSV sharing intents)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -223,12 +236,12 @@ fun BackupRestoreSection(
                                             val sendIntent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 putExtra(Intent.EXTRA_TEXT, json)
-                                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator JSON Backup")
+                                                putExtra(Intent.EXTRA_SUBJECT, shareSuccess)
                                                 type = "text/plain"
                                             }
-                                            context.startActivity(Intent.createChooser(sendIntent, "JSON Backup teilen"))
+                                            context.startActivity(Intent.createChooser(sendIntent, shareChooser))
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, "Fehler beim Teilen: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            viewModel.showToast(shareError + e.message)
                                         }
                                     }
                                 }
@@ -242,9 +255,12 @@ fun BackupRestoreSection(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("JSON teilen")
+                            Text(stringResource(R.string.settings_backup_share_json_button))
                         }
 
+                        val backupError = stringResource(R.string.settings_backup_share_error_general)
+                        val csvSubject = stringResource(R.string.settings_backup_share_csv_subject)
+                        val csvChooser = stringResource(R.string.settings_backup_share_csv_chooser)
                         OutlinedButton(
                             onClick = {
                                 viewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -254,12 +270,12 @@ fun BackupRestoreSection(
                                             val sendIntent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 putExtra(Intent.EXTRA_TEXT, csv)
-                                                putExtra(Intent.EXTRA_SUBJECT, "InsulinCalculator CSV Export")
+                                                putExtra(Intent.EXTRA_SUBJECT, csvSubject)
                                                 type = "text/plain"
                                             }
-                                            context.startActivity(Intent.createChooser(sendIntent, "CSV Tagebuch teilen"))
+                                            context.startActivity(Intent.createChooser(sendIntent, csvChooser))
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, "Fehler beim Teilen: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            viewModel.showToast(backupError + e.message)
                                         }
                                     }
                                 }
@@ -273,12 +289,13 @@ fun BackupRestoreSection(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("CSV teilen")
+                            Text(stringResource(R.string.settings_backup_share_csv_button))
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Import Button
                     Button(
                         onClick = {
                             fileImportLauncher.launch(arrayOf("application/json", "text/csv", "text/comma-separated-values", "text/plain", "*/*"))
@@ -293,11 +310,12 @@ fun BackupRestoreSection(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Backup-Datei importieren (.json / .csv)")
+                        Text(stringResource(R.string.settings_backup_import_button))
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Reset Data Button (Destructive)
                     OutlinedButton(
                         onClick = onShowResetDbDialog,
                         modifier = Modifier.fillMaxWidth().testTag("reset_all_data_button"),
@@ -312,7 +330,7 @@ fun BackupRestoreSection(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Alle Daten & Tagebuch unwiderruflich löschen")
+                        Text(stringResource(R.string.settings_backup_reset_button))
                     }
                 }
             }

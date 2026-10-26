@@ -61,10 +61,10 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 * **Version**: `1.3.7` (VersionCode: `8`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
-* **Android Gradle Plugin (AGP)**: `9.4.0` (optimiert für Gradle 9.7.1)
+* **Android Gradle Plugin (AGP)**: `9.4.1` (optimiert für Gradle 9.8.1)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
-* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.18.0`) und AndroidX Security Crypto (`1.1.0`)
+* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.19.1`) und AndroidX Security Crypto (`1.1.0`)
 * **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
 * **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
 * **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)
@@ -83,10 +83,10 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 ### Schnellstart per Terminal (Gradle CLI):
 ```bash
 # Debug-APK kompilieren:
-./gradlew assembleDebug
+gradle assembleDebug
 
 # Release-APK kompilieren (für R8/ProGuard optimiert):
-./gradlew assembleRelease
+gradle assembleRelease
 ```
 
 ---
@@ -97,19 +97,19 @@ Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Ver
 
 * **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
   ```bash
-  ./gradlew testDebugUnitTest
+  gradle testDebugUnitTest
   ```
 
 * **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
   ```bash
-  ./gradlew connectedDebugAndroidTest
+  gradle connectedDebugAndroidTest
   ```
 
 * **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
   ```bash
   # Alle instrumentierten Tests auf verbundenen Geräten
-  ./gradlew connectedCheck
+  gradle connectedCheck
 
   # Statische Code-Analyse
-  ./gradlew lintDebug
+  gradle lintDebug
   ```

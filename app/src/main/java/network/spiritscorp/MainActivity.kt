@@ -25,8 +25,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -38,33 +40,37 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import network.spiritscorp.data.ThemePreferences
+import network.spiritscorp.preferences.ThemePreferences
 import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen
 import network.spiritscorp.ui.screens.calculator.CalculatorScreen
 import network.spiritscorp.ui.screens.logbook.LogbookScreen
@@ -72,6 +78,7 @@ import network.spiritscorp.ui.screens.settings.SettingsScreen
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import androidx.compose.ui.res.stringResource
 
 /**
  * The primary entry point Activity for the application.
@@ -89,10 +96,10 @@ class MainActivity : ComponentActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Enable edge-to-edge system bar rendering
         enableEdgeToEdge()
-        
+
         // Load initial theme settings from SharedPreferences as fallback before Room loads
         val themePrefs = ThemePreferences(this)
         val initialSavedTheme = themePrefs.selectedTheme
@@ -101,20 +108,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Collect user settings reactively from ViewModel
             val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-            val themeString = userSettings?.selectedTheme ?: initialSavedTheme
-            val modeString = userSettings?.themeMode ?: initialSavedMode
+            val themeEnum = userSettings.selectedTheme ?: initialSavedTheme
+            val modeEnum = userSettings.themeMode ?: initialSavedMode
 
-            // Resolve color theme enum from stored string value
-            val themeEnum = try {
-                AppTheme.valueOf(themeString)
-            } catch (_: Exception) {
-                AppTheme.MEDICAL_TEAL
-            }
-            
             // Resolve light/dark mode preference
-            val isDark = when (modeString) {
-                "LIGHT" -> false
-                "DARK" -> true
+            val isDark = when (modeEnum) {
+                AppTheme.Mode.LIGHT -> false
+                AppTheme.Mode.DARK -> true
                 else -> isSystemInDarkTheme()
             }
 
@@ -135,7 +135,6 @@ class MainActivity : ComponentActivity() {
  *
  * @param viewModel The shared [InsulinCalculatorViewModel] supplying UI state and event handlers.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -143,15 +142,40 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
+    val context = LocalContext.current
 
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearSnackbar()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onResume()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearToast()
+        }
+    }
+
+    // Sync PagerState when ViewModel changes activeTab programmatically (e.g. from AI Estimator)
+    LaunchedEffect(uiState.activeTab) {
+        if (pagerState.currentPage != uiState.activeTab) {
+            val distance = abs(pagerState.currentPage - uiState.activeTab)
+            if (distance <= 1) {
+                pagerState.animateScrollToPage(uiState.activeTab)
+            } else {
+                pagerState.scrollToPage(uiState.activeTab)
+            }
         }
     }
 
@@ -187,11 +211,11 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val activeDisplayPage = pagerState.targetPage
 
     val topBarTitle = when (activeDisplayPage) {
-        0 -> "Insulin-Rechner"
-        1 -> "KI Mahlzeiten-Schätzer"
-        2 -> "Insulin-Tagebuch"
-        3 -> "Einstellungen & Faktoren"
-        else -> "Insulin-Rechner"
+        0 -> stringResource(R.string.main_top_bar_calculator)
+        1 -> stringResource(R.string.main_top_bar_ai_estimator)
+        2 -> stringResource(R.string.main_top_bar_logbook)
+        3 -> stringResource(R.string.main_top_bar_settings)
+        else -> stringResource(R.string.main_top_bar_calculator)
     }
 
     Scaffold(
@@ -202,6 +226,7 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     focusManager.clearFocus()
                 })
             },
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -228,10 +253,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 0) Icons.Filled.Calculate else Icons.Outlined.Calculate,
-                            contentDescription = "Rechner"
+                            contentDescription = stringResource(R.string.main_nav_calculator_label)
                         )
                     },
-                    label = { Text("Rechner") },
+                    label = { Text(stringResource(R.string.main_nav_calculator_label)) },
                     modifier = Modifier.testTag("nav_calculator")
                 )
 
@@ -241,10 +266,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 1) Icons.Filled.AutoAwesome else Icons.Outlined.AutoAwesome,
-                            contentDescription = "KI-Schätzer"
+                            contentDescription = stringResource(R.string.main_nav_ai_estimator_label)
                         )
                     },
-                    label = { Text("KI-Schätzer") },
+                    label = { Text(stringResource(R.string.main_nav_ai_estimator_label)) },
                     modifier = Modifier.testTag("nav_ai_estimator")
                 )
 
@@ -254,10 +279,10 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 2) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = "Tagebuch"
+                            contentDescription = stringResource(R.string.main_nav_logbook_label)
                         )
                     },
-                    label = { Text("Tagebuch") },
+                    label = { Text(stringResource(R.string.main_nav_logbook_label)) },
                     modifier = Modifier.testTag("nav_logbook")
                 )
 
@@ -267,20 +292,21 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
                     icon = {
                         Icon(
                             imageVector = if (activeDisplayPage == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
-                            contentDescription = "Einstellungen"
+                            contentDescription = stringResource(R.string.main_nav_settings_label)
                         )
                     },
-                    label = { Text("Einstellungen") },
+                    label = { Text(stringResource(R.string.main_nav_settings_label)) },
                     modifier = Modifier.testTag("nav_settings")
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .imePadding()
         ) {
             HorizontalPager(
                 state = pagerState,

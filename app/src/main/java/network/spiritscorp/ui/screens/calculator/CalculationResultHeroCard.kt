@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,15 +45,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import network.spiritscorp.R
 import network.spiritscorp.ui.theme.AlertRed
+import network.spiritscorp.ui.theme.InfoBlue
 import network.spiritscorp.viewmodel.CalculatorUiState
 
 /**
- * Prominent top hero card displaying calculated recommended insulin dosage,
- * breakdown by meal and correction, hypo alerts, and primary save action.
+ * Prominent top hero card displaying the calculated recommended insulin dosage.
+ *
+ * This composable renders the primary result card at the top of the calculator screen,
+ * summarizing the total insulin recommendation along with a detailed breakdown of meal
+ * bolus and correction doses. It also highlights potential hypoglycemia warnings and
+ * provides the primary action to save the calculation to the logbook.
+ *
+ * @param uiState The current state of the insulin calculator containing calculation results and inputs.
+ * @param onSaveToLogbook Callback invoked when the user clicks the "Save to Logbook" action button.
+ * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
 fun CalculationResultHeroCard(
@@ -77,7 +90,7 @@ fun CalculationResultHeroCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "EMPFOHLENE INSULINDOSIS",
+                text = stringResource(R.string.calc_result_hero_title),
                 style = MaterialTheme.typography.labelMedium.copy(
                     letterSpacing = 1.2.sp,
                     fontWeight = FontWeight.Bold
@@ -87,7 +100,7 @@ fun CalculationResultHeroCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Big rounded insulin units
+            // Display rounded total insulin dosage with extra bold typography
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
@@ -106,7 +119,7 @@ fun CalculationResultHeroCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "IE",
+                    text = stringResource(R.string.calc_result_hero_unit),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -115,9 +128,10 @@ fun CalculationResultHeroCard(
                 )
             }
 
+            // Optional notice showing rounding step and raw unrounded calculation value
             if (uiState.calculationSummary.roundingStep() > 0.0) {
                 Text(
-                    text = "Gerundet auf ${uiState.calculationSummary.roundingStep()} IE (Exakt: ${uiState.calculationSummary.rawTotalInsulin()} IE)",
+                    text = stringResource(R.string.calc_result_hero_rounded_format, uiState.calculationSummary.roundingStep(), uiState.calculationSummary.rawTotalInsulin()),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                 )
@@ -127,68 +141,76 @@ fun CalculationResultHeroCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Detailed breakdown
+            // Three-column breakdown showing Meal Insulin, Correction Insulin (if active), and Time of Day / Factor
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
+                // Column 1: Meal Bolus breakdown (Carbs & Carb Factor)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Mahlzeit",
+                        text = stringResource(R.string.calc_result_hero_breakdown_meal),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = "${uiState.calculationSummary.mealInsulin()} IE",
+                        text = stringResource(R.string.calc_result_hero_unit_format, uiState.calculationSummary.mealInsulin()),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams()}g × ${uiState.calculationSummary.factorUsed()}",
+                        text = stringResource(R.string.calc_result_hero_meal_calc_format, uiState.calculationSummary.carbGrams(), uiState.calculationSummary.factorUsed()),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
                 }
 
+                // Column 2: Correction Bolus breakdown (Blood Glucose & Correction Factor) - visible only if correction is enabled
                 if (uiState.showCorrection && uiState.calculationSummary.correctionInsulin() != 0.0) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Korrektur",
+                            text = stringResource(R.string.calc_result_hero_breakdown_correction),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                         )
                         Text(
-                            text = "${if (uiState.calculationSummary.correctionInsulin() > 0) "+" else ""}${uiState.calculationSummary.correctionInsulin()} IE",
+                            text = stringResource(
+                                R.string.calc_result_hero_signed_unit_format,
+                                if (uiState.calculationSummary.correctionInsulin() > 0) "+" else "",
+                                uiState.calculationSummary.correctionInsulin()
+                            ),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
-                            text = "BZ ${uiState.currentGlucoseInput} mg/dl",
+                            text = stringResource(R.string.calc_result_hero_glucose_format, uiState.currentGlucoseInput, stringResource(uiState.glucoseUnit.shortNameResId)),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                         )
                     }
                 }
 
+                // Column 3: Active Time of Day slot and corresponding insulin factor
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Tageszeit",
+                        text = stringResource(R.string.calc_result_hero_breakdown_time),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = uiState.selectedTimeOfDay.title,
+                        text = stringResource(uiState.selectedTimeOfDay.titleResId),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "Faktor: ${uiState.calculationSummary.factorUsed()}",
+                        text = stringResource(R.string.calc_result_hero_factor_format, uiState.calculationSummary.factorUsed()),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
                 }
             }
 
+            // Advisory banner: Hypoglycemia warning (red) or normal status info (blue)
             if (uiState.calculationSummary.isHypoRisk) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
@@ -201,15 +223,41 @@ fun CalculationResultHeroCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Warning,
-                            contentDescription = "Hypoglykämie-Gefahr",
+                            contentDescription = stringResource(R.string.calc_result_hero_hypo_risk_desc),
                             tint = AlertRed,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = uiState.calculationSummary.advisoryNote(),
+                            textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            } else if(uiState.calculationSummary.advisoryNote().isNotBlank()){
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = stringResource(R.string.calc_result_hero_info_desc),
+                            tint = InfoBlue,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = uiState.calculationSummary.advisoryNote(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSecondary
                         )
                     }
                 }
@@ -217,7 +265,7 @@ fun CalculationResultHeroCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Action: Save to logbook button
+            // Primary action button to save the calculated insulin dose and parameters to the logbook
             Button(
                 onClick = onSaveToLogbook,
                 modifier = Modifier
@@ -236,7 +284,7 @@ fun CalculationResultHeroCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Im Tagebuch speichern",
+                    text = stringResource(R.string.calc_result_hero_save_button),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

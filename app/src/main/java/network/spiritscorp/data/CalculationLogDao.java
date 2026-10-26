@@ -17,6 +17,7 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -27,45 +28,63 @@ import java.util.List;
 import kotlinx.coroutines.flow.Flow;
 
 /**
- * Data Access Object (DAO) for interacting with the `calculation_logs` database table.
+ * Data Access Object (DAO) for interacting with the {@code calculation_logs} database table.
+ * <p>
+ * Provides reactive streams and synchronous queries for managing calculation history logs.
  */
 @Dao
 public interface CalculationLogDao {
 
     /**
      * Observes all calculation log entries ordered chronologically descending by creation timestamp.
+     *
+     * @return A cold Kotlin {@link Flow} emitting a list of {@link CalculationLog} items whenever the table changes.
      */
-    @NotNull
+    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     Flow<List<CalculationLog>> getAllLogs();
 
     /**
-     * Retrieves a snapshot of all calculation log entries ordered chronologically descending.
+     * Retrieves a snapshot of all calculation log entries ordered chronologically descending by creation timestamp.
+     *
+     * @return A list of all stored {@link CalculationLog} entries.
      */
-    @NotNull
+    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
     List<CalculationLog> getAllLogsDirect();
 
     /**
      * Inserts or updates a single CalculationLog entry.
+     * <p>
+     * Uses {@link OnConflictStrategy#REPLACE} to overwrite existing rows sharing the same primary key ID.
+     *
+     * @param log The {@link CalculationLog} to persist.
+     * @return The row ID of the newly inserted or updated calculation log.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertLog(@NotNull CalculationLog log);
 
     /**
      * Inserts or updates a batch of CalculationLog entries.
+     * <p>
+     * Uses {@link OnConflictStrategy#REPLACE} to overwrite existing rows sharing the same primary key IDs.
+     *
+     * @param logs The list of {@link CalculationLog} entries to persist.
+     * @return An array of row IDs for the inserted or updated calculation logs.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long[] insertLogs(@NotNull List<CalculationLog> logs);
 
     /**
      * Deletes a specific calculation log entry by its primary key ID.
+     *
+     * @param logId The primary key ID of the log entry to delete.
      */
     @Query("DELETE FROM calculation_logs WHERE id = :logId")
     void deleteLogById(long logId);
 
     /**
-     * Clears all log entries from the table.
+     * Clears all log entries from the {@code calculation_logs} table.
      */
     @Query("DELETE FROM calculation_logs")
     void clearAllLogs();

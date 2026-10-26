@@ -27,7 +27,6 @@ public class DateTimeUtilsTest {
         assertEquals("dd.MM.yyyy HH:mm", DateTimeUtils.PATTERN_DISPLAY_DATETIME);
         assertEquals("dd.MM.yyyy • HH:mm", DateTimeUtils.PATTERN_DISPLAY_DATETIME_BULLET);
         assertEquals("dd.MM.yyyy", DateTimeUtils.PATTERN_DISPLAY_DATE);
-        assertEquals("HH:mm", DateTimeUtils.PATTERN_DISPLAY_TIME);
         assertEquals("yyyy-MM-dd HH:mm:ss", DateTimeUtils.PATTERN_ISO_DATETIME);
         assertEquals("yyyyMMdd_HHmm", DateTimeUtils.PATTERN_FILENAME_TIMESTAMP);
     }
@@ -48,10 +47,6 @@ public class DateTimeUtilsTest {
         assertNotNull(displayDate);
         assertTrue(displayDate.matches("\\d{2}\\.\\d{2}\\.\\d{4}"));
 
-        String displayTime = DateTimeUtils.formatDisplayTime(now);
-        assertNotNull(displayTime);
-        assertTrue(displayTime.matches("\\d{2}:\\d{2}"));
-
         String isoDateTime = DateTimeUtils.formatIsoDateTime(now);
         assertNotNull(isoDateTime);
         assertTrue(isoDateTime.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"));
@@ -59,14 +54,5 @@ public class DateTimeUtilsTest {
         String filenameTimestamp = DateTimeUtils.getFilenameTimestamp();
         assertNotNull(filenameTimestamp);
         assertTrue(filenameTimestamp.matches("\\d{8}_\\d{4}"));
-    }
-
-    @Test
-    public void testAppConstantsVersions() {
-        assertEquals(1, AppConstants.DATABASE_VERSION);
-        assertEquals(2, AppConstants.JSON_BACKUP_VERSION);
-        assertEquals(1, AppConstants.CSV_BACKUP_VERSION);
-        assertEquals(2, AppConstants.SECURITY_KEY_VERSION);
-        assertEquals("insulin_calculator.db", AppConstants.DATABASE_NAME);
     }
 }

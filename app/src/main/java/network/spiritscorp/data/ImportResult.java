@@ -25,12 +25,24 @@ import java.util.Objects;
  */
 public class ImportResult {
 
+    /** Indicates whether the import operation completed successfully. */
     public final boolean success;
+    /** Number of calculation log entries successfully imported. */
     public final int importedLogsCount;
+    /** Indicates whether user settings were successfully imported and updated. */
     public final boolean importedSettings;
+    /** Detailed human-readable status or error message describing the import outcome. */
     @NonNull
     public final String message;
 
+    /**
+     * Constructs a new ImportResult instance.
+     *
+     * @param success Whether the import was successful.
+     * @param importedLogsCount Number of imported calculation logs.
+     * @param importedSettings Whether settings were imported.
+     * @param message Status message.
+     */
     public ImportResult(boolean success, int importedLogsCount, boolean importedSettings, @NonNull String message) {
         this.success = success;
         this.importedLogsCount = importedLogsCount;
@@ -38,33 +50,19 @@ public class ImportResult {
         this.message = message;
     }
 
-    public ImportResult(boolean success, @NonNull String message) {
-        this(success, 0, false, message);
-    }
-
+    /** Returns whether the import operation completed successfully. */
     public boolean isSuccess() {
         return success;
     }
 
-    public boolean getSuccess() {
-        return success;
-    }
-
+    /** Returns the number of calculation log entries successfully imported. */
     public int getImportedLogsCount() {
         return importedLogsCount;
     }
 
+    /** Returns whether user settings were successfully imported and updated. */
     public boolean isImportedSettings() {
         return importedSettings;
-    }
-
-    public boolean getImportedSettings() {
-        return importedSettings;
-    }
-
-    @NonNull
-    public String getMessage() {
-        return message;
     }
 
     @Override

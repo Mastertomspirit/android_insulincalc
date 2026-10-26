@@ -20,8 +20,13 @@ package network.spiritscorp.data;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import kotlin.Pair;
+import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.model.CalculationLog;
+import network.spiritscorp.model.CarbUnit;
+import network.spiritscorp.model.GlucoseUnit;
+import network.spiritscorp.model.TimeOfDay;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.theme.AppTheme;
 import network.spiritscorp.util.AppConstants;
 import network.spiritscorp.util.DateTimeUtils;
 import org.json.JSONArray;
@@ -35,25 +40,50 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Handles JSON serialization and deserialization for therapy configuration and calculation logs.
+ * Handles JSON serialization and deserialization for therapy configuration settings and calculation history logs.
+ * <p>
+ * Provides robust versioned backup export strings and flexible JSON parser implementations
+ * capable of handling legacy format variations and missing keys safely.
  */
 public class JsonBackupHandler {
 
+    /**
+     * Logging tag used for debugging and error reporting during export/import operations.
+     */
     private static final String TAG = "JsonBackupHandler";
-    public static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
 
+    /**
+     * Version identifier for backup file compatibility tracking.
+     */
+    private static final int BACKUP_VERSION = AppConstants.JSON_BACKUP_VERSION;
+
+    /**
+     * ISO date/time formatter used for serializing export timestamps in backups.
+     */
     private final SimpleDateFormat isoDateFormat;
 
+    /**
+     * Constructs a JsonBackupHandler using the standard ISO date-time formatter.
+     */
     public JsonBackupHandler() {
         this(DateTimeUtils.getIsoDateTimeFormatter());
     }
 
+    /**
+     * Constructs a JsonBackupHandler with a custom date formatter.
+     *
+     * @param dateFormat The {@link SimpleDateFormat} instance for parsing/formatting export dates.
+     */
     public JsonBackupHandler(SimpleDateFormat dateFormat) {
         this.isoDateFormat = dateFormat;
     }
 
     /**
-     * Serializes UserSettings and CalculationLogs into a formatted JSON string.
+     * Serializes UserSettings and a list of CalculationLogs into a formatted, versioned JSON string.
+     *
+     * @param settings The active {@link UserSettings} configuration to back up.
+     * @param logs     The list of saved {@link CalculationLog} history items.
+     * @return A formatted JSON string representation of the backup, or empty JSON object "{}" on failure.
      */
     public String exportToJson(UserSettings settings, List<CalculationLog> logs) {
         try {
@@ -78,8 +108,7 @@ public class JsonBackupHandler {
                 settingsObj.put("showDisclaimer", settings.isShowDisclaimer());
                 settingsObj.put("selectedTheme", settings.getSelectedTheme());
                 settingsObj.put("themeMode", settings.getThemeMode());
-                settingsObj.put("geminiApiKey", settings.getGeminiApiKey() != null ? settings.getGeminiApiKey() : "");
-                settingsObj.put("selectedAiModel", settings.getSelectedAiModel() != null ? settings.getSelectedAiModel() : "gemini-3.5-flash");
+                settingsObj.put("selectedAiModel", settings.getSelectedAiModel());
                 root.put("settings", settingsObj);
             }
 
@@ -93,46 +122,13 @@ public class JsonBackupHandler {
         }
     }
 
-    @NonNull
-    private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
-        JSONArray logsArray = new JSONArray();
-        if (logs != null) {
-            for (CalculationLog log : logs) {
-                JSONObject logObj = new JSONObject();
-                logObj.put("id", log.getId());
-                logObj.put("timestamp", log.getTimestamp());
-                logObj.put("mealTitle", log.getMealTitle());
-                logObj.put("rawCarbInput", log.getRawCarbInput());
-                logObj.put("carbUnit", log.getCarbUnit());
-                logObj.put("carbGrams", log.getCarbGrams());
-                logObj.put("beValue", log.getBeValue());
-                logObj.put("keValue", log.getKeValue());
-                logObj.put("timeOfDay", log.getTimeOfDay());
-                logObj.put("insulinFactor", log.getInsulinFactor());
-                logObj.put("mealInsulin", log.getMealInsulin());
-                if (log.getBloodGlucose() != null) {
-                    logObj.put("bloodGlucose", log.getBloodGlucose());
-                }
-                if (log.getTargetGlucose() != null) {
-                    logObj.put("targetGlucose", log.getTargetGlucose());
-                }
-                if (log.getCorrectionFactor() != null) {
-                    logObj.put("correctionFactor", log.getCorrectionFactor());
-                }
-                if (log.getCorrectionInsulin() != null) {
-                    logObj.put("correctionInsulin", log.getCorrectionInsulin());
-                }
-                logObj.put("totalInsulin", log.getTotalInsulin());
-                logObj.put("roundedInsulin", log.getRoundedInsulin());
-                logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
-                logsArray.put(logObj);
-            }
-        }
-        return logsArray;
-    }
-
     /**
-     * Parses a JSON backup string into UserSettings and a list of CalculationLogs.
+     * Parses a JSON backup string into a {@link Pair} containing restored {@link UserSettings}
+     * and a list of {@link CalculationLog} items.
+     * Handles both root backup objects containing settings+logs and standalone JSON arrays of logs.
+     *
+     * @param jsonString The raw JSON string from a backup file or import source.
+     * @return A {@link Pair} holding optional UserSettings and parsed CalculationLogs, or null if parsing fails.
      */
     public Pair<UserSettings, List<CalculationLog>> parseJson(String jsonString) {
         if (jsonString == null || jsonString.trim().isEmpty()) {
@@ -172,26 +168,84 @@ public class JsonBackupHandler {
         }
     }
 
+    /**
+     * Serializes a list of {@link CalculationLog} objects into a {@link JSONArray}.
+     *
+     * @param logs List of log entries to convert.
+     * @return A {@link JSONArray} containing serialized log JSON objects.
+     * @throws JSONException If JSON construction fails.
+     */
+    @NonNull
+    private JSONArray getJsonArray(List<CalculationLog> logs) throws JSONException {
+        JSONArray logsArray = new JSONArray();
+        if (logs != null) {
+            for (CalculationLog log : logs) {
+                JSONObject logObj = new JSONObject();
+                logObj.put("id", log.getId());
+                logObj.put("timestamp", log.getTimestamp());
+                logObj.put("mealTitle", log.getMealTitle());
+                logObj.put("rawCarbInput", log.getRawCarbInput());
+                logObj.put("carbUnit", log.getCarbUnit().name());
+                logObj.put("carbGrams", log.getCarbGrams());
+                logObj.put("beValue", log.getBeValue());
+                logObj.put("keValue", log.getKeValue());
+                logObj.put("timeOfDay", log.getTimeOfDay().name());
+                logObj.put("insulinFactor", log.getInsulinFactor());
+                logObj.put("mealInsulin", log.getMealInsulin());
+                if (log.getBloodGlucose() != null) {
+                    logObj.put("bloodGlucose", log.getBloodGlucose());
+                }
+                if (log.getTargetGlucose() != null) {
+                    logObj.put("targetGlucose", log.getTargetGlucose());
+                }
+                if (log.getCorrectionFactor() != null) {
+                    logObj.put("correctionFactor", log.getCorrectionFactor());
+                }
+                if (log.getCorrectionInsulin() != null) {
+                    logObj.put("correctionInsulin", log.getCorrectionInsulin());
+                }
+                logObj.put("totalInsulin", log.getTotalInsulin());
+                logObj.put("roundedInsulin", log.getRoundedInsulin());
+                logObj.put("notes", log.getNotes() != null ? log.getNotes() : "");
+                logsArray.put(logObj);
+            }
+        }
+        return logsArray;
+    }
+
+    /**
+     * Deserializes a {@link JSONObject} representing user configuration settings into a {@link UserSettings} object.
+     *
+     * @param obj JSON object containing settings key-value pairs.
+     * @return Fully populated {@link UserSettings} object with fallback defaults for missing keys.
+     */
     private UserSettings parseUserSettingsJson(JSONObject obj) {
         UserSettings settings = new UserSettings();
-        settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor", "morning_factor", "morgenFaktor", "morgen_faktor", "factorMorning"));
-        settings.setNoonFactor(getDoubleFlexible(obj, 1.0, "noonFactor", "noon_factor", "mittagFaktor", "mittag_faktor", "factorNoon"));
-        settings.setEveningFactor(getDoubleFlexible(obj, 1.2, "eveningFactor", "evening_factor", "abendFaktor", "abend_faktor", "factorEvening"));
-        settings.setNightFactor(getDoubleFlexible(obj, 0.8, "nightFactor", "night_factor", "nachtFaktor", "nacht_faktor", "factorNight"));
-        settings.setDefaultCarbUnit(getStringFlexible(obj, "g KH", "defaultCarbUnit", "default_carb_unit", "carbUnit", "carb_unit", "kohlenhydrateEinheit", "einheit"));
-        settings.setBeGramsDivisor(getIntFlexible(obj, 12, "beGramsDivisor", "be_grams_divisor", "gramsPerBe", "grams_per_be", "beDivisor", "beTeiler", "grams_per_be"));
-        settings.setGlucoseUnit(getStringFlexible(obj, "mg/dl", "glucoseUnit", "glucose_unit", "blutzuckerEinheit", "bgUnit"));
-        settings.setTargetGlucoseMgDl(getDoubleFlexible(obj, 120.0, "targetGlucoseMgDl", "target_glucose_mg_dl", "targetGlucose", "target_glucose", "zielwert"));
-        settings.setCorrectionFactorMgDl(getDoubleFlexible(obj, 50.0, "correctionFactorMgDl", "correction_factor_mg_dl", "correctionFactor", "correction_factor", "korrekturFaktor"));
-        settings.setRoundingStep(getDoubleFlexible(obj, 0.5, "roundingStep", "rounding_step", "rundungsSchritt", "rundung"));
-        settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer", "show_disclaimer", "disclaimer", "autoTimeDetection", "auto_time_detection"));
-        settings.setSelectedTheme(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme", "selected_theme", "theme", "farbDesign", "farbschema"));
-        settings.setThemeMode(getStringFlexible(obj, "SYSTEM", "themeMode", "theme_mode", "darkMode", "dark_mode"));
-        settings.setGeminiApiKey(getStringFlexible(obj, null, "geminiApiKey", "gemini_api_key", "apiKey", "api_key"));
-        settings.setSelectedAiModel(getStringFlexible(obj, "gemini-2.5-flash", "selectedAiModel", "selected_ai_model", "aiModel", "ai_model", "model"));
+        settings.setMorningFactor(getDoubleFlexible(obj, 1.5, "morningFactor"));
+        settings.setNoonFactor(getDoubleFlexible(obj, 1.0, "noonFactor"));
+        settings.setEveningFactor(getDoubleFlexible(obj, 1.2, "eveningFactor"));
+        settings.setNightFactor(getDoubleFlexible(obj, 0.8, "nightFactor"));
+        settings.setDefaultCarbUnit(CarbUnit.valueOf(getStringFlexible(obj, "G_KH", "defaultCarbUnit")));
+        settings.setBeGramsDivisor(getIntFlexible(obj, 12, "beGramsDivisor"));
+        settings.setGlucoseUnit(GlucoseUnit.valueOf(getStringFlexible(obj, "MG_DL", "glucoseUnit")));
+        settings.setTargetGlucoseMgDl(getDoubleFlexible(obj, 120.0, "targetGlucoseMgDl"));
+        settings.setCorrectionFactorMgDl(getDoubleFlexible(obj, 50.0, "correctionFactorMgDl"));
+        settings.setRoundingStep(getDoubleFlexible(obj, 0.5, "roundingStep"));
+        settings.setShowDisclaimer(getBooleanFlexible(obj, true, "showDisclaimer"));
+        settings.setSelectedTheme(AppTheme.valueOf(getStringFlexible(obj, "MEDICAL_TEAL", "selectedTheme")));
+        settings.setThemeMode(AppTheme.Mode.valueOf(getStringFlexible(obj, "SYSTEM", "themeMode")));
+        settings.setSelectedAiModel(GeminiAiModel.valueOf(getStringFlexible(obj, "GEMINI_FLASH_LITE_LATEST", "selectedAiModel")));
         return settings;
     }
 
+    /**
+     * Flexibly retrieves a double value from a JSON object trying multiple candidate key names and parsing String numbers.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted double value or defaultVal.
+     */
     private double getDoubleFlexible(JSONObject obj, double defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -209,6 +263,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves an integer value from a JSON object trying multiple candidate key names.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted integer value or defaultVal.
+     */
     private int getIntFlexible(JSONObject obj, int defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -226,6 +288,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves a String value from a JSON object trying multiple candidate key names.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted String value or defaultVal.
+     */
     private String getStringFlexible(JSONObject obj, String defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -235,6 +305,14 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Flexibly retrieves a boolean value from a JSON object trying multiple candidate key names and String values.
+     *
+     * @param obj        JSON object to extract value from.
+     * @param defaultVal Fallback default value if key is absent or invalid.
+     * @param keys       Candidate key names to query in sequence.
+     * @return Extracted boolean value or defaultVal.
+     */
     private boolean getBooleanFlexible(JSONObject obj, boolean defaultVal, String... keys) {
         for (String key : keys) {
             if (obj.has(key) && !obj.isNull(key)) {
@@ -249,6 +327,12 @@ public class JsonBackupHandler {
         return defaultVal;
     }
 
+    /**
+     * Parses a {@link JSONArray} of calculation log JSON objects into a list of {@link CalculationLog} items.
+     *
+     * @param array JSON array containing serialized log entries.
+     * @return List of parsed {@link CalculationLog} instances.
+     */
     private List<CalculationLog> parseLogsArray(JSONArray array) {
         List<CalculationLog> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
@@ -260,11 +344,11 @@ public class JsonBackupHandler {
                     obj.optLong("timestamp", System.currentTimeMillis()),
                     obj.optString("mealTitle", "Mahlzeit"),
                     obj.optDouble("rawCarbInput", 0.0),
-                    obj.optString("carbUnit", "g KH"),
+                    CarbUnit.fromString(obj.optString("carbUnit", "GRAMS")),
                     obj.optDouble("carbGrams", 0.0),
                     obj.optDouble("beValue", 0.0),
                     obj.optDouble("keValue", 0.0),
-                    obj.optString("timeOfDay", "Morgens"),
+                    TimeOfDay.fromString(obj.optString("timeOfDay", "MORNING")),
                     obj.optDouble("insulinFactor", 1.0),
                     obj.optDouble("mealInsulin", 0.0),
                     obj.has("bloodGlucose") && !obj.isNull("bloodGlucose") ? obj.optDouble("bloodGlucose") : null,

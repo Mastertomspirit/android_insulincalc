@@ -1,0 +1,100 @@
+# InsulinRechner 1.3.8
+
+**Released:** October 26, 2026
+
+## Highlights
+
+- **Full localization:** The entire user interface is now available in English and German, including dialogs, error messages, and quantity plurals.
+- **Enhanced AI meal estimation:** Gemini meal estimates now include fat, protein, total weight, and calories. Result processing and calculations have also been improved.
+- **Safer database migrations:** Two new Room migrations provide reliable upgrades for older database schemas.
+- **Improved backups:** CSV backups now include a format version identifier. Enum serialization and deserialization have been standardized to prevent data restoration issues.
+- **Expanded test coverage:** The test suite now contains 15 test classes covering calculations, backup formats, database access, UI snapshots, and AI response parsing.
+
+## Added
+
+### AI and meal estimation
+- New Gemini model options: `GEMINI_3_5_FLASH_LITE`, `GEMINI_3_6_FLASH`, `GEMINI_3_7_FLASH`, and `GEMINI_3_8_FLASH`.
+- Meal estimation results now include macronutrients, weight, and calories.
+- `GeminiMealService.parseGeminiApiResponse()` is now public so API response parsing can be tested independently.
+- The API base URL can be configured through the constructor to support integration tests with MockWebServer.
+- The Gemini API key is injected into `BuildConfig` per build variant and sent through the `x-goog-api-key` HTTP header.
+
+### Data and security
+- New safe Room migrations from database schema 1 to 2 and from 2 to 3.
+- CSV backups now include a format version identifier.
+- Localized status messages for database backup operations.
+- Additional manifest security settings: backups are disabled, cleartext HTTP traffic is prohibited, and the fragile user data flag is disabled.
+
+### User interface and usability
+- `MainActivity` now uses `adjustResize` so the layout adapts correctly when the on-screen keyboard opens.
+- Improved edge-to-edge layout using `contentWindowInsets`, `consumeWindowInsets()`, and `imePadding()`.
+- A lifecycle observer in `MainApp` calls `viewModel.onResume()` when the app resumes.
+- Snackbar feedback has been replaced with Toast messages.
+- Added Play Store artwork and updated adaptive launcher icons, including a monochrome icon for Android 13 and later.
+- Standardized APK naming using the `<appId>_v<version>` format.
+
+### Localization and store presence
+- Complete English default strings and German translations for all screens, dialogs, error messages, and quantity plurals.
+- Full Fastlane store listings in English (`en-US`) and German (`de`), including titles, short descriptions, and full descriptions.
+- A total of 34 store showcase screenshots: 17 per language.
+
+### Testing and project maintenance
+- New test dependencies: JUnit Jupiter, JUnit Vintage, Mockito, and MockWebServer.
+- Added a lint baseline for known non-critical findings.
+- Added a GitHub Actions workflow for dependency submission.
+- Added community and project files: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md`.
+- Added GitHub issue templates for bug reports, feature requests, and maintenance tasks, as well as a pull request template.
+
+## Changed and improved
+
+### Data models and serialization
+- `CalculationLog` now uses the `CarbUnit` and `TimeOfDay` enum types instead of strings for `carbUnit` and `timeOfDay`.
+- `UserSettings` now uses strongly typed enums for the selected theme, theme mode, carbohydrate and glucose units, and AI model.
+- `CarbUnit`, `GlucoseUnit`, and `GeminiAiModel` display names now use localized string resources.
+- JSON backups now use the appropriate enum values for all settings, removing the previous multi-key fallback logic.
+- CSV parsing has been simplified and now uses the centralized `CarbUnit.fromString()` and `TimeOfDay.fromString()` methods.
+- Internal methods and constants in `DatabaseSecurityManager` are no longer public; they now have package-private visibility.
+
+### AI and networking
+- Updated Gemini request timeouts: 30 seconds for connecting, 120 seconds for reading, and 30 seconds for writing.
+- The default model used for unknown model IDs is now `GEMINI_3_5_FLASH_LITE`.
+
+### Dependencies and build
+- Android Gradle Plugin: `9.4.0` → `9.4.1`
+- Gradle: `9.7.1` → `9.8.2`
+- SQLCipher: `4.18.0` → `4.19.1`
+- Kotlin: `2.4.10` → `2.4.21`
+- KSP: `2.3.11` → `2.3.12`
+- Room: `2.8.4` → `2.8.5`
+- Compose BOM: `2026.08.00` → `2026.09.00`
+- OkHttp and Logging Interceptor: `5.5.0` → `5.5.1`
+- Robolectric: `4.16.1` → `4.17`
+- Roborazzi: `1.73.0` → `1.77.0`
+- AndroidX Core KTX: `1.19.0` → `1.19.1`
+- Added standalone Material3 dependency `1.5.0-beta02`.
+- The unit test configuration now uses `useJUnitPlatform()` and enables `isReturnDefaultValues`.
+- Dependabot PR grouping was removed, and the open pull request limit increased from 5 to 10.
+- CodeQL and test workflows now also run for pull requests targeting the `dev` branch.
+- `gradle/actions/setup-gradle` was updated to version 6 and now uses `version: 'current'`.
+- The JVM target in the IDE configuration was updated from 1.8 to 25; pinned Kotlin API and language versions were removed from the IDE configuration.
+
+### Versioning
+- `versionCode` increased from `8` to `1030800`, using the project's semantic encoding for major, minor, patch, and build versions.
+
+## Fixed
+
+- JSON and CSV backups now serialize enum names instead of localized or legacy display strings, making import and export more reliable.
+- The database migration for `CarbUnit` and `TimeOfDay` now stores the correct enum names in database columns.
+- Offline meal estimation now correctly aggregates total weight and calories across individual items.
+- Fixed layout overlap with the Android system navigation bar.
+
+## Removed
+
+- Unused `DatabaseBackupManager.importFromUri()` method; the calling code now handles this responsibility.
+- The `DatabaseBackupManager.exportToCsv()` overload that did not accept an explicit list of calculation logs.
+- The unused `CsvBackupHandler.isoDateFormat` field and related constructors.
+- The unused no-argument constructor of `CalculationSummary`.
+- The `ImportResult(boolean, String)` convenience constructor and duplicate getters.
+- Obsolete Gemini model options `GEMINI_3_1_PRO` and `GEMINI_2_5_FLASH`.
+- The no-longer-needed `FIREBASE_APPCHECK_DEBUG_TOKEN` entry from the secrets ignore list.
+
