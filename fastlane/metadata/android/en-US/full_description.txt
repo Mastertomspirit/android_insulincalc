@@ -1,0 +1,33 @@
+The Insulin Calculator & Meal Assistant is a modern, privacy-focused, and intuitive Android app for the fast, automated, and precise calculation of meal and correction insulin.
+Developed with robust offline storage and intelligent meal estimation.
+
+⚠️ Important Medical Notice: This app serves as a digital calculation tool and guide. It does not replace professional medical advice, diagnosis, or therapy recommendations by healthcare professionals.
+
+🌟 CORE FEATURES:
+
+1. 🧮 Precise Bolus Calculation:
+• Flexible Units: Defaults to Bread Units (BE, 12g carbs) – toggleable to Carbohydrate Units (KE) or grams of carbohydrates (g carbs).
+• Real-Time Conversion: All three units are displayed simultaneously and transparently.
+• Fine-Tuning in 0.05 Increments: Individual insulin factors can be adjusted exactly.
+
+2. ⏰ Time-of-Day Factors & Blood Glucose Correction:
+• Automatic time-of-day recognition for morning, noon, evening, and night.
+• Correction bolus based on current blood glucose, target value, and correction factor.
+• Hypoglycemia protection with safety warnings for low blood glucose levels.
+
+3. 🔒 Maximum Data Security:
+• Full AES-256 encryption of all local database data using keys from the hardware-backed Android KeyStore.
+• No sharing of patient data with third parties; everything remains strictly protected on the device.
+
+4. 🤖 AI Meal Estimator (Gemini AI):
+• Describe meals and ingredients in natural language (e.g., "2 slices of whole wheat bread with cheese").
+• The AI reliably estimates carbohydrates and Bread Units, transferring the values directly into the calculator.
+• Reliable offline fallback mode.
+
+5. 📖 Digital Diary & Backup:
+• Logging of all calculations with timestamp, meal, BE/KE, blood glucose, and insulin units.
+• Time-range filtering and convenient data backup (JSON / CSV).
+
+6. 🎨 Modern Design:
+• 6 harmonious color schemes (Medical Teal, Ocean Blue, Emerald Green, Sunset Amber, Berry & Purple, Midnight AMOLED).
+• System, Light, and Dark modes.
