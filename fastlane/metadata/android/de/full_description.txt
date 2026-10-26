@@ -1,0 +1,33 @@
+Der Insulin-Rechner & Mahlzeiten-Assistent ist eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen, automatisierten und präzisen Berechnung von Mahlzeiten- und Korrekturinsulin.
+Entwickelt mit robuster Offline-Speicherung und intelligenter Mahlzeiten Schätzung.
+
+⚠️ Wichtiger medizinischer Hinweis: Diese App dient als digitaler Rechenhelfer und Orientierungshilfe. Sie ersetzt nicht die ärztliche Beratung, Diagnostik oder Therapieempfehlung durch Fachpersonal.
+
+🌟 HAUPTFUNKTIONEN:
+
+1. 🧮 Präzise Bolus-Berechnung:
+• Flexible Einheiten: Standardmäßig auf Broteinheiten (BE, 12g KH) eingestellt – umschaltbar auf Kohlenhydrateinheiten (KE) oder Gramm Kohlenhydrate (g KH).
+• Echtzeit-Umrechnung: Alle drei Einheiten werden parallel und transparent angezeigt.
+• Feinjustierung in 0,05er-Schritten: Individuelle Insulin-Faktoren können exakt angepasst werden.
+
+2. ⏰ Tageszeitabhängige Faktoren & Blutzuckerkorrektur:
+• Automatische Tageszeiterkennung für Morgens, Mittags, Abends und Nachts.
+• Korrektur-Bolus anhand des aktuellen Blutzuckerwerts, Zielwerts und Korrekturfaktors.
+• Hypoglykämie-Schutz mit Sicherheitswarnungen bei niedrigen Blutzuckerwerten.
+
+3. 🔒 Höchste Datensicherheit:
+• Vollständige AES-256-Verschlüsselung aller lokalen Datenbankdaten mit Schlüsseln aus dem hardware-gesicherten Android KeyStore.
+• Keine Weitergabe von Patientendaten an Drittanbieter; alles bleibt geschützt auf dem Gerät.
+
+4. 🤖 KI-Mahlzeitenschätzer (Gemini AI):
+• Mahlzeiten und Zutaten in natürlicher Sprache beschreiben (z.B. „2 Scheiben Vollkornbrot mit Käse“).
+• Die KI schätzt Kohlenhydrate und Broteinheiten zuverlässig und überträgt die Werte direkt in den Rechner.
+• Zuverlässiger Offline-Fallbackmodus.
+
+5. 📖 Digitales Tagebuch & Backup:
+• Protokollierung aller Berechnungen mit Zeitstempel, Mahlzeit, BE/KE, Blutzucker und Insulineinheiten.
+• Filterung nach Zeiträumen und komfortable Datensicherung (JSON / CSV).
+
+6. 🎨 Modernes Design:
+• 6 harmonische Farbschemata (Medizinisch Türkis, Ozean Blau, Smaragd Grün, Sonnenuntergang Bernstein, Beere & Violett, Mitternacht AMOLED).
+• System-, Hell- und Dunkelmodus.
