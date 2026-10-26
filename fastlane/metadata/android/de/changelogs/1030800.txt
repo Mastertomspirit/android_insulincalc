@@ -1,0 +1,100 @@
+# InsulinRechner 1.3.8
+
+**Veröffentlicht am:** 26. Oktober 2026
+
+## Highlights
+
+- **Vollständige Mehrsprachigkeit:** Die gesamte Benutzeroberfläche ist jetzt auf Deutsch und Englisch verfügbar – einschließlich Dialogen, Fehlermeldungen und Mengenangaben.
+- **Erweiterte KI-Mahlzeitenschätzung:** Die Gemini-Integration liefert jetzt auch Fett, Eiweiß, Gesamtgewicht und Kalorien. Die Berechnung und Verarbeitung der Ergebnisse wurden verbessert.
+- **Sichere Datenbankmigrationen:** Zwei neue Room-Migrationen ermöglichen die zuverlässige Aktualisierung älterer Datenbankschemata.
+- **Verbesserte Datensicherung:** CSV-Backups enthalten jetzt eine Formatversionskennung. Der Import und Export von Enum-Werten wurde vereinheitlicht, um Probleme bei der Wiederherstellung zu vermeiden.
+- **Umfangreiche Tests:** Die Testsuite wurde auf 15 Testklassen erweitert und deckt unter anderem Berechnungen, Datensicherung, Datenbankzugriffe, die Benutzeroberfläche und die Verarbeitung von KI-Antworten ab.
+
+## Hinzugefügt
+
+### KI und Mahlzeitenschätzung
+- Neue Gemini-Modelloptionen: `GEMINI_3_5_FLASH_LITE`, `GEMINI_3_6_FLASH`, `GEMINI_3_7_FLASH` und `GEMINI_3_8_FLASH`.
+- Die Ergebnisse der Mahlzeitenschätzung enthalten jetzt Makronährstoffe, Gewicht und Kalorien.
+- `GeminiMealService.parseGeminiApiResponse()` ist öffentlich zugänglich, damit die Verarbeitung von API-Antworten separat getestet werden kann.
+- Die API-Basis-URL kann über den Konstruktor konfiguriert werden, um Integrationstests mit MockWebServer zu ermöglichen.
+- Der Gemini-API-Schlüssel wird variantenspezifisch über `BuildConfig` eingebunden und über den HTTP-Header `x-goog-api-key` übertragen.
+
+### Daten und Sicherheit
+- Neue sichere Room-Migrationen von Datenbankschema 1 auf 2 und von 2 auf 3.
+- CSV-Backups enthalten jetzt eine Kennzeichnung der Formatversion.
+- Lokalisierte Statusmeldungen für Datenbanksicherungen.
+- Zusätzliche Manifest-Sicherheitseinstellungen: Backups sind deaktiviert, unverschlüsselter HTTP-Verkehr ist untersagt und die Kennzeichnung für sensible Benutzerdaten ist deaktiviert.
+
+### Benutzeroberfläche und Bedienung
+- `MainActivity` verwendet jetzt `adjustResize`, damit die Benutzeroberfläche beim Öffnen der Bildschirmtastatur korrekt angepasst wird.
+- Verbesserte Edge-to-Edge-Darstellung mit `contentWindowInsets`, `consumeWindowInsets()` und `imePadding()`.
+- Ein Lifecycle-Beobachter in `MainApp` ruft beim Wiederaufnehmen der App `viewModel.onResume()` auf.
+- Die bisherige Snackbar-Rückmeldung wurde durch Toast-Nachrichten ersetzt.
+- Neue Play-Store-Grafik sowie aktualisierte adaptive Launcher-Icons einschließlich monochromem Icon für Android 13 und neuer.
+- Einheitliche APK-Dateibenennung nach dem Schema `<appId>_v<version>`.
+
+### Lokalisierung und Veröffentlichung
+- Vollständige englische Standardtexte und deutsche Übersetzungen für sämtliche Bildschirme, Dialoge, Fehlermeldungen und Mengenangaben.
+- Vollständige Fastlane-Store-Einträge auf Englisch (`en-US`) und Deutsch (`de`): Titel, Kurzbeschreibung und vollständige Beschreibung.
+- Insgesamt 34 Screenshots für die Store-Präsentation: 17 je Sprache.
+
+### Tests und Projektpflege
+- Neue Testabhängigkeiten: JUnit Jupiter, JUnit Vintage, Mockito und MockWebServer.
+- Lint-Baseline für bekannte, nicht kritische Analysebefunde.
+- GitHub Actions für die automatische Abhängigkeitsübermittlung.
+- Neue Community- und Projektdateien: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md` und `SECURITY.md`.
+- GitHub-Vorlagen für Fehlerberichte, Funktionswünsche und Wartungsaufgaben sowie eine Pull-Request-Vorlage.
+
+## Geändert und verbessert
+
+### Datenmodelle und Serialisierung
+- `CalculationLog` verwendet für `carbUnit` und `timeOfDay` jetzt die Enum-Typen `CarbUnit` und `TimeOfDay` statt Zeichenketten.
+- `UserSettings` verwendet typsichere Enums für Theme, Theme-Modus, Kohlenhydrat- und Glukoseeinheiten sowie das ausgewählte KI-Modell.
+- Die Anzeige von `CarbUnit`, `GlucoseUnit` und `GeminiAiModel` erfolgt über lokalisierbare String-Ressourcen.
+- Die JSON-Datensicherung verwendet für alle Einstellungen die passenden Enum-Werte und entfernt die bisherige mehrstufige Rückwärtskompatibilitätslogik.
+- Der CSV-Import wurde vereinfacht und verwendet die zentralen Konvertierungsmethoden `CarbUnit.fromString()` und `TimeOfDay.fromString()`.
+- Interne Sicherheitsmethoden und Konstanten des `DatabaseSecurityManager` sind nicht mehr öffentlich, sondern package-private.
+
+### KI und Netzwerk
+- Verbesserte Zeitlimits für Gemini-Anfragen: 30 Sekunden für Verbindungsaufbau, 120 Sekunden für Lesevorgänge und 30 Sekunden für Schreibvorgänge.
+- Das Standardmodell für unbekannte Modell-IDs ist jetzt `GEMINI_3_5_FLASH_LITE`.
+
+### Abhängigkeiten und Build
+- Android Gradle Plugin: `9.4.0` → `9.4.1`
+- Gradle: `9.7.1` → `9.8.2`
+- SQLCipher: `4.18.0` → `4.19.1`
+- Kotlin: `2.4.10` → `2.4.21`
+- KSP: `2.3.11` → `2.3.12`
+- Room: `2.8.4` → `2.8.5`
+- Compose BOM: `2026.08.00` → `2026.09.00`
+- OkHttp und Logging Interceptor: `5.5.0` → `5.5.1`
+- Robolectric: `4.16.1` → `4.17`
+- Roborazzi: `1.73.0` → `1.77.0`
+- AndroidX Core KTX: `1.19.0` → `1.19.1`
+- Material3: neue eigenständige Abhängigkeit `1.5.0-beta02`
+- Die Testkonfiguration verwendet jetzt `useJUnitPlatform()` und aktiviert `isReturnDefaultValues`.
+- Die Abhängigkeitsgruppierung von Dependabot wurde entfernt; die Anzahl gleichzeitig offener Pull Requests wurde von 5 auf 10 erhöht.
+- CodeQL- und Test-Workflows werden bei Pull Requests gegen den `dev`-Branch ebenfalls ausgeführt.
+- `gradle/actions/setup-gradle` wurde auf Version 6 aktualisiert und verwendet `version: 'current'`.
+- Die JVM-Zielversion in der IDE-Konfiguration wurde von 1.8 auf 25 aktualisiert; feste Kotlin-API- und Sprachversionen wurden aus der IDE-Konfiguration entfernt.
+
+### Versionsnummer
+- `versionCode` wurde von `8` auf `1030800` umgestellt. Die Zahl folgt der projektspezifischen semantischen Kodierung aus Major-, Minor-, Patch- und Build-Version.
+
+## Behoben
+
+- Enum-Werte werden in JSON- und CSV-Backups jetzt über ihre Enum-Namen statt über lokalisierte oder ältere Anzeigetexte gespeichert. Dadurch funktionieren Import und Export zuverlässiger zusammen.
+- Die Datenbankmigration für `CarbUnit` und `TimeOfDay` speichert die korrekten Enum-Namen in den Datenbankspalten.
+- Bei der Offline-Mahlzeitenschätzung werden Gesamtgewicht und Kalorien jetzt korrekt aus den einzelnen Positionen aufsummiert.
+- Überlappungen zwischen dem Layout und der Android-Systemnavigationsleiste wurden behoben.
+
+## Entfernt
+
+- Nicht mehr verwendete Methode `DatabaseBackupManager.importFromUri()`; die Zuständigkeit liegt jetzt bei den aufrufenden Stellen.
+- Überladene Methode `DatabaseBackupManager.exportToCsv()` ohne explizite Protokollliste.
+- Nicht mehr benötigtes Feld `CsvBackupHandler.isoDateFormat` und die zugehörigen Konstruktoren.
+- Unbenutzter parameterloser Konstruktor von `CalculationSummary`.
+- Nicht mehr benötigter Komfortkonstruktor `ImportResult(boolean, String)` sowie doppelte Getter.
+- Veraltete Gemini-Modelloptionen `GEMINI_3_1_PRO` und `GEMINI_2_5_FLASH`.
+- Nicht mehr benötigter Eintrag `FIREBASE_APPCHECK_DEBUG_TOKEN` in der Secret-Ignorierliste.
+
