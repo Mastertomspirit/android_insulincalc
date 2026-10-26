@@ -16,8 +16,8 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 8
-    versionName = "1.3.7.12"
+    versionCode = 1030800
+    versionName = "1.3.8"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -90,6 +90,7 @@ android {
     includeInBundle = true
   }
   buildToolsVersion = "36.0.0"
+  base.archivesName.set("${defaultConfig.applicationId}_v${defaultConfig.versionName}")
 }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.spiritscorp files

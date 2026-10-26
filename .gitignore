@@ -4,6 +4,7 @@
 
 
 # Build-Artefakte & Caches
+/app/**/*.jar
 /app/build/
 /app/debug/
 /app/release/
@@ -15,7 +16,6 @@
 build/
 release/
 debug/
-**/*.jar
 
 
 # Output-Dateien
