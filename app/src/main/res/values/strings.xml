@@ -427,4 +427,34 @@ Return the result STRICTLY in the following JSON format (without markdown backti
   "insulinTip": "Practical advice for diabetics (e.g. pre-bolus time, FPU calculation for delayed blood glucose spikes due to fat and protein)"
 }</string>
 
+    <!-- Database Password Backup Strings -->
+    <string name="password_backup_title">Database Recovery Password</string>
+    <string name="password_backup_description">Set a password to recover your database on any device. The password is used to derive the encryption key deterministically.</string>
+    <string name="password_backup_section_title">Database Recovery</string>
+    <string name="password_backup_section_subtitle">Protect your data from loss</string>
+    <string name="password_backup_status_active">Recovery password active</string>
+    <string name="password_backup_status_inactive">No recovery password – data at risk on device change!</string>
+    <string name="password_backup_status_warning">Without a recovery password, your data may be permanently lost if you change devices!</string>
+    <string name="password_set_dialog_title">Set Recovery Password</string>
+    <string name="password_set_dialog_message">Enter a password with at least %1$d characters. This password will be used to derive the database encryption key. Store it securely!</string>
+    <string name="password_set_dialog_hint">Enter password</string>
+    <string name="password_set_dialog_placeholder">Minimum %1$d characters</string>
+    <string name="password_set_dialog_char_count">%1$d/%2$d characters</string>
+    <string name="password_set_dialog_error_too_short">Password must be at least %1$d characters long</string>
+    <string name="password_set_dialog_confirm_title">Confirm Password</string>
+    <string name="password_set_dialog_confirm_message">Are you sure? This password cannot be recovered if lost. Without it, your data will be inaccessible on new devices!</string>
+    <string name="password_set_dialog_confirm_button">Yes, I have stored it securely</string>
+    <string name="password_verify_dialog_title">Verify Password</string>
+    <string name="password_verify_dialog_message">Enter your password to verify it works correctly.</string>
+    <string name="password_verify_dialog_success">Password verified successfully!</string>
+    <string name="password_verify_dialog_failure">Password verification failed. Please try again.</string>
+    <string name="password_verify_button">Verify</string>
+    <string name="password_clear_dialog_title">Clear Password</string>
+    <string name="password_clear_dialog_message">You will lose the ability to recover your data on new devices. Are you sure you want to remove the recovery password?</string>
+    <string name="password_clear_dialog_confirm">Clear password</string>
+    <string name="password_show_button">Show</string>
+    <string name="password_hide_button">Hide</string>
+    <string name="password_set_button">Set password</string>
+    <string name="password_verify_button_text">Verify password</string>
+    <string name="password_clear_button">Remove password</string>
 </resources>

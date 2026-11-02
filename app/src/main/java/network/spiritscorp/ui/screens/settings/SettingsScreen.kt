@@ -60,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
+import network.spiritscorp.data.DatabaseSecurityManager
 import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
 import network.spiritscorp.ui.theme.AppTheme
@@ -125,8 +126,12 @@ fun SettingsScreen(
     var isCarbUnitExpanded by remember { mutableStateOf(false) }
     var isAppearanceExpanded by remember { mutableStateOf(false) }
     var isBackupExpanded by remember { mutableStateOf(false) }
+    var isPasswordExpanded by remember { mutableStateOf(false) }
 
     var showResetDbDialog by remember { mutableStateOf(false) }
+
+    // Initialize DatabaseSecurityManager for password backup
+    val securityManager = remember { DatabaseSecurityManager(viewModel.getApplicationContext()) }
 
     Column(
         modifier = modifier
@@ -150,15 +155,16 @@ fun SettingsScreen(
             // Expand/Collapse All Button: Toggles visibility of all accordion sections at once for quick UI navigation
             TextButton(
                 onClick = {
-                    val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded)
+                    val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded && isPasswordExpanded)
                     isFactorsExpanded = expandAll
                     isGlucoseExpanded = expandAll
                     isCarbUnitExpanded = expandAll
                     isAppearanceExpanded = expandAll
                     isBackupExpanded = expandAll
+                    isPasswordExpanded = expandAll
                 }
             ) {
-                val allExpanded = isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded
+                val allExpanded = isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded && isPasswordExpanded
                 Icon(
                     imageVector = if (allExpanded) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
                     contentDescription = null,
@@ -239,6 +245,13 @@ fun SettingsScreen(
             onShowResetDbDialog = { showResetDbDialog = true },
             isExpanded = isBackupExpanded,
             onToggleExpand = { isBackupExpanded = !isBackupExpanded }
+        )
+
+        // SECTION 6: Database Recovery Password (Accordion Card for password-based encryption)
+        PasswordBackupSection(
+            securityManager = securityManager,
+            isExpanded = isPasswordExpanded,
+            onToggleExpand = { isPasswordExpanded = !isPasswordExpanded }
         )
 
         // SAVE SETTINGS ACTION BUTTON (Writes all user settings to Room database)

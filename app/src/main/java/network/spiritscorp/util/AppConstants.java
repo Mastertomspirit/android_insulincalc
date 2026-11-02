@@ -71,6 +71,25 @@ public final class AppConstants {
     public static final String SECURITY_PREFS_FILE = "secure_db_vault_prefs";
 
     // =========================================================================
+    // Database Password Constants
+    // =========================================================================
+
+    /**
+     * Minimum password length for database recovery.
+     */
+    public static final int MIN_PASSPHRASE_LENGTH = 20;
+
+    /**
+     * Database passphrase byte length (256-bit for SQLCipher).
+     */
+    public static final int PASSPHRASE_BYTE_LENGTH = 32;
+
+    /**
+     * GCM tag length in bits for AES encryption.
+     */
+    public static final int GCM_TAG_LENGTH_BITS = 128;
+
+    // =========================================================================
     // Preference & Timeout Constants
     // =========================================================================
 
