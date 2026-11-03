@@ -49,7 +49,13 @@ public final class AppConstants {
     /**
      * Android KeyStore Encryption Key Vault Version.
      */
-    public static final int SECURITY_KEY_VERSION = 2;
+    public static final int SECURITY_KEY_VERSION = 3;
+
+    /**
+     * Database passphrase key alias for password-based encryption.
+     * This alias is used to store the password-derived database passphrase in Android KeyStore.
+     */
+    public static final String DB_PASSPHRASE_KEY_ALIAS = "network.spiritscorp.insulincalc.db_passphrase_key";
 
     // =========================================================================
     // Storage & Database Identifiers
@@ -66,9 +72,19 @@ public final class AppConstants {
     public static final String SECURITY_KEY_ALIAS = "network.spiritscorp.insulincalc.db_vault_master_key_v2";
 
     /**
-     * SharedPreferences file name for cryptographic key metadata.
+     * SharedPreferences file name for migration and preference flags.
      */
     public static final String SECURITY_PREFS_FILE = "secure_db_vault_prefs";
+
+    /**
+     * Minimum password length for database encryption.
+     */
+    public static final int MIN_PASSWORD_LENGTH = 20;
+
+    /**
+     * Number of PBKDF2 iterations for password-based key derivation.
+     */
+    public static final int PBKDF2_ITERATIONS = 100000;
 
     // =========================================================================
     // Preference & Timeout Constants

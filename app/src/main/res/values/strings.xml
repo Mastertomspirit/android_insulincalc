@@ -427,4 +427,40 @@ Return the result STRICTLY in the following JSON format (without markdown backti
   "insulinTip": "Practical advice for diabetics (e.g. pre-bolus time, FPU calculation for delayed blood glucose spikes due to fat and protein)"
 }</string>
 
+    <!-- Database Password Strings -->
+    <string name="settings_password_section_title">Database Password</string>
+    <string name="settings_password_section_subtitle">Enable cross-device data recovery</string>
+    <string name="password_status_active">Password active</string>
+    <string name="password_status_inactive">No password set</string>
+    <string name="password_status_warning">Without a password, your data may be lost if you change devices</string>
+    <string name="password_set_dialog_title">Set Password</string>
+    <string name="password_set_dialog_message">Enter a password with at least %1$d characters. Store it securely!</string>
+    <string name="password_set_dialog_hint">Enter password</string>
+    <string name="password_set_dialog_placeholder">Minimum %1$d characters</string>
+    <string name="password_set_dialog_char_count">%1$d/%2$d characters</string>
+    <string name="password_set_dialog_error_too_short">Password must be at least %1$d characters</string>
+    <string name="password_set_dialog_confirm_title">Confirm</string>
+    <string name="password_set_dialog_confirm_message">This password cannot be recovered if lost. Without it, your data will be inaccessible on new devices!</string>
+    <string name="password_set_dialog_confirm_button">I have stored it securely</string>
+    <string name="password_verify_dialog_title">Verify Password</string>
+    <string name="password_verify_dialog_message">Enter your password to verify.</string>
+    <string name="password_verify_dialog_success">Password verified!</string>
+    <string name="password_verify_dialog_failure">Password verification failed. Please try again.</string>
+    <string name="password_verify_button">Verify</string>
+    <string name="password_change_dialog_title">Change Password</string>
+    <string name="password_change_dialog_message">Enter your current password and a new password.</string>
+    <string name="password_change_dialog_old_hint">Current password</string>
+    <string name="password_change_dialog_new_hint">New password</string>
+    <string name="password_change_dialog_confirm_hint">Confirm new password</string>
+    <string name="password_change_error_no_match">Passwords do not match</string>
+    <string name="password_change_error_wrong_old">Current password is incorrect</string>
+    <string name="password_show_button">Show</string>
+    <string name="password_hide_button">Hide</string>
+    <string name="password_set_button">Set password</string>
+    <string name="password_verify_button_text">Verify password</string>
+    <string name="password_change_button">Change password</string>
+    <string name="migration_alert_title">New Security Feature</string>
+    <string name="migration_alert_message">You can now set a password to recover your data on any device. This enables cross-device data recovery.</string>
+    <string name="migration_alert_button">OK</string>
+
 </resources>

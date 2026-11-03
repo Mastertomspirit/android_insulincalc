@@ -427,4 +427,40 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
   "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
 }</string>
 
+    <!-- Database Password Strings (German) -->
+    <string name="settings_password_section_title">Datenbank Passwort</string>
+    <string name="settings_password_section_subtitle">Aktiviert die Datenwiederherstellung auf anderen Geräten</string>
+    <string name="password_status_active">Passwort aktiv</string>
+    <string name="password_status_inactive">Kein Passwort gesetzt</string>
+    <string name="password_status_warning">Ohne Passwort gehen Ihre Daten bei Gerätewechsel verloren</string>
+    <string name="password_set_dialog_title">Passwort festlegen</string>
+    <string name="password_set_dialog_message">Geben Sie ein Passwort mit mindestens %1$d Zeichen ein. Bewahren Sie es sicher auf!</string>
+    <string name="password_set_dialog_hint">Passwort eingeben</string>
+    <string name="password_set_dialog_placeholder">Mindestens %1$d Zeichen</string>
+    <string name="password_set_dialog_char_count">%1$d/%2$d Zeichen</string>
+    <string name="password_set_dialog_error_too_short">Das Passwort muss mindestens %1$d Zeichen lang sein</string>
+    <string name="password_set_dialog_confirm_title">Bestätigen</string>
+    <string name="password_set_dialog_confirm_message">Dieses Passwort kann nicht wiederhergestellt werden. Ohne dieses Passwort sind Ihre Daten auf neuen Geräten nicht zugänglich!</string>
+    <string name="password_set_dialog_confirm_button">Ich habe es sicher gespeichert</string>
+    <string name="password_verify_dialog_title">Passwort überprüfen</string>
+    <string name="password_verify_dialog_message">Geben Sie Ihr Passwort ein, um es zu überprüfen.</string>
+    <string name="password_verify_dialog_success">Passwort überprüft!</string>
+    <string name="password_verify_dialog_failure">Passwortüberprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
+    <string name="password_verify_button">Überprüfen</string>
+    <string name="password_change_dialog_title">Passwort ändern</string>
+    <string name="password_change_dialog_message">Geben Sie Ihr aktuelles Passwort und ein neues Passwort ein.</string>
+    <string name="password_change_dialog_old_hint">Aktuelles Passwort</string>
+    <string name="password_change_dialog_new_hint">Neues Passwort</string>
+    <string name="password_change_dialog_confirm_hint">Neues Passwort bestätigen</string>
+    <string name="password_change_error_no_match">Passwörter stimmen nicht überein</string>
+    <string name="password_change_error_wrong_old">Aktuelles Passwort ist falsch</string>
+    <string name="password_show_button">Anzeigen</string>
+    <string name="password_hide_button">Verbergen</string>
+    <string name="password_set_button">Passwort festlegen</string>
+    <string name="password_verify_button_text">Passwort überprüfen</string>
+    <string name="password_change_button">Passwort ändern</string>
+    <string name="migration_alert_title">Neues Sicherheitsfeature</string>
+    <string name="migration_alert_message">Sie können jetzt ein Passwort festlegen, um Ihre Daten auf jedem Gerät wiederherzustellen. Dies ermöglicht die Datenwiederherstellung auf anderen Geräten.</string>
+    <string name="migration_alert_button">OK</string>
+
 </resources>

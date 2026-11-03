@@ -125,6 +125,7 @@ fun SettingsScreen(
     var isCarbUnitExpanded by remember { mutableStateOf(false) }
     var isAppearanceExpanded by remember { mutableStateOf(false) }
     var isBackupExpanded by remember { mutableStateOf(false) }
+    var isPasswordExpanded by remember { mutableStateOf(false) }
 
     var showResetDbDialog by remember { mutableStateOf(false) }
 
@@ -150,15 +151,16 @@ fun SettingsScreen(
             // Expand/Collapse All Button: Toggles visibility of all accordion sections at once for quick UI navigation
             TextButton(
                 onClick = {
-                    val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded)
+                    val expandAll = !(isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded && isPasswordExpanded)
                     isFactorsExpanded = expandAll
                     isGlucoseExpanded = expandAll
                     isCarbUnitExpanded = expandAll
                     isAppearanceExpanded = expandAll
                     isBackupExpanded = expandAll
+                    isPasswordExpanded = expandAll
                 }
             ) {
-                val allExpanded = isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded
+                val allExpanded = isFactorsExpanded && isGlucoseExpanded && isCarbUnitExpanded && isAppearanceExpanded && isBackupExpanded && isPasswordExpanded
                 Icon(
                     imageVector = if (allExpanded) Icons.Default.UnfoldLess else Icons.Default.UnfoldMore,
                     contentDescription = null,
@@ -239,6 +241,13 @@ fun SettingsScreen(
             onShowResetDbDialog = { showResetDbDialog = true },
             isExpanded = isBackupExpanded,
             onToggleExpand = { isBackupExpanded = !isBackupExpanded }
+        )
+
+        // SECTION 6: Database Password (Accordion Card for password-based encryption and cross-device recovery)
+        PasswordSection(
+            viewModel = viewModel,
+            isExpanded = isPasswordExpanded,
+            onToggleExpand = { isPasswordExpanded = !isPasswordExpanded }
         )
 
         // SAVE SETTINGS ACTION BUTTON (Writes all user settings to Room database)
