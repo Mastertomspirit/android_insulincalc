@@ -22,7 +22,6 @@ import android.content.SharedPreferences;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,12 +39,12 @@ import javax.crypto.spec.GCMParameterSpec;
 import network.spiritscorp.util.AppConstants;
 
 /**
- * Manages database encryption passphrase with password-based fallback.
- * Always provides a passphrase - either from password derivation or legacy KeyStore.
+ * Manages database encryption passphrase with password-based derivation.
+ * Always provides a passphrase - either from password derivation or generates a new one.
+ * The passphrase is stored in Android KeyStore for hardware-backed security.
  */
 public class DatabaseSecurityManager {
 
-    private static final String TAG = "DatabaseSecurityMgr";
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
     private static final String LEGACY_KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
@@ -105,8 +104,18 @@ public class DatabaseSecurityManager {
     }
 
     /**
-     * Gets passphrase derived from password without storing it.
-     * Used for recovery when KeyStore is unavailable.
+     * Gets or creates the database passphrase.
+     * This method ensures a passphrase is always available.
+     *
+     * @return 32-byte passphrase, never null
+     */
+    @NonNull
+    public byte[] getOrCreateDatabasePassphrase() {
+        return getDatabasePassphrase();
+    }
+
+    /**
+     * Derives a passphrase from the given password.
      *
      * @param password User password
      * @return 32-byte passphrase or null if derivation fails
@@ -114,7 +123,7 @@ public class DatabaseSecurityManager {
     @Nullable
     public byte[] derivePassphrase(@NonNull String password) {
         try {
-            return passwordManager.deriveDbPassphrase(password);
+            return passwordManager.derivePassphrase(password);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -128,17 +137,6 @@ public class DatabaseSecurityManager {
      */
     public boolean verifyPassword(@NonNull String password) {
         return passwordManager.verifyPassword(password);
-    }
-
-    /**
-     * Sets a new password and derives passphrase from it.
-     * Package-private to restrict direct access.
-     *
-     * @param password New password
-     * @return true if successful
-     */
-    boolean setPassword(@NonNull String password) {
-        return passwordManager.setPasswordInternal(password);
     }
 
     /**
@@ -175,7 +173,7 @@ public class DatabaseSecurityManager {
                     return decrypted;
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to decrypt legacy passphrase: " + e.getMessage(), e);
+                // Failed to decrypt legacy passphrase
             }
         }
 
@@ -188,7 +186,7 @@ public class DatabaseSecurityManager {
                     return decoded;
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to decode fallback passphrase: " + e.getMessage(), e);
+                // Failed to decode fallback passphrase
             }
         }
 
@@ -256,7 +254,6 @@ public class DatabaseSecurityManager {
             byte[] ciphertext = cipher.doFinal(plaintext);
             return new EncryptedData(iv, ciphertext);
         } catch (Throwable e) {
-            Log.w(TAG, "KeyStore encryption not available");
             return null;
         }
     }
@@ -270,7 +267,6 @@ public class DatabaseSecurityManager {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec);
             return cipher.doFinal(ciphertext);
         } catch (Throwable e) {
-            Log.w(TAG, "KeyStore decryption not available");
             return null;
         }
     }

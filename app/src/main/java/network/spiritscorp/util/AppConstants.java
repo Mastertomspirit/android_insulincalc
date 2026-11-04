@@ -56,6 +56,11 @@ public final class AppConstants {
      */
     public static final String DB_PASSPHRASE_KEY_ALIAS = "network.spiritscorp.insulincalc.db_passphrase_key";
 
+    /**
+     * Database encryption key alias for hardware-backed key.
+     */
+    public static final String DB_ENCRYPTION_KEY_ALIAS = "network.spiritscorp.insulincalc.db_encryption_key";
+
     // =========================================================================
     // Storage & Database Identifiers
     // =========================================================================

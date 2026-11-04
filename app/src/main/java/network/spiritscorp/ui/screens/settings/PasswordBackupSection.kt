@@ -33,9 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,11 +53,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
 import network.spiritscorp.data.DatabaseSecurityManager
-import network.spiritscorp.util.AppConstants
+import network.spiritscorp.ui.components.PasswordChangeDialog
 
 /**
  * Settings section for database password management.
- * Allows users to set and change their database password for recovery.
+ * Database password is always active and cannot be removed, only changed.
  */
 @Composable
 fun PasswordBackupSection(
@@ -74,6 +72,9 @@ fun PasswordBackupSection(
 
     // Check if password is set
     val isPasswordSet = remember { passwordManager.loadFromKeyStore() != null }
+
+    // State for password change dialog
+    var showPasswordChangeDialog by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
         visible = isExpanded,
@@ -93,18 +94,23 @@ fun PasswordBackupSection(
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            if (isPasswordSet) Icons.Default.Check else Icons.Default.LockOpen,
+                            Icons.Default.Lock,
                             contentDescription = null,
-                            tint = if (isPasswordSet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            if (isPasswordSet) stringResource(R.string.settings_passwort_status_active) 
-                            else stringResource(R.string.settings_passwort_status_inactive),
+                            stringResource(R.string.settings_passwort_status_active),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        stringResource(R.string.settings_passwort_status_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -112,43 +118,42 @@ fun PasswordBackupSection(
 
             // Action buttons
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (isPasswordSet) {
-                    Button(
-                        onClick = { /* TODO: Implement password change */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("password_change_button")
-                    ) {
-                        Icon(Icons.Default.Lock, contentDescription = null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_passwort_change_button))
-                    }
-                } else {
-                    Button(
-                        onClick = {
-                            val randomPassword = passwordManager.generateRandomPassword()
-                            if (passwordManager.setPasswordInternal(randomPassword)) {
-                                viewModel.showToast("Random password set. Please change it to something memorable.")
-                            } else {
-                                viewModel.showToast("Failed to set password")
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("password_set_button")
-                    ) {
-                        Icon(Icons.Default.Lock, contentDescription = null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_passwort_set_button))
-                    }
+                Button(
+                    onClick = { showPasswordChangeDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("password_change_button")
+                ) {
+                    Icon(Icons.Default.Lock, contentDescription = null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.settings_passwort_change_button))
                 }
+            }
+
+            // Password change dialog
+            if (showPasswordChangeDialog) {
+                PasswordChangeDialog(
+                    onPasswordChange = { oldPassword, newPassword ->
+                        if (passwordManager.verifyPassword(oldPassword)) {
+                            if (passwordManager.setPassword(newPassword)) {
+                                viewModel.showToast(context.getString(R.string.settings_passwort_change_success))
+                            } else {
+                                viewModel.showToast("Failed to change password")
+                            }
+                        } else {
+                            viewModel.showToast(context.getString(R.string.settings_passwort_change_error_wrong_old))
+                        }
+                        showPasswordChangeDialog = false
+                    },
+                    onDismiss = { showPasswordChangeDialog = false }
+                )
             }
         }
     }
 
     // Section header
     SettingsSectionHeader(
-        icon = if (isPasswordSet) Icons.Default.Lock else Icons.Default.LockOpen,
+        icon = Icons.Default.Lock,
         title = stringResource(R.string.settings_passwort_section_title),
         subtitle = stringResource(R.string.settings_passwort_section_subtitle),
         isExpanded = isExpanded,

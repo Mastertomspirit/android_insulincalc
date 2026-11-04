@@ -430,21 +430,17 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
 
     <!-- Database Password Strings (German) -->
     <string name="settings_passwort_section_title">Datenbank Passwort</string>
-    <string name="settings_passwort_section_subtitle">Passwort für Wiederherstellung festlegen</string>
+    <string name="settings_passwort_section_subtitle">Datenbank Passwort verwalten</string>
     <string name="settings_passwort_status_active">Passwort aktiv</string>
-    <string name="settings_passwort_status_inactive">Kein Passwort gesetzt</string>
+    <string name="settings_passwort_status_subtitle">Passwort ist gesetzt und Datenbank ist verschlüsselt</string>
     <string name="settings_passwort_set_dialog_title">Passwort festlegen</string>
-    <string name="settings_passwort_set_dialog_message">Geben Sie ein Passwort mit mindestens %1$d Zeichen ein. Bewahren Sie es sicher auf!</string>
+    <string name="settings_passwort_set_dialog_message">Geben Sie ein Passwort mit mindestens %1$d Zeichen ein.</string>
     <string name="settings_passwort_set_dialog_hint">Passwort</string>
     <string name="settings_passwort_set_dialog_placeholder">Mindestens %1$d Zeichen</string>
     <string name="settings_passwort_set_dialog_char_count">%1$d/%2$d Zeichen</string>
     <string name="settings_passwort_set_dialog_error_too_short">Das Passwort muss mindestens %1$d Zeichen lang sein</string>
-    <string name="settings_passwort_confirm_dialog_title">Bestätigen</string>
-    <string name="settings_passwort_confirm_dialog_message">Dieses Passwort kann nicht wiederhergestellt werden. Ohne dieses Passwort sind die Daten auf neuen Geräten nicht zugänglich!</string>
-    <string name="settings_passwort_confirm_button">Ich habe es sicher gespeichert</string>
     <string name="settings_passwort_show_button">Anzeigen</string>
     <string name="settings_passwort_hide_button">Verbergen</string>
-    <string name="settings_passwort_set_button">Passwort festlegen</string>
     <string name="settings_passwort_change_button">Passwort ändern</string>
     <string name="settings_passwort_change_dialog_title">Passwort ändern</string>
     <string name="settings_passwort_change_dialog_message">Geben Sie das aktuelle und ein neues Passwort ein.</string>
@@ -453,4 +449,5 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
     <string name="settings_passwort_change_dialog_confirm_hint">Neues Passwort bestätigen</string>
     <string name="settings_passwort_change_error_no_match">Passwörter stimmen nicht überein</string>
     <string name="settings_passwort_change_error_wrong_old">Falsches aktuelles Passwort</string>
+    <string name="settings_passwort_change_success">Passwort erfolgreich geändert</string>
 </resources>

@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for DatabaseSecurityManager.
+ * Tests focus on passphrase generation, derivation, and utility methods.
  */
 class DatabaseSecurityManagerTest {
 
@@ -51,8 +52,8 @@ class DatabaseSecurityManagerTest {
     void getDatabasePassphraseReturns32ByteArray() {
         byte[] passphrase = securityManager.getDatabasePassphrase();
         
-        assertNotNull(passphrase);
-        assertEquals(PASSPHRASE_LENGTH, passphrase.length);
+        assertNotNull(passphrase, "Passphrase should not be null");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
     }
 
     @Test
@@ -60,9 +61,9 @@ class DatabaseSecurityManagerTest {
         byte[] passphrase1 = securityManager.getDatabasePassphrase();
         byte[] passphrase2 = securityManager.getDatabasePassphrase();
         
-        assertNotNull(passphrase1);
-        assertNotNull(passphrase2);
-        assertArrayEquals(passphrase1, passphrase2);
+        assertNotNull(passphrase1, "First passphrase should not be null");
+        assertNotNull(passphrase2, "Second passphrase should not be null");
+        assertArrayEquals(passphrase1, passphrase2, "Passphrases should be consistent");
     }
 
     @Test
@@ -70,8 +71,8 @@ class DatabaseSecurityManagerTest {
         String password = "ThisIsATestPassword1234!";
         byte[] passphrase = securityManager.derivePassphrase(password);
         
-        assertNotNull(passphrase);
-        assertEquals(PASSPHRASE_LENGTH, passphrase.length);
+        assertNotNull(passphrase, "Derived passphrase should not be null");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Derived passphrase should be 32 bytes");
     }
 
     @Test
@@ -79,59 +80,86 @@ class DatabaseSecurityManagerTest {
         String shortPassword = "short";
         byte[] passphrase = securityManager.derivePassphrase(shortPassword);
         
-        assertTrue(passphrase == null);
+        assertTrue(passphrase == null, "Short password should return null");
     }
 
     @Test
-    void verifyPasswordWithCorrectPasswordReturnsTrue() {
-        String password = "ThisIsATestPassword1234!";
-        securityManager.setPassword(password);
+    void derivePassphraseWithExactly20CharsSucceeds() {
+        String password = "12345678901234567890"; // exactly 20 chars
+        byte[] passphrase = securityManager.derivePassphrase(password);
         
-        boolean result = securityManager.verifyPassword(password);
-        assertTrue(result);
+        assertNotNull(passphrase, "Password with exactly 20 chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
     }
 
     @Test
-    void verifyPasswordWithWrongPasswordReturnsFalse() {
-        String correctPassword = "ThisIsATestPassword1234!";
-        String wrongPassword = "WrongPassword12345678!";
-        securityManager.setPassword(correctPassword);
+    void derivePassphraseWith19CharsFails() {
+        String password = "1234567890123456789"; // 19 chars
+        byte[] passphrase = securityManager.derivePassphrase(password);
         
-        boolean result = securityManager.verifyPassword(wrongPassword);
-        assertFalse(result);
+        assertTrue(passphrase == null, "Password with 19 chars should fail");
+    }
+
+    @Test
+    void derivePassphraseWithSpecialChars() {
+        String password = "Pässwörd!1234567890@#"; // with umlauts and special chars
+        byte[] passphrase = securityManager.derivePassphrase(password);
+        
+        assertNotNull(passphrase, "Password with special chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
+    }
+
+    @Test
+    void derivePassphraseWithUnicodeChars() {
+        String password = "Passwörd1234567890!@"; // with umlaut
+        byte[] passphrase = securityManager.derivePassphrase(password);
+        
+        assertNotNull(passphrase, "Password with unicode chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
     }
 
     @Test
     void generateRandomPasswordMeetsMinimumLength() {
         String randomPassword = securityManager.generateRandomPassword();
         
-        assertNotNull(randomPassword);
-        assertTrue(randomPassword.length() >= 20);
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.length() >= 20, "Random password should be at least 20 chars");
+    }
+
+    @Test
+    void generateRandomPasswordContainsVariousCharacterTypes() {
+        String randomPassword = securityManager.generateRandomPassword();
+        
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.matches(".*[a-z].*"), "Should contain lowercase");
+        assertTrue(randomPassword.matches(".*[A-Z].*"), "Should contain uppercase");
+        assertTrue(randomPassword.matches(".*[0-9].*"), "Should contain digits");
+        assertTrue(randomPassword.matches(".*[!@#$%^&*()_+-=\[\]{}|;:,.<>?].*"), "Should contain special chars");
     }
 
     @Test
     void getPasswordManagerReturnsNonNull() {
         PasswordDerivationManager manager = securityManager.getPasswordManager();
-        assertNotNull(manager);
+        assertNotNull(manager, "Password manager should not be null");
     }
 
     @Test
     void bytesToHexWithEmptyArrayReturnsEmptyString() {
         String hex = DatabaseSecurityManager.bytesToHex(new byte[0]);
-        assertEquals("", hex);
+        assertEquals("", hex, "Empty array should return empty string");
     }
 
     @Test
     void bytesToHexWithNullReturnsEmptyString() {
         String hex = DatabaseSecurityManager.bytesToHex(null);
-        assertEquals("", hex);
+        assertEquals("", hex, "Null should return empty string");
     }
 
     @Test
     void bytesToHexWithSampleData() {
         byte[] bytes = new byte[]{(byte) 0x00, (byte) 0x0F, (byte) 0x1A, (byte) 0xFF};
         String hex = DatabaseSecurityManager.bytesToHex(bytes);
-        assertEquals("000f1aff", hex);
+        assertEquals("000f1aff", hex, "Hex conversion should be correct");
     }
 
     @Test
@@ -141,6 +169,6 @@ class DatabaseSecurityManagerTest {
             bytes[i] = (byte) i;
         }
         String hex = DatabaseSecurityManager.bytesToHex(bytes);
-        assertEquals(512, hex.length()); // 256 bytes * 2 hex chars = 512 chars
+        assertEquals(512, hex.length(), "256 bytes should produce 512 hex chars");
     }
 }

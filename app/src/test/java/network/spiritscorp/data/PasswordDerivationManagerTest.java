@@ -20,6 +20,8 @@ package network.spiritscorp.data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for PasswordDerivationManager.
+ * Tests password derivation, verification, storage, and random password generation.
  */
 class PasswordDerivationManagerTest {
 
@@ -41,79 +44,229 @@ class PasswordDerivationManagerTest {
         manager = new PasswordDerivationManager();
     }
 
+    // ==================== Derivation Tests ====================
+
     @Test
-    void deriveDbPassphraseReturns32ByteArray() {
+    void derivePassphraseReturns32ByteArray() {
         String password = "ThisIsATestPassword1234!";
-        byte[] passphrase = manager.deriveDbPassphrase(password);
+        byte[] passphrase = manager.derivePassphrase(password);
         
-        assertNotNull(passphrase);
-        assertEquals(PASSPHRASE_LENGTH, passphrase.length);
+        assertNotNull(passphrase, "Derived passphrase should not be null");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
     }
 
     @Test
-    void deriveDbPassphraseIsDeterministic() {
+    void derivePassphraseIsDeterministic() {
         String password = "ThisIsATestPassword1234!";
-        byte[] passphrase1 = manager.deriveDbPassphrase(password);
-        byte[] passphrase2 = manager.deriveDbPassphrase(password);
+        byte[] passphrase1 = manager.derivePassphrase(password);
+        byte[] passphrase2 = manager.derivePassphrase(password);
         
-        assertNotNull(passphrase1);
-        assertNotNull(passphrase2);
-        assertArrayEquals(passphrase1, passphrase2);
+        assertNotNull(passphrase1, "First derivation should not be null");
+        assertNotNull(passphrase2, "Second derivation should not be null");
+        assertArrayEquals(passphrase1, passphrase2, "Same password should produce same passphrase");
     }
 
     @Test
-    void deriveDbPassphraseDifferentPasswordsDifferentOutputs() {
-        byte[] passphrase1 = manager.deriveDbPassphrase("PasswordOne12345678!");
-        byte[] passphrase2 = manager.deriveDbPassphrase("PasswordTwo12345678!");
+    void derivePassphraseDifferentPasswordsDifferentOutputs() {
+        byte[] passphrase1 = manager.derivePassphrase("PasswordOne12345678!");
+        byte[] passphrase2 = manager.derivePassphrase("PasswordTwo12345678!");
         
-        assertNotNull(passphrase1);
-        assertNotNull(passphrase2);
-        assertFalse(java.util.Arrays.equals(passphrase1, passphrase2));
+        assertNotNull(passphrase1, "First passphrase should not be null");
+        assertNotNull(passphrase2, "Second passphrase should not be null");
+        assertFalse(Arrays.equals(passphrase1, passphrase2), 
+                "Different passwords should produce different passphrases");
     }
 
     @Test
-    void deriveDbPassphraseTooShortThrowsException() {
+    void derivePassphraseTooShortThrowsException() {
         String shortPassword = "short";
         assertThrows(IllegalArgumentException.class, () -> {
-            manager.deriveDbPassphrase(shortPassword);
-        });
+            manager.derivePassphrase(shortPassword);
+        }, "Short password should throw IllegalArgumentException");
     }
 
     @Test
-    void deriveDbPassphraseMinimumLengthAccepted() {
+    void derivePassphraseMinimumLengthAccepted() {
         String password = "12345678901234567890"; // Exactly 20 chars
-        byte[] passphrase = manager.deriveDbPassphrase(password);
+        byte[] passphrase = manager.derivePassphrase(password);
         
-        assertNotNull(passphrase);
-        assertEquals(PASSPHRASE_LENGTH, passphrase.length);
+        assertNotNull(passphrase, "Password with exactly 20 chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
     }
 
     @Test
-    void deriveDbPassphraseWithSpecialCharacters() {
-        String password = "P@ssw0rd!With$p3c1@l#Ch@r$";
-        byte[] passphrase = manager.deriveDbPassphrase(password);
-        
-        assertNotNull(passphrase);
-        assertEquals(PASSPHRASE_LENGTH, passphrase.length);
+    void derivePassphraseWith19CharsFails() {
+        String password = "1234567890123456789"; // 19 chars
+        assertThrows(IllegalArgumentException.class, () -> {
+            manager.derivePassphrase(password);
+        }, "Password with 19 chars should fail");
     }
+
+    @Test
+    void derivePassphraseWithSpecialCharacters() {
+        String password = "P@ssw0rd!With$p3c1@l#Ch@r$";
+        byte[] passphrase = manager.derivePassphrase(password);
+        
+        assertNotNull(passphrase, "Password with special chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
+    }
+
+    @Test
+    void derivePassphraseWithUnicodeChars() {
+        String password = "Passw\u00f6rd1234567890!@"; // with umlaut
+        byte[] passphrase = manager.derivePassphrase(password);
+        
+        assertNotNull(passphrase, "Password with unicode chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
+    }
+
+    @Test
+    void derivePassphraseWithFrenchChars() {
+        String password = "Passw\u00f4rd1234567890!@"; // with circumflex
+        byte[] passphrase = manager.derivePassphrase(password);
+        
+        assertNotNull(passphrase, "Password with french chars should succeed");
+        assertEquals(PASSPHRASE_LENGTH, passphrase.length, "Passphrase should be 32 bytes");
+    }
+
+    // ==================== Verification Tests ====================
+
+    @Test
+    void verifyPasswordWithCorrectPasswordReturnsTrue() {
+        String password = "ThisIsATestPassword1234!";
+        manager.setPassword(password);
+        
+        boolean result = manager.verifyPassword(password);
+        assertTrue(result, "Correct password should verify successfully");
+    }
+
+    @Test
+    void verifyPasswordWithWrongPasswordReturnsFalse() {
+        String correctPassword = "ThisIsATestPassword1234!";
+        String wrongPassword = "WrongPassword12345678!";
+        manager.setPassword(correctPassword);
+        
+        boolean result = manager.verifyPassword(wrongPassword);
+        assertFalse(result, "Wrong password should fail verification");
+    }
+
+    @Test
+    void verifyPasswordWithTooShortPasswordReturnsFalse() {
+        String longPassword = "ThisIsATestPassword1234!";
+        String shortPassword = "short";
+        manager.setPassword(longPassword);
+        
+        boolean result = manager.verifyPassword(shortPassword);
+        assertFalse(result, "Too short password should fail verification");
+    }
+
+    @Test
+    void verifyPasswordWithEmptyPasswordReturnsFalse() {
+        String password = "ThisIsATestPassword1234!";
+        manager.setPassword(password);
+        
+        boolean result = manager.verifyPassword("");
+        assertFalse(result, "Empty password should fail verification");
+    }
+
+    // ==================== Password Setting Tests ====================
+
+    @Test
+    void setPasswordWithValidPasswordSucceeds() {
+        String password = "ThisIsATestPassword1234!";
+        boolean result = manager.setPassword(password);
+        assertTrue(result, "Valid password should be set successfully");
+    }
+
+    @Test
+    void setPasswordWithTooShortPasswordFails() {
+        String shortPassword = "short";
+        boolean result = manager.setPassword(shortPassword);
+        assertFalse(result, "Short password should fail to set");
+    }
+
+    @Test
+    void setPasswordWithEmptyPasswordFails() {
+        boolean result = manager.setPassword("");
+        assertFalse(result, "Empty password should fail to set");
+    }
+
+    // ==================== Storage Tests ====================
+
+    @Test
+    void storeAndLoadFromKeyStore() {
+        String password = "ThisIsATestPassword1234!";
+        byte[] passphrase = manager.derivePassphrase(password);
+        
+        boolean stored = manager.storeInKeyStore(passphrase);
+        assertTrue(stored, "Passphrase should be stored successfully");
+        
+        byte[] loaded = manager.loadFromKeyStore();
+        assertNotNull(loaded, "Passphrase should be loaded successfully");
+        assertArrayEquals(passphrase, loaded, "Loaded passphrase should match stored");
+    }
+
+    @Test
+    void storeInKeyStoreWithInvalidLengthFails() {
+        byte[] invalidPassphrase = new byte[16]; // Too short
+        boolean result = manager.storeInKeyStore(invalidPassphrase);
+        assertFalse(result, "Invalid length passphrase should fail to store");
+    }
+
+    @Test
+    void storeInKeyStoreWithNullFails() {
+        boolean result = manager.storeInKeyStore(null);
+        assertFalse(result, "Null passphrase should fail to store");
+    }
+
+    @Test
+    void loadFromKeyStoreWhenEmptyReturnsNull() {
+        byte[] loaded = manager.loadFromKeyStore();
+        assertTrue(loaded == null, "Loading from empty KeyStore should return null");
+    }
+
+    // ==================== Random Password Tests ====================
 
     @Test
     void generateRandomPasswordMeetsMinimumLength() {
         String randomPassword = manager.generateRandomPassword();
         
-        assertNotNull(randomPassword);
-        assertTrue(randomPassword.length() >= 20);
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.length() >= 20, 
+                "Random password should be at least 20 chars, got " + randomPassword.length());
     }
 
     @Test
-    void generateRandomPasswordContainsVariousCharacterTypes() {
+    void generateRandomPasswordContainsLowercase() {
         String randomPassword = manager.generateRandomPassword();
         
-        assertNotNull(randomPassword);
-        assertTrue(randomPassword.matches(".*[a-z].*"));
-        assertTrue(randomPassword.matches(".*[A-Z].*"));
-        assertTrue(randomPassword.matches(".*[0-9].*"));
-        assertTrue(randomPassword.matches(".*[!@#$%^&*()_+\-=\[\]{}|;:,.<>?].*"));
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.matches(".*[a-z].*"), "Should contain lowercase letters");
+    }
+
+    @Test
+    void generateRandomPasswordContainsUppercase() {
+        String randomPassword = manager.generateRandomPassword();
+        
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.matches(".*[A-Z].*"), "Should contain uppercase letters");
+    }
+
+    @Test
+    void generateRandomPasswordContainsDigits() {
+        String randomPassword = manager.generateRandomPassword();
+        
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.matches(".*[0-9].*"), "Should contain digits");
+    }
+
+    @Test
+    void generateRandomPasswordContainsSpecialChars() {
+        String randomPassword = manager.generateRandomPassword();
+        
+        assertNotNull(randomPassword, "Random password should not be null");
+        assertTrue(randomPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{}|;:,.<>?].*"), 
+                "Should contain special characters");
     }
 
     @Test
@@ -121,64 +274,19 @@ class PasswordDerivationManagerTest {
         String password1 = manager.generateRandomPassword();
         String password2 = manager.generateRandomPassword();
         
-        assertNotNull(password1);
-        assertNotNull(password2);
-        assertNotEquals(password1, password2);
+        assertNotNull(password1, "First password should not be null");
+        assertNotNull(password2, "Second password should not be null");
+        assertNotEquals(password1, password2, "Random passwords should be unique");
     }
 
     @Test
-    void verifyPasswordWithCorrectPasswordReturnsTrue() {
-        String password = "ThisIsATestPassword1234!";
-        manager.setPasswordInternal(password);
-        
-        boolean result = manager.verifyPassword(password);
-        assertTrue(result);
-    }
-
-    @Test
-    void verifyPasswordWithWrongPasswordReturnsFalse() {
-        String correctPassword = "ThisIsATestPassword1234!";
-        String wrongPassword = "WrongPassword12345678!";
-        manager.setPasswordInternal(correctPassword);
-        
-        boolean result = manager.verifyPassword(wrongPassword);
-        assertFalse(result);
-    }
-
-    @Test
-    void verifyPasswordWithTooShortPasswordReturnsFalse() {
-        String longPassword = "ThisIsATestPassword1234!";
-        String shortPassword = "short";
-        manager.setPasswordInternal(longPassword);
-        
-        boolean result = manager.verifyPassword(shortPassword);
-        assertFalse(result);
-    }
-
-    @Test
-    void setPasswordInternalWithValidPasswordSucceeds() {
-        String password = "ThisIsATestPassword1234!";
-        boolean result = manager.setPasswordInternal(password);
-        assertTrue(result);
-    }
-
-    @Test
-    void setPasswordInternalWithTooShortPasswordFails() {
-        String shortPassword = "short";
-        boolean result = manager.setPasswordInternal(shortPassword);
-        assertFalse(result);
-    }
-
-    @Test
-    void storeAndLoadFromKeyStore() {
-        String password = "ThisIsATestPassword1234!";
-        byte[] passphrase = manager.deriveDbPassphrase(password);
-        
-        boolean stored = manager.storeInKeyStore(passphrase);
-        assertTrue(stored);
-        
-        byte[] loaded = manager.loadFromKeyStore();
-        assertNotNull(loaded);
-        assertArrayEquals(passphrase, loaded);
+    void generateRandomPasswordLengthIsConsistent() {
+        // Generate multiple passwords and check they all meet minimum length
+        for (int i = 0; i < 10; i++) {
+            String password = manager.generateRandomPassword();
+            assertNotNull(password, "Password " + i + " should not be null");
+            assertTrue(password.length() >= 20, 
+                    "Password " + i + " should be at least 20 chars");
+        }
     }
 }

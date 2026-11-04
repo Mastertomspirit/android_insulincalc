@@ -20,57 +20,111 @@ package network.spiritscorp.data;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for SaltGenerator.
+ * Tests deterministic salt generation from passwords.
  */
 class SaltGeneratorTest {
 
     private static final int SALT_LENGTH = 32;
 
     @Test
-    void generateReturns32ByteSalt() {
-        byte[] salt = SaltGenerator.generate("TestPassword12345678!");
-        assertNotNull(salt);
-        assertEquals(SALT_LENGTH, salt.length);
+    void generateReturnsNonNullSalt() {
+        String password = "TestPassword1234!";
+        byte[] salt = SaltGenerator.generate(password);
+        assertNotNull(salt, "Salt should not be null");
+    }
+
+    @Test
+    void generateReturnsCorrectLength() {
+        String password = "TestPassword1234!";
+        byte[] salt = SaltGenerator.generate(password);
+        assertEquals(SALT_LENGTH, salt.length, "Salt should be 32 bytes");
     }
 
     @Test
     void generateIsDeterministic() {
-        String password = "TestPassword12345678!";
+        String password = "TestPassword1234!";
         byte[] salt1 = SaltGenerator.generate(password);
         byte[] salt2 = SaltGenerator.generate(password);
         
-        assertNotNull(salt1);
-        assertNotNull(salt2);
-        assertTrue(java.util.Arrays.equals(salt1, salt2));
+        assertNotNull(salt1, "First salt should not be null");
+        assertNotNull(salt2, "Second salt should not be null");
+        
+        // Compare byte arrays
+        boolean equal = true;
+        if (salt1.length != salt2.length) {
+            equal = false;
+        } else {
+            for (int i = 0; i < salt1.length; i++) {
+                if (salt1[i] != salt2[i]) {
+                    equal = false;
+                    break;
+                }
+            }
+        }
+        assertTrue(equal, "Same password should produce same salt");
     }
 
     @Test
     void generateDifferentPasswordsDifferentSalts() {
-        byte[] salt1 = SaltGenerator.generate("PasswordOne12345678!");
-        byte[] salt2 = SaltGenerator.generate("PasswordTwo12345678!");
+        byte[] salt1 = SaltGenerator.generate("PasswordOne1234!");
+        byte[] salt2 = SaltGenerator.generate("PasswordTwo1234!");
         
-        assertNotNull(salt1);
-        assertNotNull(salt2);
-        assertTrue(!java.util.Arrays.equals(salt1, salt2));
+        assertNotNull(salt1, "First salt should not be null");
+        assertNotNull(salt2, "Second salt should not be null");
+        
+        // Check that salts are different
+        boolean different = false;
+        if (salt1.length != salt2.length) {
+            different = true;
+        } else {
+            for (int i = 0; i < salt1.length; i++) {
+                if (salt1[i] != salt2[i]) {
+                    different = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(different, "Different passwords should produce different salts");
     }
 
     @Test
     void generateWithSpecialCharacters() {
-        byte[] salt = SaltGenerator.generate("P@ssw0rd!With$p3c1@l#");
-        assertNotNull(salt);
-        assertEquals(SALT_LENGTH, salt.length);
+        String password = "P@ssw0rd!With$pecial#Chars";
+        byte[] salt = SaltGenerator.generate(password);
+        
+        assertNotNull(salt, "Salt with special chars should not be null");
+        assertEquals(SALT_LENGTH, salt.length, "Salt should be 32 bytes");
     }
 
     @Test
-    void generateWithMinimumLengthPassword() {
-        String password = "12345678901234567890"; // Exactly 20 chars
+    void generateWithUnicodeCharacters() {
+        String password = "Passw\u00f6rd1234567890!@"; // with umlaut
         byte[] salt = SaltGenerator.generate(password);
-        assertNotNull(salt);
-        assertEquals(SALT_LENGTH, salt.length);
+        
+        assertNotNull(salt, "Salt with unicode should not be null");
+        assertEquals(SALT_LENGTH, salt.length, "Salt should be 32 bytes");
+    }
+
+    @Test
+    void generateWithEmptyPassword() {
+        String password = "";
+        byte[] salt = SaltGenerator.generate(password);
+        
+        assertNotNull(salt, "Salt with empty password should not be null");
+        assertEquals(SALT_LENGTH, salt.length, "Salt should be 32 bytes");
+    }
+
+    @Test
+    void generateWithShortPassword() {
+        String password = "short";
+        byte[] salt = SaltGenerator.generate(password);
+        
+        assertNotNull(salt, "Salt with short password should not be null");
+        assertEquals(SALT_LENGTH, salt.length, "Salt should be 32 bytes");
     }
 }

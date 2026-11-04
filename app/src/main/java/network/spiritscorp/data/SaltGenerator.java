@@ -26,12 +26,14 @@ import java.util.Arrays;
 
 /**
  * Generates deterministic salts from passwords using complex cryptographic operations.
- * Salt is derived from password to ensure same password always produces same salt.
+ * The salt is derived from the password to ensure the same password always produces the same salt.
+ * Uses SHA-256 hashing with bitwise operations, rotations, and special character insertion.
  */
 final class SaltGenerator {
 
     private static final String SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
     private static final int SALT_LENGTH = 32;
+    private static final int HASH_ITERATIONS = 3;
 
     private SaltGenerator() {
         // Utility class - prevent instantiation
@@ -39,7 +41,8 @@ final class SaltGenerator {
 
     /**
      * Generates a deterministic salt from the given password.
-     * Uses SHA-256 hashing with bitwise operations and special character insertion.
+     * Uses multiple iterations of SHA-256 hashing with bitwise operations, rotations,
+     * and special character insertion to create a complex, password-derived salt.
      *
      * @param password User password
      * @return 32-byte salt derived from password
@@ -47,41 +50,55 @@ final class SaltGenerator {
     @NonNull
     static byte[] generate(@NonNull String password) {
         try {
-            // Step 1: Hash password with SHA-256
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
+            byte[] currentHash = passwordBytes;
 
-            // Step 2: Apply bitwise XOR with password length pattern
-            int passwordLength = password.length();
-            for (int i = 0; i < hash.length; i++) {
-                int pattern = (passwordLength + i) % 256;
-                hash[i] = (byte) (hash[i] ^ pattern);
+            // Multiple hash iterations with increasing complexity
+            for (int iteration = 0; iteration < HASH_ITERATIONS; iteration++) {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                
+                // XOR with iteration number and password length
+                byte[] input = new byte[currentHash.length + 4];
+                System.arraycopy(currentHash, 0, input, 0, currentHash.length);
+                input[currentHash.length] = (byte) iteration;
+                input[currentHash.length + 1] = (byte) (password.length() >> 8);
+                input[currentHash.length + 2] = (byte) password.length();
+                input[currentHash.length + 3] = (byte) (iteration * password.length());
+                
+                currentHash = digest.digest(input);
             }
 
-            // Step 3: Apply bit rotation
-            for (int i = 0; i < hash.length; i++) {
-                hash[i] = (byte) Integer.rotateLeft(hash[i] & 0xFF, i % 8);
+            // Apply bitwise transformations
+            byte[] transformed = new byte[SALT_LENGTH];
+            System.arraycopy(currentHash, 0, transformed, 0, Math.min(currentHash.length, SALT_LENGTH));
+
+            // Bit rotations with varying amounts
+            for (int i = 0; i < transformed.length; i++) {
+                int rotation = (i * 7 + password.length() * 3) % 8;
+                transformed[i] = (byte) Integer.rotateLeft(transformed[i] & 0xFF, rotation);
             }
 
-            // Step 4: Ensure exactly SALT_LENGTH bytes
-            byte[] salt = Arrays.copyOf(hash, SALT_LENGTH);
+            // XOR with password bytes (cyclic)
+            for (int i = 0; i < transformed.length; i++) {
+                transformed[i] = (byte) (transformed[i] ^ passwordBytes[i % passwordBytes.length]);
+            }
 
-            // Step 5: Insert special characters at calculated positions
-            for (int i = 0; i < Math.min(password.length(), 8); i++) {
-                int pos = (password.charAt(i) + i * 7) % SALT_LENGTH;
+            // Insert special characters at calculated positions based on password content
+            for (int i = 0; i < Math.min(password.length(), 16); i++) {
+                char c = password.charAt(i);
+                int pos = (c * (i + 1) + password.length() * 13) % SALT_LENGTH;
                 if (pos < SALT_LENGTH) {
-                    int specialIndex = (password.charAt(i) + i) % SPECIAL_CHARS.length();
-                    salt[pos] = (byte) SPECIAL_CHARS.charAt(specialIndex);
+                    int specialIndex = (c + i * password.length()) % SPECIAL_CHARS.length();
+                    transformed[pos] = (byte) SPECIAL_CHARS.charAt(specialIndex);
                 }
             }
 
-            // Step 6: Final XOR with password bytes (cyclic)
-            byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
-            for (int i = 0; i < SALT_LENGTH; i++) {
-                salt[i] = (byte) (salt[i] ^ passwordBytes[i % passwordBytes.length]);
+            // Final mixing pass
+            for (int i = 0; i < transformed.length - 1; i++) {
+                transformed[i] = (byte) (transformed[i] ^ transformed[i + 1] ^ passwordBytes[i % passwordBytes.length]);
             }
 
-            return salt;
+            return transformed;
         } catch (NoSuchAlgorithmException e) {
             // Fallback: use password bytes padded with special characters
             return createFallbackSalt(password);

@@ -430,27 +430,24 @@ Return the result STRICTLY in the following JSON format (without markdown backti
 
     <!-- Database Password Strings -->
     <string name="settings_passwort_section_title">Database Password</string>
-    <string name="settings_passwort_section_subtitle">Set password for recovery</string>
+    <string name="settings_passwort_section_subtitle">Manage your database password</string>
     <string name="settings_passwort_status_active">Password active</string>
-    <string name="settings_passwort_status_inactive">No password set</string>
+    <string name="settings_passwort_status_subtitle">Password is set and database is encrypted</string>
     <string name="settings_passwort_set_dialog_title">Set Password</string>
-    <string name="settings_passwort_set_dialog_message">Enter password with at least %1$d characters. Store it securely!</string>
+    <string name="settings_passwort_set_dialog_message">Enter a password with at least %1$d characters.</string>
     <string name="settings_passwort_set_dialog_hint">Password</string>
     <string name="settings_passwort_set_dialog_placeholder">Minimum %1$d characters</string>
     <string name="settings_passwort_set_dialog_char_count">%1$d/%2$d characters</string>
     <string name="settings_passwort_set_dialog_error_too_short">Password must be at least %1$d characters</string>
-    <string name="settings_passwort_confirm_dialog_title">Confirm</string>
-    <string name="settings_passwort_confirm_dialog_message">Password cannot be recovered if lost. Without it, data is inaccessible on new devices!</string>
-    <string name="settings_passwort_confirm_button">I have stored it securely</string>
     <string name="settings_passwort_show_button">Show</string>
     <string name="settings_passwort_hide_button">Hide</string>
-    <string name="settings_passwort_set_button">Set password</string>
     <string name="settings_passwort_change_button">Change password</string>
     <string name="settings_passwort_change_dialog_title">Change Password</string>
-    <string name="settings_passwort_change_dialog_message">Enter current and new password.</string>
+    <string name="settings_passwort_change_dialog_message">Enter your current and new password.</string>
     <string name="settings_passwort_change_dialog_old_hint">Current password</string>
     <string name="settings_passwort_change_dialog_new_hint">New password</string>
     <string name="settings_passwort_change_dialog_confirm_hint">Confirm new password</string>
     <string name="settings_passwort_change_error_no_match">Passwords do not match</string>
     <string name="settings_passwort_change_error_wrong_old">Wrong current password</string>
+    <string name="settings_passwort_change_success">Password changed successfully</string>
 </resources>
