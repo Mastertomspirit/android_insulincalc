@@ -24,137 +24,106 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.security.SecureRandom;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import network.spiritscorp.util.AppConstants;
+
 /**
  * Manages password-based derivation of database encryption keys.
  * Uses PBKDF2 with password-derived salt to create deterministic 256-bit keys
- * that are stored in Android KeyStore for hardware-backed security.
+ * stored in Android KeyStore for hardware-backed security.
  */
 public class PasswordDerivationManager {
 
-    private static final String TAG = "PasswordDerivationManager";
+    private static final String TAG = "PasswordDerivationMgr";
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
-    private static final String KEY_ALIAS = "network.spiritscorp.insulincalc.db_passphrase_key";
-    private static final int PBKDF2_ITERATIONS = 100000;
-    private static final int KEY_SIZE_BITS = 256;
     private static final int PASSPHRASE_BYTE_LENGTH = 32;
-
-    // Special characters for salt derivation
-    private static final String SALT_SUFFIX = "!@#$%^&*()INSULIN_CALC_2025!";
 
     /**
      * Derives a 256-bit database passphrase from user password.
-     * Uses PBKDF2 with a salt derived from the password itself.
      *
-     * @param userPassword User-provided password (must be >= 20 characters).
-     * @return 32-byte database passphrase, or null if derivation fails.
+     * @param userPassword User-provided password (must be >= 20 characters)
+     * @return 32-byte database passphrase
+     * @throws IllegalArgumentException if password is too short
      */
-    @Nullable
+    @NonNull
     public byte[] deriveDbPassphrase(@NonNull String userPassword) {
-        if (userPassword.length() < 20) {
-            Log.w(TAG, "Password too short. Minimum 20 characters required.");
-            return null;
+        if (userPassword.length() < AppConstants.MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Password too short. Minimum " + AppConstants.MIN_PASSWORD_LENGTH + " characters required.");
         }
 
-        try {
-            // Derive salt from password with special characters
-            String saltInput = userPassword + SALT_SUFFIX + userPassword.length();
-            byte[] salt = saltInput.getBytes(StandardCharsets.UTF_8);
+        byte[] salt = SaltGenerator.generate(userPassword);
+        return deriveKey(userPassword, salt);
+    }
 
-            // Derive key using PBKDF2
+    /**
+     * Derives key using PBKDF2 with given salt.
+     *
+     * @param password User password
+     * @param salt Salt bytes
+     * @return 32-byte derived key
+     */
+    @NonNull
+    private byte[] deriveKey(@NonNull String password, @NonNull byte[] salt) {
+        try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             KeySpec spec = new PBEKeySpec(
-                    userPassword.toCharArray(),
+                    password.toCharArray(),
                     salt,
-                    PBKDF2_ITERATIONS,
-                    KEY_SIZE_BITS
+                    AppConstants.PBKDF2_ITERATIONS,
+                    AppConstants.KEY_SIZE_BITS
             );
             byte[] derivedKey = factory.generateSecret(spec).getEncoded();
 
-            // Ensure we have exactly 32 bytes
             if (derivedKey.length != PASSPHRASE_BYTE_LENGTH) {
-                Log.e(TAG, "Derived key has unexpected length: " + derivedKey.length);
-                return null;
+                throw new IllegalStateException("Derived key has unexpected length: " + derivedKey.length);
             }
 
             return derivedKey;
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to derive passphrase: " + e.getMessage(), e);
-            return null;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalStateException("Failed to derive passphrase: " + e.getMessage(), e);
         }
     }
 
     /**
      * Stores the database passphrase in Android KeyStore.
      *
-     * @param context Android context.
-     * @param dbPassphrase 32-byte database passphrase to store.
-     * @return true if storage succeeded, false otherwise.
+     * @param dbPassphrase 32-byte database passphrase to store
+     * @return true if storage succeeded
+     * @throws IllegalArgumentException if passphrase length is invalid
      */
-    public boolean storeInKeyStore(@NonNull android.content.Context context, @NonNull byte[] dbPassphrase) {
+    public boolean storeInKeyStore(@NonNull byte[] dbPassphrase) {
         if (dbPassphrase.length != PASSPHRASE_BYTE_LENGTH) {
-            Log.e(TAG, "Invalid passphrase length: " + dbPassphrase.length);
-            return false;
+            throw new IllegalArgumentException(
+                    "Invalid passphrase length: " + dbPassphrase.length);
         }
 
         try {
             KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
             keyStore.load(null);
 
-            // Check if key already exists
-            if (keyStore.containsAlias(KEY_ALIAS)) {
-                // Key exists, we'll overwrite it
-                keyStore.deleteEntry(KEY_ALIAS);
+            if (keyStore.containsAlias(AppConstants.DB_PASSPHRASE_KEY_ALIAS)) {
+                keyStore.deleteEntry(AppConstants.DB_PASSPHRASE_KEY_ALIAS);
             }
 
-            // Generate a new key in KeyStore
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                    KeyProperties.KEY_ALGORITHM_AES,
-                    KEYSTORE_PROVIDER
-            );
-
-            KeyGenParameterSpec keyGenSpec = new KeyGenParameterSpec.Builder(
-                    KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
-            )
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setKeySize(KEY_SIZE_BITS)
-                    .setRandomizedEncryptionRequired(true)
-                    .build();
-
-            keyGenerator.init(keyGenSpec);
-            SecretKey secretKey = keyGenerator.generateKey();
-
-            // Store the dbPassphrase as a SecretKey in KeyStore
-            // Since KeyStore already generated a key, we need to store our dbPassphrase
-            // as a separate entry or use it directly
-            // For SQLCipher, we just need the raw bytes, so we'll store them in a
-            // custom way. However, KeyStore doesn't support storing arbitrary data.
-            // 
-            // Solution: We'll store the dbPassphrase as a SecretKey with our alias.
-            // But KeyStore requires the key to be generated by it. So we need to
-            // import the key.
-            
-            // Create a SecretKey from our dbPassphrase
             SecretKey dbPassphraseKey = new SecretKeySpec(dbPassphrase, "AES");
-            
-            // Store it in KeyStore
             KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(dbPassphraseKey);
-            keyStore.setEntry(KEY_ALIAS, secretKeyEntry, null);
+            keyStore.setEntry(AppConstants.DB_PASSPHRASE_KEY_ALIAS, secretKeyEntry, null);
 
-            Log.i(TAG, "Successfully stored db passphrase in KeyStore");
             return true;
-        } catch (Exception e) {
+        } catch (KeyStoreException | NoSuchAlgorithmException e) {
             Log.e(TAG, "Failed to store passphrase in KeyStore: " + e.getMessage(), e);
             return false;
         }
@@ -163,7 +132,7 @@ public class PasswordDerivationManager {
     /**
      * Loads the database passphrase from Android KeyStore.
      *
-     * @return 32-byte database passphrase, or null if not found or loading fails.
+     * @return 32-byte database passphrase, or null if not found
      */
     @Nullable
     public byte[] loadFromKeyStore() {
@@ -171,102 +140,75 @@ public class PasswordDerivationManager {
             KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
             keyStore.load(null);
 
-            if (keyStore.containsAlias(KEY_ALIAS)) {
+            if (keyStore.containsAlias(AppConstants.DB_PASSPHRASE_KEY_ALIAS)) {
                 KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(
-                        KEY_ALIAS, null);
+                        AppConstants.DB_PASSPHRASE_KEY_ALIAS, null);
                 if (entry != null) {
                     byte[] passphrase = entry.getSecretKey().getEncoded();
                     if (passphrase != null && passphrase.length == PASSPHRASE_BYTE_LENGTH) {
-                        Log.i(TAG, "Successfully loaded db passphrase from KeyStore");
                         return passphrase;
                     }
                 }
             }
-            Log.w(TAG, "No db passphrase found in KeyStore");
             return null;
-        } catch (Exception e) {
+        } catch (KeyStoreException | NoSuchAlgorithmException e) {
             Log.e(TAG, "Failed to load passphrase from KeyStore: " + e.getMessage(), e);
             return null;
         }
     }
 
     /**
-     * Derives and stores the database passphrase in KeyStore.
+     * Verifies if a password matches the stored passphrase.
      *
-     * @param context Android context.
-     * @param userPassword User-provided password.
-     * @return true if derivation and storage succeeded, false otherwise.
-     */
-    public boolean setPassword(@NonNull android.content.Context context, @NonNull String userPassword) {
-        byte[] dbPassphrase = deriveDbPassphrase(userPassword);
-        if (dbPassphrase == null) {
-            return false;
-        }
-        return storeInKeyStore(context, dbPassphrase);
-    }
-
-    /**
-     * Verifies if a password can derive the stored database passphrase.
-     *
-     * @param userPassword User-provided password to verify.
-     * @return true if password is valid, false otherwise.
+     * @param userPassword Password to verify
+     * @return true if password matches
      */
     public boolean verifyPassword(@NonNull String userPassword) {
-        byte[] derivedPassphrase = deriveDbPassphrase(userPassword);
-        if (derivedPassphrase == null) {
-            return false;
-        }
-
-        byte[] storedPassphrase = loadFromKeyStore();
-        if (storedPassphrase == null) {
-            return false;
-        }
-
-        // Compare the derived passphrase with the stored one
-        // Use constant-time comparison to prevent timing attacks
-        return constantTimeCompare(derivedPassphrase, storedPassphrase);
-    }
-
-    /**
-     * Clears the password-based key from KeyStore.
-     *
-     * @return true if key was cleared, false otherwise.
-     */
-    public boolean clearPassword() {
         try {
-            KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
-            keyStore.load(null);
-
-            if (keyStore.containsAlias(KEY_ALIAS)) {
-                keyStore.deleteEntry(KEY_ALIAS);
-                Log.i(TAG, "Successfully cleared password from KeyStore");
-                return true;
+            byte[] derivedPassphrase = deriveDbPassphrase(userPassword);
+            byte[] storedPassphrase = loadFromKeyStore();
+            
+            if (derivedPassphrase == null || storedPassphrase == null) {
+                return false;
             }
-            return true; // Already clear
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to clear password from KeyStore: " + e.getMessage(), e);
+            
+            return constantTimeCompare(derivedPassphrase, storedPassphrase);
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
 
     /**
-     * Checks if a password-based key exists in KeyStore.
+     * Internal method to set password. Package-private to restrict access.
      *
-     * @return true if password is set, false otherwise.
+     * @param userPassword Password to set
+     * @return true if successful
      */
-    public boolean isPasswordSet() {
+    boolean setPasswordInternal(@NonNull String userPassword) {
         try {
-            KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
-            keyStore.load(null);
-            return keyStore.containsAlias(KEY_ALIAS);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to check password: " + e.getMessage(), e);
+            byte[] dbPassphrase = deriveDbPassphrase(userPassword);
+            return storeInKeyStore(dbPassphrase);
+        } catch (IllegalArgumentException e) {
             return false;
         }
+    }
+
+    /**
+     * Generates a random password for new installations.
+     *
+     * @return Random password with at least MIN_PASSWORD_LENGTH characters
+     */
+    @NonNull
+    public String generateRandomPassword() {
+        return RandomPasswordGenerator.generate();
     }
 
     /**
      * Constant-time comparison to prevent timing attacks.
+     *
+     * @param a First byte array
+     * @param b Second byte array
+     * @return true if arrays are equal
      */
     private boolean constantTimeCompare(@NonNull byte[] a, @NonNull byte[] b) {
         if (a.length != b.length) {

@@ -49,7 +49,12 @@ public final class AppConstants {
     /**
      * Android KeyStore Encryption Key Vault Version.
      */
-    public static final int SECURITY_KEY_VERSION = 2;
+    public static final int SECURITY_KEY_VERSION = 3;
+
+    /**
+     * Database passphrase key alias for password-based encryption.
+     */
+    public static final String DB_PASSPHRASE_KEY_ALIAS = "network.spiritscorp.insulincalc.db_passphrase_key";
 
     // =========================================================================
     // Storage & Database Identifiers
@@ -77,7 +82,17 @@ public final class AppConstants {
     /**
      * Minimum password length for database recovery.
      */
-    public static final int MIN_PASSPHRASE_LENGTH = 20;
+    public static final int MIN_PASSWORD_LENGTH = 20;
+
+    /**
+     * Key size in bits for PBKDF2 derivation.
+     */
+    public static final int KEY_SIZE_BITS = 256;
+
+    /**
+     * Number of PBKDF2 iterations.
+     */
+    public static final int PBKDF2_ITERATIONS = 100000;
 
     /**
      * Database passphrase byte length (256-bit for SQLCipher).

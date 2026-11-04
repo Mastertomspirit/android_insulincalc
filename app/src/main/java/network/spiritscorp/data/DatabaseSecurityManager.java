@@ -28,6 +28,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
@@ -38,123 +40,138 @@ import javax.crypto.spec.GCMParameterSpec;
 import network.spiritscorp.util.AppConstants;
 
 /**
- * Enterprise-grade security manager object for SQLite / SQLCipher database encryption.
- *<br><br>
- * Supports two encryption modes:<br>
- * 1. Legacy: Hardware-backed Android KeyStore with random passphrase (for existing users).<br>
- * 2. Password-based: Deterministic passphrase derived from user password, stored in KeyStore.<br>
- *    This enables database recovery on new devices using the same password.<br>
- *<br>
- * Designed as an instantiable, object-oriented cryptographic vault:<br>
- * - Hardware-backed Android KeyStore protection for legacy users.<br>
- * - Password-based deterministic derivation for new users and recovery.<br>
- * - JVM / Test Resilience: Gracefully falls back in local JVM unit testing environments.
+ * Manages database encryption passphrase with password-based fallback.
+ * Always provides a passphrase - either from password derivation or legacy KeyStore.
  */
 public class DatabaseSecurityManager {
 
-    /**
-     * Logging tag used for debugging and security audits.
-     */
-    private static final String TAG = "DatabaseSecurityManager";
-
-    // Legacy KeyStore constants (for existing users)
+    private static final String TAG = "DatabaseSecurityMgr";
     private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
     private static final String LEGACY_KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final int GCM_TAG_LENGTH_BITS = AppConstants.GCM_TAG_LENGTH_BITS;
-    private static final int PASSPHRASE_BYTE_LENGTH = AppConstants.PASSPHRASE_BYTE_LENGTH;
 
-    // Storage Keys for legacy passphrase encryption
+    // Storage keys for legacy encryption
     private static final String KEY_ENCRYPTED_PASSPHRASE = "secure_db_encrypted_passphrase";
     private static final String KEY_PASSPHRASE_IV = "secure_db_passphrase_iv";
     private static final String FALLBACK_KEY_PASSPHRASE = "secure_db_passphrase_fallback";
 
     private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 
-    private final SharedPreferences mPrefs;
-    private final PasswordDerivationManager mPasswordManager;
+    private final SharedPreferences prefs;
+    private final PasswordDerivationManager passwordManager;
 
     /**
-     * Constructs a new DatabaseSecurityManager instance bound to the provided Android context.
+     * Constructs DatabaseSecurityManager with application context.
      *
-     * @param context Application or activity context.
+     * @param context Application context
      */
     public DatabaseSecurityManager(@NonNull Context context) {
-        this.mPrefs = context.getApplicationContext()
-                .getSharedPreferences(AppConstants.SECURITY_PREFS_FILE, Context.MODE_PRIVATE);
-        this.mPasswordManager = new PasswordDerivationManager();
+        this(context.getApplicationContext()
+                .getSharedPreferences(AppConstants.SECURITY_PREFS_FILE, Context.MODE_PRIVATE));
     }
 
     /**
-     * Constructs a new DatabaseSecurityManager instance with custom SharedPreferences,
-     * specifically useful for dependency injection and isolated unit testing.
+     * Constructs DatabaseSecurityManager with custom SharedPreferences for testing.
      *
-     * @param prefs SharedPreferences instance to store encrypted key data.
+     * @param prefs SharedPreferences instance
      */
     public DatabaseSecurityManager(@NonNull SharedPreferences prefs) {
-        this.mPrefs = prefs;
-        this.mPasswordManager = new PasswordDerivationManager();
+        this.prefs = prefs;
+        this.passwordManager = new PasswordDerivationManager();
     }
 
-    // =========================================================================
-    // Main Passphrase Retrieval
-    // =========================================================================
-
     /**
-     * Retrieves the database encryption passphrase using hybrid loading:
-     * 1. Try password-based derivation first (if password is set)
-     * 2. Fall back to legacy KeyStore (for existing users)
-     * 3. Generate new random passphrase if neither is available
+     * Gets the database encryption passphrase.
+     * Priority: 1) Password-based, 2) Legacy KeyStore, 3) Generate new.
      *
-     * @return 32-byte (256-bit) encryption key suitable for SQLCipher.
+     * @return 32-byte passphrase, never null
      */
     @NonNull
-    public synchronized byte[] getOrCreateDatabasePassphrase() {
-        // 1. Try password-based derivation first
-        byte[] passwordPassphrase = tryLoadPasswordBased();
+    public byte[] getDatabasePassphrase() {
+        // 1. Try password-based
+        byte[] passwordPassphrase = passwordManager.loadFromKeyStore();
         if (passwordPassphrase != null) {
-            Log.i(TAG, "Loaded database passphrase from password derivation");
             return passwordPassphrase;
         }
 
-        // 2. Fall back to legacy KeyStore
-        byte[] legacyPassphrase = tryLoadLegacy();
+        // 2. Try legacy
+        byte[] legacyPassphrase = loadLegacyPassphrase();
         if (legacyPassphrase != null) {
-            Log.i(TAG, "Loaded database passphrase from legacy KeyStore");
             return legacyPassphrase;
         }
 
-        // 3. Generate new random passphrase (first run)
-        return generateAndStoreNewPassphrase();
+        // 3. Generate new
+        return generateNewPassphrase();
     }
 
     /**
-     * Retrieves the database passphrase using password-based derivation.
+     * Gets passphrase derived from password without storing it.
+     * Used for recovery when KeyStore is unavailable.
      *
-     * @return 32-byte passphrase, or null if not set.
+     * @param password User password
+     * @return 32-byte passphrase or null if derivation fails
      */
     @Nullable
-    private byte[] tryLoadPasswordBased() {
-        return mPasswordManager.loadFromKeyStore();
+    public byte[] derivePassphrase(@NonNull String password) {
+        try {
+            return passwordManager.deriveDbPassphrase(password);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**
-     * Retrieves the database passphrase from legacy KeyStore.
+     * Verifies if password matches the stored passphrase.
      *
-     * @return 32-byte passphrase, or null if not available.
+     * @param password Password to verify
+     * @return true if password matches
      */
-    @Nullable
-    private byte[] tryLoadLegacy() {
-        String encryptedPassphraseBase64 = mPrefs.getString(KEY_ENCRYPTED_PASSPHRASE, null);
-        String ivBase64 = mPrefs.getString(KEY_PASSPHRASE_IV, null);
+    public boolean verifyPassword(@NonNull String password) {
+        return passwordManager.verifyPassword(password);
+    }
 
-        if (encryptedPassphraseBase64 != null && !encryptedPassphraseBase64.trim().isEmpty() &&
-                ivBase64 != null && !ivBase64.trim().isEmpty()) {
+    /**
+     * Sets a new password and derives passphrase from it.
+     * Package-private to restrict direct access.
+     *
+     * @param password New password
+     * @return true if successful
+     */
+    boolean setPassword(@NonNull String password) {
+        return passwordManager.setPasswordInternal(password);
+    }
+
+    /**
+     * Generates a random password for initial setup.
+     *
+     * @return Random password
+     */
+    @NonNull
+    public String generateRandomPassword() {
+        return passwordManager.generateRandomPassword();
+    }
+
+    /**
+     * Gets the password manager for advanced operations.
+     *
+     * @return PasswordDerivationManager instance
+     */
+    @NonNull
+    public PasswordDerivationManager getPasswordManager() {
+        return passwordManager;
+    }
+
+    @Nullable
+    private byte[] loadLegacyPassphrase() {
+        String encryptedBase64 = prefs.getString(KEY_ENCRYPTED_PASSPHRASE, null);
+        String ivBase64 = prefs.getString(KEY_PASSPHRASE_IV, null);
+
+        if (encryptedBase64 != null && ivBase64 != null) {
             try {
-                byte[] encryptedBytes = Base64.decode(encryptedPassphraseBase64, Base64.NO_WRAP);
-                byte[] ivBytes = Base64.decode(ivBase64, Base64.NO_WRAP);
-                byte[] decrypted = decryptWithKeyStore(ivBytes, encryptedBytes);
-                if (decrypted != null && decrypted.length == PASSPHRASE_BYTE_LENGTH) {
+                byte[] encrypted = Base64.decode(encryptedBase64, Base64.NO_WRAP);
+                byte[] iv = Base64.decode(ivBase64, Base64.NO_WRAP);
+                byte[] decrypted = decryptWithKeyStore(iv, encrypted);
+                if (decrypted != null && decrypted.length == AppConstants.PASSPHRASE_BYTE_LENGTH) {
                     return decrypted;
                 }
             } catch (Exception e) {
@@ -162,12 +179,12 @@ public class DatabaseSecurityManager {
             }
         }
 
-        // Fallback for JVM test environments
-        String fallbackBase64 = mPrefs.getString(FALLBACK_KEY_PASSPHRASE, null);
-        if (fallbackBase64 != null && !fallbackBase64.trim().isEmpty()) {
+        // Fallback for JVM tests
+        String fallbackBase64 = prefs.getString(FALLBACK_KEY_PASSPHRASE, null);
+        if (fallbackBase64 != null) {
             try {
                 byte[] decoded = Base64.decode(fallbackBase64, Base64.NO_WRAP);
-                if (decoded != null && decoded.length == PASSPHRASE_BYTE_LENGTH) {
+                if (decoded != null && decoded.length == AppConstants.PASSPHRASE_BYTE_LENGTH) {
                     return decoded;
                 }
             } catch (Exception e) {
@@ -178,119 +195,57 @@ public class DatabaseSecurityManager {
         return null;
     }
 
-    /**
-     * Generates a new random database passphrase and stores it using legacy method.
-     *
-     * @return New 32-byte database passphrase.
-     */
     @NonNull
-    private byte[] generateAndStoreNewPassphrase() {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] newKey = new byte[PASSPHRASE_BYTE_LENGTH];
-        secureRandom.nextBytes(newKey);
+    private byte[] generateNewPassphrase() {
+        SecureRandom random = new SecureRandom();
+        byte[] newKey = new byte[AppConstants.PASSPHRASE_BYTE_LENGTH];
+        random.nextBytes(newKey);
 
-        savePassphraseWithKeyStore(newKey);
-        Log.i(TAG, "Successfully generated and persisted new 256-bit database encryption key");
+        saveLegacyPassphrase(newKey);
         return newKey;
     }
 
-    // =========================================================================
-    // Password-Based Methods
-    // =========================================================================
-
-    /**
-     * Sets a user password for database encryption.
-     * Derives a deterministic passphrase and stores it in KeyStore.
-     *
-     * @param context Android context.
-     * @param userPassword User-provided password (must be >= 20 characters).
-     * @return true if password was set successfully, false otherwise.
-     */
-    public boolean setPassword(@NonNull Context context, @NonNull String userPassword) {
-        if (userPassword.length() < AppConstants.MIN_PASSPHRASE_LENGTH) {
-            Log.w(TAG, "Password too short. Minimum " + AppConstants.MIN_PASSPHRASE_LENGTH + " characters required");
-            return false;
-        }
-
-        return mPasswordManager.setPassword(context, userPassword);
-    }
-
-    /**
-     * Verifies if a password can derive the stored database passphrase.
-     *
-     * @param userPassword User-provided password to verify.
-     * @return true if password is valid, false otherwise.
-     */
-    public boolean verifyPassword(@NonNull String userPassword) {
-        if (userPassword.length() < AppConstants.MIN_PASSPHRASE_LENGTH) {
-            return false;
-        }
-        return mPasswordManager.verifyPassword(userPassword);
-    }
-
-    /**
-     * Clears the password-based key from KeyStore.
-     *
-     * @return true if password was cleared, false otherwise.
-     */
-    public boolean clearPassword() {
-        return mPasswordManager.clearPassword();
-    }
-
-    /**
-     * Checks if a password-based key exists in KeyStore.
-     *
-     * @return true if password is set, false otherwise.
-     */
-    public boolean isPasswordSet() {
-        return mPasswordManager.isPasswordSet();
-    }
-
-    /**
-     * Gets the database passphrase derived from password.
-     * Used when KeyStore is unavailable (e.g., on new device).
-     *
-     * @param userPassword User-provided password.
-     * @return 32-byte database passphrase, or null if derivation fails.
-     */
-    @Nullable
-    public byte[] getPassphraseFromPassword(@NonNull String userPassword) {
-        if (userPassword.length() < AppConstants.MIN_PASSPHRASE_LENGTH) {
-            return null;
-        }
-        return mPasswordManager.deriveDbPassphrase(userPassword);
-    }
-
-    // =========================================================================
-    // Legacy KeyStore Methods (for existing users)
-    // =========================================================================
-
-    /**
-     * Saves the database passphrase encrypted with KeyStore master key.
-     *
-     * @param rawPassphrase Database passphrase to save.
-     */
-    private void savePassphraseWithKeyStore(byte[] rawPassphrase) {
-        EncryptedData encryptedData = encryptWithKeyStore(rawPassphrase);
-        if (encryptedData != null) {
-            mPrefs.edit()
-                    .putString(KEY_PASSPHRASE_IV, Base64.encodeToString(encryptedData.iv(), Base64.NO_WRAP))
-                    .putString(KEY_ENCRYPTED_PASSPHRASE, Base64.encodeToString(encryptedData.ciphertext(), Base64.NO_WRAP))
+    private void saveLegacyPassphrase(@NonNull byte[] passphrase) {
+        EncryptedData encrypted = encryptWithKeyStore(passphrase);
+        if (encrypted != null) {
+            prefs.edit()
+                    .putString(KEY_PASSPHRASE_IV, Base64.encodeToString(encrypted.iv(), Base64.NO_WRAP))
+                    .putString(KEY_ENCRYPTED_PASSPHRASE, Base64.encodeToString(encrypted.ciphertext(), Base64.NO_WRAP))
                     .apply();
         } else {
-            // Fallback for JVM test environments
-            mPrefs.edit()
-                    .putString(FALLBACK_KEY_PASSPHRASE, Base64.encodeToString(rawPassphrase, Base64.NO_WRAP))
+            // JVM test fallback
+            prefs.edit()
+                    .putString(FALLBACK_KEY_PASSPHRASE, Base64.encodeToString(passphrase, Base64.NO_WRAP))
                     .apply();
         }
     }
 
-    /**
-     * Encrypts the provided plaintext byte array using the Android KeyStore AES-GCM master key.
-     *
-     * @param plaintext Raw bytes to encrypt (e.g., database passphrase).
-     * @return EncryptedData containing the initialization vector (IV) and ciphertext, or null if KeyStore is unavailable.
-     */
+    private SecretKey getOrCreateKeyStoreMasterKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
+        keyStore.load(null);
+
+        if (keyStore.containsAlias(LEGACY_KEY_ALIAS)) {
+            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(LEGACY_KEY_ALIAS, null);
+            if (entry != null) {
+                return entry.getSecretKey();
+            }
+        }
+
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER);
+        KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
+                LEGACY_KEY_ALIAS,
+                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(256)
+                .setRandomizedEncryptionRequired(true)
+                .build();
+
+        keyGenerator.init(spec);
+        return keyGenerator.generateKey();
+    }
+
     @Nullable
     private EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
         try {
@@ -301,75 +256,30 @@ public class DatabaseSecurityManager {
             byte[] ciphertext = cipher.doFinal(plaintext);
             return new EncryptedData(iv, ciphertext);
         } catch (Throwable e) {
-            Log.w(TAG, "AndroidKeyStore encryption not available (e.g. JVM/test environment): " + e.getMessage());
+            Log.w(TAG, "KeyStore encryption not available");
             return null;
         }
     }
 
-    /**
-     * Decrypts the provided ciphertext byte array using the Android KeyStore AES-GCM master key and IV.
-     *
-     * @param iv Initialization vector used during encryption.
-     * @param ciphertext Encrypted data bytes.
-     * @return Decrypted raw plaintext bytes, or null if decryption fails or KeyStore is unavailable.
-     */
     @Nullable
     private byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
         try {
             SecretKey secretKey = getOrCreateKeyStoreMasterKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
-            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+            GCMParameterSpec gcmSpec = new GCMParameterSpec(AppConstants.GCM_TAG_LENGTH_BITS, iv);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec);
             return cipher.doFinal(ciphertext);
         } catch (Throwable e) {
-            Log.w(TAG, "AndroidKeyStore decryption not available (e.g. JVM/test environment): " + e.getMessage());
+            Log.w(TAG, "KeyStore decryption not available");
             return null;
         }
     }
 
     /**
-     * Gets or creates the Android KeyStore master key for legacy encryption.
+     * Converts byte array to hex string.
      *
-     * @return SecretKey for encryption/decryption.
-     * @throws Exception if key generation fails.
-     */
-    private SecretKey getOrCreateKeyStoreMasterKey() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
-        keyStore.load(null);
-        if (keyStore.containsAlias(LEGACY_KEY_ALIAS)) {
-            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(LEGACY_KEY_ALIAS, null);
-            if (entry != null) {
-                return entry.getSecretKey();
-            }
-        }
-
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES,
-                KEYSTORE_PROVIDER
-        );
-        KeyGenParameterSpec keyGenSpec = new KeyGenParameterSpec.Builder(
-                LEGACY_KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
-        )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .setRandomizedEncryptionRequired(true)
-                .build();
-
-        keyGenerator.init(keyGenSpec);
-        return keyGenerator.generateKey();
-    }
-
-    // =========================================================================
-    // Utility Methods
-    // =========================================================================
-
-    /**
-     * Converts a byte array into a lowercase hex string.
-     *
-     * @param bytes Raw byte array.
-     * @return Hexadecimal representation.
+     * @param bytes Byte array
+     * @return Hex string
      */
     @NonNull
     public static String bytesToHex(@Nullable byte[] bytes) {
@@ -377,16 +287,16 @@ public class DatabaseSecurityManager {
             return "";
         }
         char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        for (int i = 0; i < bytes.length; i++) {
+            int v = bytes[i] & 0xFF;
+            hexChars[i * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[i * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars);
     }
 
     /**
-     * Immutable container record holding encrypted ciphertext and its initialization vector.
+     * Container for encrypted data with IV and ciphertext.
      */
     public record EncryptedData(byte[] iv, byte[] ciphertext) {
     }

@@ -427,34 +427,30 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
   "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
 }</string>
 
-    <!-- Database Password Backup Strings (German) -->
-    <string name="password_backup_title">Datenbank-Wiederherstellungs-Passwort</string>
-    <string name="password_backup_description">Legen Sie ein Passwort fest, um Ihre Datenbank auf jedem Gerät wiederherzustellen. Das Passwort wird verwendet, um den Verschlüsselungsschlüssel deterministisch abzuleiten.</string>
-    <string name="password_backup_section_title">Daten-Wiederherstellung</string>
-    <string name="password_backup_section_subtitle">Schützen Sie Ihre Daten vor Verlust</string>
-    <string name="password_backup_status_active">Wiederherstellungs-Passwort aktiv</string>
-    <string name="password_backup_status_inactive">Kein Wiederherstellungs-Passwort – Daten bei Gerätewechsel in Gefahr!</string>
-    <string name="password_backup_status_warning">Ohne ein Wiederherstellungs-Passwort gehen Ihre Daten beim Gerätewechsel dauerhaft verloren!</string>
-    <string name="password_set_dialog_title">Wiederherstellungs-Passwort festlegen</string>
-    <string name="password_set_dialog_message">Geben Sie ein Passwort mit mindestens %1$d Zeichen ein. Dieses Passwort wird verwendet, um den Datenbank-Verschlüsselungsschlüssel abzuleiten. Bewahren Sie es sicher auf!</string>
-    <string name="password_set_dialog_hint">Passwort eingeben</string>
-    <string name="password_set_dialog_placeholder">Mindestens %1$d Zeichen</string>
-    <string name="password_set_dialog_char_count">%1$d/%2$d Zeichen</string>
-    <string name="password_set_dialog_error_too_short">Das Passwort muss mindestens %1$d Zeichen lang sein</string>
-    <string name="password_set_dialog_confirm_title">Passwort bestätigen</string>
-    <string name="password_set_dialog_confirm_message">Sind Sie sicher? Dieses Passwort kann nicht wiederhergestellt werden, wenn es verloren geht. Ohne dieses Passwort sind Ihre Daten auf neuen Geräten nicht zugänglich!</string>
-    <string name="password_set_dialog_confirm_button">Ja, ich habe es sicher gespeichert</string>
-    <string name="password_verify_dialog_title">Passwort überprüfen</string>
-    <string name="password_verify_dialog_message">Geben Sie Ihr Passwort ein, um zu überprüfen, ob es korrekt funktioniert.</string>
-    <string name="password_verify_dialog_success">Passwort erfolgreich überprüft!</string>
-    <string name="password_verify_dialog_failure">Passwort-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
-    <string name="password_verify_button">Überprüfen</string>
-    <string name="password_clear_dialog_title">Passwort löschen</string>
-    <string name="password_clear_dialog_message">Sie verlieren die Möglichkeit, Ihre Daten auf neuen Geräten wiederherzustellen. Möchten Sie wirklich das Wiederherstellungs-Passwort entfernen?</string>
-    <string name="password_clear_dialog_confirm">Passwort löschen</string>
-    <string name="password_show_button">Anzeigen</string>
-    <string name="password_hide_button">Ausblenden</string>
-    <string name="password_set_button">Passwort festlegen</string>
-    <string name="password_verify_button_text">Passwort überprüfen</string>
-    <string name="password_clear_button">Passwort entfernen</string>
+
+    <!-- Database Password Strings (German) -->
+    <string name="settings_passwort_section_title">Datenbank Passwort</string>
+    <string name="settings_passwort_section_subtitle">Passwort für Wiederherstellung festlegen</string>
+    <string name="settings_passwort_status_active">Passwort aktiv</string>
+    <string name="settings_passwort_status_inactive">Kein Passwort gesetzt</string>
+    <string name="settings_passwort_set_dialog_title">Passwort festlegen</string>
+    <string name="settings_passwort_set_dialog_message">Geben Sie ein Passwort mit mindestens %1$d Zeichen ein. Bewahren Sie es sicher auf!</string>
+    <string name="settings_passwort_set_dialog_hint">Passwort</string>
+    <string name="settings_passwort_set_dialog_placeholder">Mindestens %1$d Zeichen</string>
+    <string name="settings_passwort_set_dialog_char_count">%1$d/%2$d Zeichen</string>
+    <string name="settings_passwort_set_dialog_error_too_short">Das Passwort muss mindestens %1$d Zeichen lang sein</string>
+    <string name="settings_passwort_confirm_dialog_title">Bestätigen</string>
+    <string name="settings_passwort_confirm_dialog_message">Dieses Passwort kann nicht wiederhergestellt werden. Ohne dieses Passwort sind die Daten auf neuen Geräten nicht zugänglich!</string>
+    <string name="settings_passwort_confirm_button">Ich habe es sicher gespeichert</string>
+    <string name="settings_passwort_show_button">Anzeigen</string>
+    <string name="settings_passwort_hide_button">Verbergen</string>
+    <string name="settings_passwort_set_button">Passwort festlegen</string>
+    <string name="settings_passwort_change_button">Passwort ändern</string>
+    <string name="settings_passwort_change_dialog_title">Passwort ändern</string>
+    <string name="settings_passwort_change_dialog_message">Geben Sie das aktuelle und ein neues Passwort ein.</string>
+    <string name="settings_passwort_change_dialog_old_hint">Aktuelles Passwort</string>
+    <string name="settings_passwort_change_dialog_new_hint">Neues Passwort</string>
+    <string name="settings_passwort_change_dialog_confirm_hint">Neues Passwort bestätigen</string>
+    <string name="settings_passwort_change_error_no_match">Passwörter stimmen nicht überein</string>
+    <string name="settings_passwort_change_error_wrong_old">Falsches aktuelles Passwort</string>
 </resources>

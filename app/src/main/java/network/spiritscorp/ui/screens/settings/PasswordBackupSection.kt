@@ -17,7 +17,6 @@ package network.spiritscorp.ui.screens.settings
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -34,16 +33,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,223 +50,108 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
 import network.spiritscorp.data.DatabaseSecurityManager
-import network.spiritscorp.ui.components.PasswordClearDialog
-import network.spiritscorp.ui.components.PasswordConfirmDialog
-import network.spiritscorp.ui.components.PasswordSetDialog
-import network.spiritscorp.ui.components.PasswordVerifyDialog
-import network.spiritscorp.ui.components.SettingsSectionHeader
+import network.spiritscorp.util.AppConstants
 
 /**
- * Settings section for managing database recovery password.
- *
- * @param securityManager DatabaseSecurityManager instance.
- * @param modifier Optional modifier for the section.
- * @param isExpanded Whether the section is expanded.
- * @param onToggleExpand Callback to toggle expansion.
+ * Settings section for database password management.
+ * Allows users to set and change their database password for recovery.
  */
 @Composable
 fun PasswordBackupSection(
-    securityManager: DatabaseSecurityManager,
+    viewModel: network.spiritscorp.viewmodel.InsulinCalculatorViewModel,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
-    onToggleExpand: () -> Unit = {},
+    onToggleExpand: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    var showSetDialog by remember { mutableStateOf(false) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-    var showVerifyDialog by remember { mutableStateOf(false) }
-    var showClearDialog by remember { mutableStateOf(false) }
-    var tempPassword by remember { mutableStateOf("") }
-    var isPasswordSet by remember { mutableStateOf(securityManager.isPasswordSet()) }
+    val securityManager = remember { DatabaseSecurityManager(context) }
+    val passwordManager = remember { securityManager.passwordManager }
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    // Check if password is set
+    val isPasswordSet = remember { passwordManager.loadFromKeyStore() != null }
+
+    AnimatedVisibility(
+        visible = isExpanded,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            SettingsSectionHeader(
-                icon = Icons.Default.Security,
-                title = stringResource(R.string.password_backup_section_title),
-                subtitle = stringResource(R.string.password_backup_section_subtitle),
-                isExpanded = isExpanded,
-                onToggle = onToggleExpand
-            )
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+        Column(modifier = modifier.padding(top = 8.dp)) {
+            // Status card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("password_status_card"),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                border = CardDefaults.outlinedCardBorder()
             ) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Info text
-                    Text(
-                        text = stringResource(R.string.password_backup_description),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Status indicator
-                    val statusIcon = if (isPasswordSet) {
-                        Icons.Default.CheckCircle
-                    } else {
-                        Icons.Default.Warning
-                    }
-                    val statusColor = if (isPasswordSet) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    }
-                    val statusText = if (isPasswordSet) {
-                        stringResource(R.string.password_backup_status_active)
-                    } else {
-                        stringResource(R.string.password_backup_status_inactive)
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = statusIcon,
+                            if (isPasswordSet) Icons.Default.Check else Icons.Default.LockOpen,
                             contentDescription = null,
-                            tint = statusColor,
-                            modifier = Modifier.size(16.dp)
+                            tint = if (isPasswordSet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text(
-                            text = statusText,
-                            color = statusColor,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                            if (isPasswordSet) stringResource(R.string.settings_passwort_status_active) 
+                            else stringResource(R.string.settings_passwort_status_inactive),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
+                }
+            }
 
-                    if (!isPasswordSet) {
-                        Text(
-                            text = stringResource(R.string.password_backup_status_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+            Spacer(Modifier.height(16.dp))
+
+            // Action buttons
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (isPasswordSet) {
+                    Button(
+                        onClick = { /* TODO: Implement password change */ },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("password_change_button")
+                    ) {
+                        Icon(Icons.Default.Lock, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_passwort_change_button))
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Action buttons
-                    if (isPasswordSet) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = { showVerifyDialog = true },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.password_verify_button_text))
+                } else {
+                    Button(
+                        onClick = {
+                            val randomPassword = passwordManager.generateRandomPassword()
+                            if (passwordManager.setPasswordInternal(randomPassword)) {
+                                viewModel.showToast("Random password set. Please change it to something memorable.")
+                            } else {
+                                viewModel.showToast("Failed to set password")
                             }
-                            OutlinedButton(
-                                onClick = { showClearDialog = true },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.password_clear_button))
-                            }
-                        }
-                    } else {
-                        Button(
-                            onClick = { showSetDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.password_set_button))
-                        }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("password_set_button")
+                    ) {
+                        Icon(Icons.Default.Lock, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_passwort_set_button))
                     }
                 }
             }
         }
     }
 
-    // Dialogs
-    if (showSetDialog) {
-        PasswordSetDialog(
-            onDismiss = { showSetDialog = false },
-            onConfirm = { password ->
-                tempPassword = password
-                showSetDialog = false
-                showConfirmDialog = true
-            }
-        )
-    }
-
-    if (showConfirmDialog) {
-        PasswordConfirmDialog(
-            onDismiss = { showConfirmDialog = false },
-            onConfirm = {
-                if (securityManager.setPassword(context, tempPassword)) {
-                    isPasswordSet = true
-                    Toast.makeText(
-                        context,
-                        R.string.password_set_dialog_confirm_button,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Failed to set password",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                showConfirmDialog = false
-                tempPassword = ""
-            }
-        )
-    }
-
-    if (showVerifyDialog) {
-        PasswordVerifyDialog(
-            onDismiss = { showVerifyDialog = false },
-            onVerify = { password ->
-                if (securityManager.verifyPassword(password)) {
-                    Toast.makeText(
-                        context,
-                        R.string.password_verify_dialog_success,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        R.string.password_verify_dialog_failure,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                showVerifyDialog = false
-            }
-        )
-    }
-
-    if (showClearDialog) {
-        PasswordClearDialog(
-            onDismiss = { showClearDialog = false },
-            onConfirm = {
-                if (securityManager.clearPassword()) {
-                    isPasswordSet = false
-                    Toast.makeText(
-                        context,
-                        "Password cleared",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                showClearDialog = false
-            }
-        )
-    }
+    // Section header
+    SettingsSectionHeader(
+        icon = if (isPasswordSet) Icons.Default.Lock else Icons.Default.LockOpen,
+        title = stringResource(R.string.settings_passwort_section_title),
+        subtitle = stringResource(R.string.settings_passwort_section_subtitle),
+        isExpanded = isExpanded,
+        onToggle = onToggleExpand
+    )
 }

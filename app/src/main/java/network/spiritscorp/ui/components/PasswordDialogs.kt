@@ -17,25 +17,18 @@ package network.spiritscorp.ui.components
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,287 +38,206 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
-import network.spiritscorp.util.AppConstants
 
 /**
- * Dialog for setting a new database password.
- *
- * @param onDismiss Callback when dialog is dismissed.
- * @param onConfirm Callback when password is confirmed (receives the password).
- * @param modifier Optional modifier for the dialog.
+ * Callback for password dialog results.
+ */
+fun interface OnPasswordSet {
+    fun onPasswordSet(password: String)
+}
+
+/**
+ * Callback for password change results.
+ */
+fun interface OnPasswordChange {
+    fun onPasswordChange(oldPassword: String, newPassword: String)
+}
+
+/**
+ * Dialog for setting a new password.
  */
 @Composable
 fun PasswordSetDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-    modifier: Modifier = Modifier
+    minLength: Int,
+    onPasswordSet: OnPasswordSet,
+    onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.password_set_dialog_title))
-        },
+        title = { Text(stringResource(R.string.settings_passwort_set_dialog_title)) },
         text = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.password_set_dialog_message, AppConstants.MIN_PASSPHRASE_LENGTH))
-                Spacer(modifier = Modifier.height(16.dp))
-
+            Column {
+                Text(stringResource(R.string.settings_passwort_set_dialog_message, minLength))
+                Spacer(Modifier.height(16.dp))
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { newValue ->
-                        password = newValue
-                        error = if (newValue.length < AppConstants.MIN_PASSPHRASE_LENGTH) {
-                            stringResource(R.string.password_set_dialog_error_too_short, AppConstants.MIN_PASSPHRASE_LENGTH)
-                        } else {
-                            null
-                        }
-                    },
-                    label = { Text(stringResource(R.string.password_set_dialog_hint)) },
-                    placeholder = {
-                        Text(stringResource(R.string.password_set_dialog_placeholder, AppConstants.MIN_PASSPHRASE_LENGTH))
-                    },
-                    visualTransformation = if (showPassword) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
+                    onValueChange = { password = it; error = null },
+                    label = { Text(stringResource(R.string.settings_passwort_set_dialog_hint)) },
+                    placeholder = { Text(stringResource(R.string.settings_passwort_set_dialog_placeholder, minLength)) },
+                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
-                                imageVector = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (showPassword) {
-                                    stringResource(R.string.password_hide_button)
-                                } else {
-                                    stringResource(R.string.password_show_button)
-                                }
+                                if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                if (showPassword) stringResource(R.string.settings_passwort_hide_button) else stringResource(R.string.settings_passwort_show_button)
                             )
                         }
                     },
                     isError = error != null,
-                    supportingText = {
-                        if (error != null) {
-                            Text(error!!, color = MaterialTheme.colorScheme.error)
-                        } else {
-                            Text(
-                                stringResource(
-                                    R.string.password_set_dialog_char_count,
-                                    password.length,
-                                    AppConstants.MIN_PASSPHRASE_LENGTH
-                                )
-                            )
-                        }
-                    },
-                    singleLine = false,
                     modifier = Modifier.fillMaxWidth()
+                )
+                error?.let {
+                    Spacer(Modifier.height(4.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.settings_passwort_set_dialog_char_count, password.length, minLength),
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         },
         confirmButton = {
-            TextButton(
+            Button(
                 onClick = {
-                    if (password.length >= AppConstants.MIN_PASSPHRASE_LENGTH) {
-                        onConfirm(password)
+                    if (password.length < minLength) {
+                        error = stringResource(R.string.settings_passwort_set_dialog_error_too_short, minLength)
+                    } else {
+                        onPasswordSet.onPasswordSet(password)
                     }
                 },
-                enabled = password.length >= AppConstants.MIN_PASSPHRASE_LENGTH
-            ) {
-                Text(stringResource(R.string.password_set_dialog_confirm_button))
-            }
+                enabled = password.length >= minLength
+            ) { Text(stringResource(R.string.settings_passwort_set_button)) }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        onDismissRequest = onDismiss
     )
 }
 
 /**
  * Dialog for confirming password setup.
- *
- * @param onDismiss Callback when dialog is dismissed.
- * @param onConfirm Callback when user confirms they have stored the password.
- * @param modifier Optional modifier for the dialog.
  */
 @Composable
 fun PasswordConfirmDialog(
-    onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    modifier: Modifier = Modifier
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.password_set_dialog_confirm_title))
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.password_set_dialog_confirm_message))
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.password_set_dialog_confirm_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }
+        title = { Text(stringResource(R.string.settings_passwort_confirm_dialog_title)) },
+        text = { Text(stringResource(R.string.settings_passwort_confirm_dialog_message)) },
+        confirmButton = { Button(onClick = onConfirm) { Text(stringResource(R.string.settings_passwort_confirm_button)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        onDismissRequest = onDismiss
     )
 }
 
 /**
- * Dialog for verifying an existing password.
- *
- * @param onDismiss Callback when dialog is dismissed.
- * @param onVerify Callback when password is verified (receives the password).
- * @param modifier Optional modifier for the dialog.
+ * Dialog for changing password.
  */
 @Composable
-fun PasswordVerifyDialog(
-    onDismiss: () -> Unit,
-    onVerify: (String) -> Unit,
-    modifier: Modifier = Modifier
+fun PasswordChangeDialog(
+    onPasswordChange: OnPasswordChange,
+    onDismiss: () -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
-    var showPassword by remember { mutableStateOf(false) }
+    var oldPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var showOld by remember { mutableStateOf(false) }
+    var showNew by remember { mutableStateOf(false) }
+    var showConfirm by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.password_verify_dialog_title))
-        },
+        title = { Text(stringResource(R.string.settings_passwort_change_dialog_title)) },
         text = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.password_verify_dialog_message))
-                Spacer(modifier = Modifier.height(16.dp))
+            Column {
+                Text(stringResource(R.string.settings_passwort_change_dialog_message))
+                Spacer(Modifier.height(16.dp))
+                
+                PasswordField(
+                    value = oldPassword,
+                    onValueChange = { oldPassword = it; error = null },
+                    label = stringResource(R.string.settings_passwort_change_dialog_old_hint),
+                    showPassword = showOld,
+                    onToggleShow = { showOld = !showOld }
+                )
+                Spacer(Modifier.height(8.dp))
+                
+                PasswordField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it; error = null },
+                    label = stringResource(R.string.settings_passwort_change_dialog_new_hint),
+                    showPassword = showNew,
+                    onToggleShow = { showNew = !showNew }
+                )
+                Spacer(Modifier.height(8.dp))
+                
+                PasswordField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; error = null },
+                    label = stringResource(R.string.settings_passwort_change_dialog_confirm_hint),
+                    showPassword = showConfirm,
+                    onToggleShow = { showConfirm = !showConfirm }
+                )
+                
+                error?.let {
+                    Spacer(Modifier.height(4.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                if (newPassword != confirmPassword) {
+                    error = stringResource(R.string.settings_passwort_change_error_no_match)
+                } else if (oldPassword.isEmpty() || newPassword.isEmpty()) {
+                    error = "All fields required"
+                } else {
+                    onPasswordChange.onPasswordChange(oldPassword, newPassword)
+                }
+            }) { Text(stringResource(R.string.settings_passwort_change_button)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        onDismissRequest = onDismiss
+    )
+}
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text(stringResource(R.string.password_set_dialog_hint)) },
-                    visualTransformation = if (showPassword) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword }) {
-                            Icon(
-                                imageVector = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (showPassword) {
-                                    stringResource(R.string.password_hide_button)
-                                } else {
-                                    stringResource(R.string.password_show_button)
-                                }
-                            )
-                        }
-                    },
-                    singleLine = false,
-                    modifier = Modifier.fillMaxWidth()
+/**
+ * Reusable password field component.
+ */
+@Composable
+private fun PasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    showPassword: Boolean,
+    onToggleShow: () -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        trailingIcon = {
+            IconButton(onClick = onToggleShow) {
+                Icon(
+                    if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    if (showPassword) stringResource(R.string.settings_passwort_hide_button) else stringResource(R.string.settings_passwort_show_button)
                 )
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = { onVerify(password) },
-                enabled = password.isNotEmpty()
-            ) {
-                Text(stringResource(R.string.password_verify_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }
+        modifier = Modifier.fillMaxWidth()
     )
-}
-
-/**
- * Dialog for clearing the password.
- *
- * @param onDismiss Callback when dialog is dismissed.
- * @param onConfirm Callback when user confirms clearing.
- * @param modifier Optional modifier for the dialog.
- */
-@Composable
-fun PasswordClearDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.password_clear_dialog_title))
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.password_clear_dialog_message))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                colors = MaterialTheme.colorScheme.error
-            ) {
-                Text(stringResource(R.string.password_clear_dialog_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }
-    )
-}
-
-// IconButton wrapper for the password visibility toggle
-@Composable
-private fun IconButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    androidx.compose.material3.IconButton(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        content()
-    }
 }
