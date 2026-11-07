@@ -499,8 +499,9 @@ class InsulinCalculatorViewModel(
             }
         }
         val correctionInsulin = InsulinMathEngine.calculateCorrectionInsulin(true, currentBg, targetBg, corrFactor)
-        val rawTotal = (mealInsulin + correctionInsulin)
+        val rawTotal = 0.0.coerceAtLeast(mealInsulin + correctionInsulin)
         val roundingStep = settings.roundingStep
+        val roundedTotal = 0.0.coerceAtLeast(InsulinMathEngine.roundToStep(rawTotal, roundingStep))
 
         _uiState.update {
             it.copy(
@@ -515,7 +516,7 @@ class InsulinCalculatorViewModel(
                     targetBg,
                     InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
                     InsulinMathEngine.roundToDecimals(rawTotal, 2),
-                    InsulinMathEngine.roundToStep(rawTotal, roundingStep),
+                    roundedTotal,
                     roundingStep,
                     isHypoRisk,
                     advisory
