@@ -266,7 +266,7 @@
     <!-- Logbook LogbookScreen -->
     <string name="logbook_title">Insulin-Tagebuch</string>
     <plurals name="logbook_entry_count">
-        <item quantity="one">1 von 1 Eintrag</item>
+        <item quantity="one">1 von %2$d Einträgen</item>
         <item quantity="other">%1$d von %2$d Einträgen</item>
     </plurals>
     <string name="logbook_share_content_description">Tagebuch teilen</string>
