@@ -1,0 +1,21 @@
+# InsulinRechner 1.3.9
+
+## What's New & Bug Fixes
+
+- **Non-Negative Insulin Calculation:** The insulin calculator now ensures that total insulin dosages are clamped to a minimum of `0.0` IE (preventing negative values such as `-0.5` IE when small meals are combined with low blood glucose correction reductions in calculations and logbook entries).
+- **AI Meal Query State Persistence:** Fixed input query state retention in `AiMealEstimatorScreen` during screen rotations by replacing `remember` with `rememberSaveable`.
+- **Gemini API:** Adjusted connection timeouts for long AI responses.
+- **AI Estimator:** Updated example strings with precise portion sizes (g/ml) and refreshed meal choices.
+- **Localization Fixes:** Corrected plural string placeholders for logbook entry counts (`logbook_entry_count`).
+- **AI Configuration & Theme Stability:** Fixed a crash (NullPointerException) during AI configuration saves when theme preferences are uninitialized.
+- **Comprehensive UI Test Suite:** Added automated UI tests covering the core sections (Calculator, AI, Logbook, and Settings).
+- **Build Automation:** Introduced the new `updateReadme` Gradle task to automatically synchronize version numbers in the `README.md`.
+
+## Modified Libraries & Dependencies
+
+| Library / Dependency | Change | Purpose / Version |
+| :--- | :--- | :--- |
+| `com.android.application` (AGP) | Updated | Updated from `9.4.1` to `9.5.0` and then to `9.5.1`. |
+| `net.zetetic:sqlcipher-android` | Updated | Updated from `4.19.1` to `4.20.0`. |
+| `com.google.devtools.ksp` | Updated | Updated from `2.3.12` to `2.3.13`. |
+| `androidx.security.crypto` | Removed | Cleaned up unused security dependency. |
