@@ -644,7 +644,10 @@ class InsulinCalculatorViewModel(
             val updated = repository.settings
             if (updated != null) {
                 cachedSettings = updated
-                themePreferences.savePreferences(updated.selectedTheme, updated.themeMode)
+                themePreferences.savePreferences(
+                    updated.selectedTheme ?: themePreferences.getSelectedTheme(),
+                    updated.themeMode ?: themePreferences.getThemeMode()
+                )
                 recalculate(updated)
             }
         }
@@ -662,8 +665,8 @@ class InsulinCalculatorViewModel(
             repository.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
             themePreferences.savePreferences(
-                settings.selectedTheme,
-                settings.themeMode
+                settings.selectedTheme ?: themePreferences.getSelectedTheme(),
+                settings.themeMode ?: themePreferences.getThemeMode()
             )
         }
         val gUnit = settings.glucoseUnit
