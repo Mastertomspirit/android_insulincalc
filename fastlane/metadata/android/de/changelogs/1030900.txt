@@ -1,0 +1,21 @@
+# InsulinRechner 1.3.9
+
+## Neuerungen und Korrekturen
+
+- **Korrektur negativer Insulindosen:** Die Insulinberechnung stellt nun sicher, dass berechnete Gesamtmengen mindestens `0.0` IE betragen (Vermeidung negativer Werte wie `-0.5` IE bei kleinen Mahlzeiten und niedrigen Blutzuckerwerten im Rechner und Logbuch).
+- **Zustandserhaltung bei KI-Mahlzeitenschätzung:** Eingaben im Suchfeld des `AiMealEstimatorScreen` bleiben nun beim Drehen des Bildschirms (`orientation changes`) dank `rememberSaveable` erhalten und werden nicht mehr zurückgesetzt.
+- **Gemini-API:** Verbindungs-Timeouts für lange KI-Antworten angepasst.
+- **KI-Schätzer:** Beispiele mit präzisen Mengenangaben (g/ml) und neuen Beispielspeisen aktualisiert.
+- **Lokalisierungs-Korrekturen:** Korrektur von fehlerhaften Plural-String-Platzhaltern in der Logbuch-Eintragsanzeige (`logbook_entry_count`).
+- **KI-Konfiguration & Theme-Stabilität:** Behebung eines Absturzes (NullPointerException) beim Speichern der KI-Konfiguration bei nicht initialisierten Theme-Präferenzen.
+- **Umfangreiche UI-Testsuite:** Neue automatisierte UI-Tests für die Hauptbereiche (Rechner, AI, Logbuch und Einstellungen) zur Absicherung aller Kernfunktionen.
+- **Build-Automatisierung:** Einführung des neuen `updateReadme`-Gradle-Tasks zur automatischen Synchronisation von Versionsnummern in der `README.md`.
+
+## Geänderte Bibliotheken und Abhängigkeiten
+
+| Bibliothek / Dependency | Änderung | Zweck / Version |
+| :--- | :--- | :--- |
+| `com.android.application` (AGP) | Aktualisiert | Update von `9.4.1` auf `9.5.0` und anschließend auf `9.5.1`. |
+| `net.zetetic:sqlcipher-android` | Aktualisiert | Update von `4.19.1` auf `4.20.0`. |
+| `com.google.devtools.ksp` | Aktualisiert | Update von `2.3.12` auf `2.3.13`. |
+| `androidx.security.crypto` | Entfernt | Bereinigung der nicht mehr benötigten Sicherheitsbibliothek. |

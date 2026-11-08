@@ -499,8 +499,9 @@ class InsulinCalculatorViewModel(
             }
         }
         val correctionInsulin = InsulinMathEngine.calculateCorrectionInsulin(true, currentBg, targetBg, corrFactor)
-        val rawTotal = (mealInsulin + correctionInsulin)
+        val rawTotal = 0.0.coerceAtLeast(mealInsulin + correctionInsulin)
         val roundingStep = settings.roundingStep
+        val roundedTotal = 0.0.coerceAtLeast(InsulinMathEngine.roundToStep(rawTotal, roundingStep))
 
         _uiState.update {
             it.copy(
@@ -515,7 +516,7 @@ class InsulinCalculatorViewModel(
                     targetBg,
                     InsulinMathEngine.roundToDecimals(correctionInsulin, 2),
                     InsulinMathEngine.roundToDecimals(rawTotal, 2),
-                    InsulinMathEngine.roundToStep(rawTotal, roundingStep),
+                    roundedTotal,
                     roundingStep,
                     isHypoRisk,
                     advisory
@@ -643,7 +644,10 @@ class InsulinCalculatorViewModel(
             val updated = repository.settings
             if (updated != null) {
                 cachedSettings = updated
-                themePreferences.savePreferences(updated.selectedTheme, updated.themeMode)
+                themePreferences.savePreferences(
+                    updated.selectedTheme ?: themePreferences.getSelectedTheme(),
+                    updated.themeMode ?: themePreferences.getThemeMode()
+                )
                 recalculate(updated)
             }
         }
@@ -661,8 +665,8 @@ class InsulinCalculatorViewModel(
             repository.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
             themePreferences.savePreferences(
-                settings.selectedTheme,
-                settings.themeMode
+                settings.selectedTheme ?: themePreferences.getSelectedTheme(),
+                settings.themeMode ?: themePreferences.getThemeMode()
             )
         }
         val gUnit = settings.glucoseUnit

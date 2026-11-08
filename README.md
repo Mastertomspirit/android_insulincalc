@@ -58,13 +58,13 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.7` (VersionCode: `8`)
+* **Version**: `1.3.9` (VersionCode: `1030900`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
-* **Android Gradle Plugin (AGP)**: `9.4.1` (optimiert für Gradle 9.8.1)
+* **Android Gradle Plugin (AGP)**: `9.5.1` (optimiert für Gradle 9.8.2)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
-* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.19.1`) und AndroidX Security Crypto (`1.1.0`)
+* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.20.0`) und AndroidX Security Crypto (`1.1.0`)
 * **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
 * **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
 * **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)
@@ -81,6 +81,7 @@ Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstell
 👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
 
 ### Schnellstart per Terminal (Gradle CLI):
+
 ```bash
 # Debug-APK kompilieren:
 gradle assembleDebug
@@ -95,21 +96,30 @@ gradle assembleRelease
 
 Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie. Es setzt dabei auf ein mehrstufiges Test-Setup aus lokalen Unit-Tests und instrumentierten Integrationstests:
 
-* **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
+**Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
+
   ```bash
   gradle testDebugUnitTest
   ```
 
-* **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
+**Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, UI, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
+
   ```bash
   gradle connectedDebugAndroidTest
   ```
 
-* **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
+**Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
+
   ```bash
   # Alle instrumentierten Tests auf verbundenen Geräten
   gradle connectedCheck
 
   # Statische Code-Analyse
   gradle lintDebug
+  ```
+
+**Automatisierte Dokumentation & Versionierung:** Das Projekt enthält einen Gradle-Task, der Versionsnummern (App-Version, AGP, Gradle Wrapper, SQLCipher etc.) direkt aus den Konfigurationsdateien ausliest und synchron in der README.md aktualisiert:
+
+  ```bash
+  gradle updateReadme
   ```

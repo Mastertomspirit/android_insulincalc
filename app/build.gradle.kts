@@ -16,8 +16,8 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 1030800
-    versionName = "1.3.8"
+    versionCode = 1030900
+    versionName = "1.3.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
