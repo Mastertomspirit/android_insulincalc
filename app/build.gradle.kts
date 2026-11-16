@@ -1,3 +1,4 @@
+import org.sonatype.gradle.plugins.scan.ossindex.OutputFormat
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,14 @@ plugins {
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
+  alias(libs.plugins.sonatype.scan)
+}
+
+val localProperties = Properties().apply {
+  val localFile = rootProject.file("local.properties")
+  if (localFile.exists()) {
+    load(localFile.inputStream())
+  }
 }
 
 android {
@@ -16,26 +25,20 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 1030800
-    versionName = "1.3.8"
+    versionCode = 1030900
+    versionName = "1.3.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
   lint {
     baseline = file("lint-baseline.xml")
   }
-  val localProperties = Properties().apply {
-    val localFile = rootProject.file("local.properties")
-    if (localFile.exists()) {
-      load(localFile.inputStream())
-    }
-  }
   signingConfigs {
     create("release") {
-      storeFile = file(System.getenv("KEYSTORE_PATH") ?: localProperties.getProperty("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks")
-      storePassword = System.getenv("STORE_PASSWORD") ?: localProperties.getProperty("STORE_PASSWORD")
+      storeFile = file(localProperties.getProperty("KEYSTORE_PATH") ?: System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks")
+      storePassword = localProperties.getProperty("STORE_PASSWORD") ?: System.getenv("STORE_PASSWORD")
       keyAlias = "key0"
-      keyPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD")
+      keyPassword =  localProperties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD")
     }
   }
 
@@ -90,7 +93,16 @@ android {
     includeInBundle = true
   }
   buildToolsVersion = "36.0.0"
+  // The file name for the apk
   base.archivesName.set("${defaultConfig.applicationId}_v${defaultConfig.versionName}")
+}
+
+// Configure Sonatype OSS Index Audit to scan dependencies for known vulnerabilities
+ossIndexAudit {
+  username = localProperties.getProperty("SONATYPE_USERNAME") ?: System.getenv("SONATYPE_USERNAME")
+  password = localProperties.getProperty("SONATYPE_API_KEY") ?: System.getenv("SONATYPE_API_KEY")
+  outputFormat  = OutputFormat.DEPENDENCY_GRAPH
+  isFailOnDetection = false
 }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.spiritscorp files

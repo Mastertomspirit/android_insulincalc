@@ -313,6 +313,33 @@ public class CalculatorEngineStateTest {
     }
 
     @Test
+    public void testTotalInsulinClampedToZeroWhenNegative() {
+        UserSettings settings = new UserSettings(
+                1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
+                120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
+        );
+        viewModel.updateUserSettings(settings);
+
+        viewModel.setUnit(CarbUnit.GRAMS);
+        viewModel.selectTimeOfDay(TimeOfDay.MORNING);
+        viewModel.onCarbInputChange("5"); // Small meal: 5g KH / 12 * 1.5 = 0.625 IE meal insulin
+
+        viewModel.toggleCorrection();
+        viewModel.onGlucoseInputChange("60"); // Low BG (below target 120)
+        viewModel.onTargetGlucoseChange("120");
+        viewModel.onCorrectionFactorChange("40"); // (120 - 60) / 40 = -1.5 IE correction reduction
+
+        CalculatorUiState state = viewModel.getUiState().getValue();
+        CalculationSummary summary = state.getCalculationSummary();
+
+        // Meal (0.625) + Correction (-1.5) = -0.875 -> Must be clamped to 0.0 IE
+        assertEquals(0.0, summary.rawTotalInsulin(), DELTA);
+        assertEquals(0.0, summary.roundedTotalInsulin(), DELTA);
+        assertTrue("Raw total insulin must be non-negative", summary.rawTotalInsulin() >= 0.0);
+        assertTrue("Rounded total insulin must be non-negative", summary.roundedTotalInsulin() >= 0.0);
+    }
+
+    @Test
     public void testCarbInputSanitizationAndAddCarbs() {
         viewModel.onCarbInputChange("45,5");
         assertEquals("45.5", viewModel.getUiState().getValue().getCarbInput());

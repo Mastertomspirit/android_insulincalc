@@ -58,13 +58,13 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 🛠️ Technische Details & Architektur
 
-* **Version**: `1.3.7` (VersionCode: `8`)
+* **Version**: `1.3.9` (VersionCode: `1030900`)
 * **Programmiersprachen**: Kotlin (UI / Compose & Async) & Java 25 (Core Domain & Backend-Logik)
 * **Java-Laufzeit / Toolchain**: Java 25 (LTS)
-* **Android Gradle Plugin (AGP)**: `9.4.1` (optimiert für Gradle 9.8.1)
+* **Android Gradle Plugin (AGP)**: `9.5.1` (optimiert für Gradle 9.8.2)
 * **UI-Framework**: Jetpack Compose mit Material Design 3 (M3)
 * **Architektur**: Clean MVVM (Model-View-ViewModel) mit unidirektionalem Datenfluss
-* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.19.1`) und AndroidX Security Crypto (`1.1.0`)
+* **Lokale Persistenz & Sicherheit**: Android Room Database mit SQLCipher (`net.zetetic:sqlcipher-android:4.20.0`) und AndroidX Security Crypto (`1.1.0`)
 * **Netzwerk & Serialisierung**: Retrofit 3, OkHttp 5 & Moshi
 * **Release-Optimierung**: R8 / ProGuard vorkonfiguriert (`app/proguard-rules.pro`)
 * **Continuous Integration**: Automatische Dependabot-Dependency-Updates (`.github/dependabot.yaml`)
@@ -76,40 +76,76 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 📱 Installation & Bauen
 
-Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstellen eines **Keystores** sowie Informationen zur Veröffentlichung auf **F-Droid** findest du in der separaten Datei:
+Ausführliche Anleitungen für Debug-Builds, Release-Builds, das Erstellen eines Keystores, die Installation eines App Bundles sowie Tests und Sicherheitsprüfungen findest du in der separaten Datei:
 
-👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
+👉 **[Hier geht's zur Build-Anleitung (BUILDING.md)](BUILDING.md)**
 
 ### Schnellstart per Terminal (Gradle CLI):
-```bash
-# Debug-APK kompilieren:
-gradle assembleDebug
 
-# Release-APK kompilieren (für R8/ProGuard optimiert):
-gradle assembleRelease
-```
+### Release-Build
+* **Release-APK:** Kompiliert und optimiert (R8) nur die Release-Variante.
+  ```bash
+  gradle assembleRelease
+  ```
+  *(Ausgabe unter: `app/build/outputs/apk/release/app-release-unsigned.apk`)*
+
+* **Release-Variante auf dem Gerät installieren:** Funktioniert nur mit signierter Release-APK.
+  ```bash
+  gradle installRelease
+  ```
 
 ---
 
 ## 🧪 Tests & Qualitätssicherung
 
-Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie. Es setzt dabei auf ein mehrstufiges Test-Setup aus lokalen Unit-Tests und instrumentierten Integrationstests:
+**Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
 
-* **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
   ```bash
   gradle testDebugUnitTest
   ```
 
-* **Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
+**Integration- & UI-Tests (Instrumentiert):** Verifikation von Tagebuch-DAOs, UI, Datenbank-Migrationen und Android-Komponenten auf einem echten Gerät oder Emulator.
+
   ```bash
   gradle connectedDebugAndroidTest
   ```
 
-* **Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
-  ```bash
-  # Alle instrumentierten Tests auf verbundenen Geräten
-  gradle connectedCheck
+**Vollständige Prüfung (Build, Lint, Unit- und instrumentierte Tests):**
 
-  # Statische Code-Analyse
-  gradle lintDebug
-  ```
+```bash
+gradle clean build connectedCheck
+```
+
+---
+
+## 🛡️ Sicherheits- & Schwachstellenprüfung (Audit)
+
+Zur Überprüfung aller direkten und transitiven Abhängigkeiten auf bekannte Sicherheitslücken (CVEs) ist das Sonatype Scan Plugin integriert:
+
+```bash
+# Lokalen Vulnerability-Scan ausführen:
+gradle ossIndexAudit --info
+```
+*(Voraussetzung: Kostenloser Sonatype OSS Index Account mit `SONATYPE_USERNAME` und `SONATYPE_API_KEY` in den `local.properties`).*
+
+---
+
+## 🔒 Gradle Dependency Locking
+
+Das Projekt verwendet Dependency Locking, um deterministische und reproduzierbare Builds zu gewährleisten:
+
+```bash
+# Lockfiles erstmalig erstellen oder bei Abhängigkeitsupdates aktualisieren:
+gradle dependencies --write-locks
+```
+*(Speichert die exakten Versionen in `app/gradle.lockfile`).*
+
+---
+
+## 📄 Automatisierte Dokumentation & Versionierung
+
+Das Projekt enthält einen Gradle-Task, der Versionsnummern (App-Version, AGP, Gradle Wrapper, SQLCipher etc.) direkt aus den Konfigurationsdateien ausliest und synchron in der README.md aktualisiert:
+
+```bash
+gradle updateReadme
+```

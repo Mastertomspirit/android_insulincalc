@@ -1,0 +1,6 @@
+Insulin Calculator 1.3.9
+
+• Calculation: Safely prevents negative insulin doses for very small meals (minimum 0.0 U).
+• UI/UX: Text entered in the AI Meal Estimator is now preserved when rotating the screen.
+• AI Assistant: Built-in example prompts now use more precise measurements (g/ml) for better results.
+• Stability: Optimized network timeouts for long AI responses and fixed theme preference bugs.

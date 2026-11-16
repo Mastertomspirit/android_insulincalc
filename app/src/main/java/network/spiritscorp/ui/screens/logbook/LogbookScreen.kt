@@ -193,7 +193,7 @@ fun LogbookScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = pluralStringResource(R.plurals.logbook_entry_count, filteredLogs.size, filteredLogs.size, logs.size),
+                        text = pluralStringResource(R.plurals.logbook_entry_count, logs.size, filteredLogs.size, logs.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
