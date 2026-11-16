@@ -76,25 +76,27 @@ Eine moderne, datenschutzorientierte und intuitive Android-App zur schnellen und
 
 ## 📱 Installation & Bauen
 
-Ausführliche Anleitungen für **Debug-Builds**, **Release-Builds**, das Erstellen eines **Keystores** sowie Informationen zur Veröffentlichung auf **F-Droid** findest du in der separaten Datei:
+Ausführliche Anleitungen für Debug-Builds, Release-Builds, das Erstellen eines Keystores, die Installation eines App Bundles sowie Tests und Sicherheitsprüfungen findest du in der separaten Datei:
 
-👉 **[Hier geht's zur Installationsanleitung (INSTALL.md)](./INSTALL.md)**
+👉 **[Hier geht's zur Build-Anleitung (BUILDING.md)](BUILDING.md)**
 
 ### Schnellstart per Terminal (Gradle CLI):
 
-```bash
-# Debug-APK kompilieren:
-gradle assembleDebug
+### Release-Build
+* **Release-APK:** Kompiliert und optimiert (R8) nur die Release-Variante.
+  ```bash
+  gradle assembleRelease
+  ```
+  *(Ausgabe unter: `app/build/outputs/apk/release/app-release-unsigned.apk`)*
 
-# Release-APK kompilieren (für R8/ProGuard optimiert):
-gradle assembleRelease
-```
+* **Release-Variante auf dem Gerät installieren:** Funktioniert nur mit signierter Release-APK.
+  ```bash
+  gradle installRelease
+  ```
 
 ---
 
 ## 🧪 Tests & Qualitätssicherung
-
-Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Verifikation der Berechnungslogik, KI-JSON-Parser-Resilienz, Tagebuch-DAOs und Kryptografie. Es setzt dabei auf ein mehrstufiges Test-Setup aus lokalen Unit-Tests und instrumentierten Integrationstests:
 
 **Unit-Tests (JVM):** Schnelle Verifikation der isolierten Berechnungslogik, KI-JSON-Parser-Resilienz und Kryptografie auf dem Entwickler-PC.
 
@@ -108,18 +110,42 @@ Das Projekt enthält automatisierte Unit- und Szenario-Tests in **Java** zur Ver
   gradle connectedDebugAndroidTest
   ```
 
-**Vollständige Test- & Qualitätsprüfung (CI):** Führt alle instrumentierten Tests sowie die statische Code-Analyse (Lint) aus.
+**Vollständige Prüfung (Build, Lint, Unit- und instrumentierte Tests):**
 
-  ```bash
-  # Alle instrumentierten Tests auf verbundenen Geräten
-  gradle connectedCheck
+```bash
+gradle clean build connectedCheck
+```
 
-  # Statische Code-Analyse
-  gradle lintDebug
-  ```
+---
 
-**Automatisierte Dokumentation & Versionierung:** Das Projekt enthält einen Gradle-Task, der Versionsnummern (App-Version, AGP, Gradle Wrapper, SQLCipher etc.) direkt aus den Konfigurationsdateien ausliest und synchron in der README.md aktualisiert:
+## 🛡️ Sicherheits- & Schwachstellenprüfung (Audit)
 
-  ```bash
-  gradle updateReadme
-  ```
+Zur Überprüfung aller direkten und transitiven Abhängigkeiten auf bekannte Sicherheitslücken (CVEs) ist das Sonatype Scan Plugin integriert:
+
+```bash
+# Lokalen Vulnerability-Scan ausführen:
+gradle ossIndexAudit --info
+```
+*(Voraussetzung: Kostenloser Sonatype OSS Index Account mit `SONATYPE_USERNAME` und `SONATYPE_API_KEY` in den `local.properties`).*
+
+---
+
+## 🔒 Gradle Dependency Locking
+
+Das Projekt verwendet Dependency Locking, um deterministische und reproduzierbare Builds zu gewährleisten:
+
+```bash
+# Lockfiles erstmalig erstellen oder bei Abhängigkeitsupdates aktualisieren:
+gradle dependencies --write-locks
+```
+*(Speichert die exakten Versionen in `app/gradle.lockfile`).*
+
+---
+
+## 📄 Automatisierte Dokumentation & Versionierung
+
+Das Projekt enthält einen Gradle-Task, der Versionsnummern (App-Version, AGP, Gradle Wrapper, SQLCipher etc.) direkt aus den Konfigurationsdateien ausliest und synchron in der README.md aktualisiert:
+
+```bash
+gradle updateReadme
+```
