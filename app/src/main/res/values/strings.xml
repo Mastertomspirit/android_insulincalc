@@ -442,11 +442,6 @@ Return the result STRICTLY in the following JSON format (without markdown backti
     <string name="password_set_dialog_confirm_title">Confirm</string>
     <string name="password_set_dialog_confirm_message">This password cannot be recovered if lost. Without it, your data will be inaccessible on new devices!</string>
     <string name="password_set_dialog_confirm_button">I have stored it securely</string>
-    <string name="password_verify_dialog_title">Verify Password</string>
-    <string name="password_verify_dialog_message">Enter your password to verify.</string>
-    <string name="password_verify_dialog_success">Password verified!</string>
-    <string name="password_verify_dialog_failure">Password verification failed. Please try again.</string>
-    <string name="password_verify_button">Verify</string>
     <string name="password_change_dialog_title">Change Password</string>
     <string name="password_change_dialog_message">Enter your current password and a new password.</string>
     <string name="password_change_dialog_old_hint">Current password</string>
@@ -457,8 +452,12 @@ Return the result STRICTLY in the following JSON format (without markdown backti
     <string name="password_show_button">Show</string>
     <string name="password_hide_button">Hide</string>
     <string name="password_set_button">Set password</string>
-    <string name="password_verify_button_text">Verify password</string>
     <string name="password_change_button">Change password</string>
+    <string name="password_set_success">Password set successfully</string>
+    <string name="password_set_failed">Failed to set password</string>
+    <string name="password_change_success">Password changed successfully</string>
+    <string name="password_change_failed">Failed to change password. Check your current password.</string>
+    <string name="password_change_error_all_fields_required">All fields are required</string>
     <string name="migration_alert_title">New Security Feature</string>
     <string name="migration_alert_message">You can now set a password to recover your data on any device. This enables cross-device data recovery.</string>
     <string name="migration_alert_button">OK</string>

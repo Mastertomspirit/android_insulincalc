@@ -18,6 +18,7 @@ package network.spiritscorp
  */
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,7 +27,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
@@ -40,6 +43,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -51,34 +55,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import kotlin.math.abs
+import network.spiritscorp.data.DatabaseSecurityManager
 import network.spiritscorp.preferences.ThemePreferences
+import network.spiritscorp.ui.components.PasswordDialogCallback
+import network.spiritscorp.ui.components.PasswordSetDialog
 import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen
 import network.spiritscorp.ui.screens.calculator.CalculatorScreen
 import network.spiritscorp.ui.screens.logbook.LogbookScreen
 import network.spiritscorp.ui.screens.settings.SettingsScreen
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
+import network.spiritscorp.util.AppConstants
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
-import androidx.compose.ui.res.stringResource
+import kotlin.math.abs
 
 /**
  * The primary entry point Activity for the application.
@@ -137,6 +144,29 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 fun MainApp(viewModel: InsulinCalculatorViewModel) {
+    // Step 2: Retrieve hardware-secured 256-bit encryption key
+    val context = LocalContext.current
+    val securityManager = remember { DatabaseSecurityManager(context) }
+
+    var showPasswordDialog by remember {  mutableStateOf(securityManager.getDatabasePassphrase() == null) }
+
+    if (showPasswordDialog) {
+        val suggestedPassword = remember { securityManager.generateRandomPassword() }
+
+        PasswordSetDialog(
+            minLength = AppConstants.MIN_PASSWORD_LENGTH,
+            initialPassword = suggestedPassword,
+            onResult = object : PasswordDialogCallback {
+                override fun onPasswordConfirmed(password: String) {
+                    if(securityManager.changePassword("", password)) {
+                            showPasswordDialog = false
+                        }
+                }
+                override fun onDismiss() {
+                }
+            }
+        )
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val aiState by viewModel.aiState.collectAsStateWithLifecycle()
     val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
@@ -145,7 +175,6 @@ fun MainApp(viewModel: InsulinCalculatorViewModel) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
-    val context = LocalContext.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

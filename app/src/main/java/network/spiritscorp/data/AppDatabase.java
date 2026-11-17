@@ -17,6 +17,7 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.app.Application;
 import android.content.Context;
 
 import androidx.room.Database;
@@ -26,6 +27,8 @@ import androidx.room.RoomDatabase;
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
+import network.spiritscorp.ui.components.PasswordDialogsKt;
+import network.spiritscorp.ui.screens.settings.PasswordSectionKt;
 import network.spiritscorp.util.AppConstants;
 
 /**
@@ -65,34 +68,32 @@ public abstract class AppDatabase extends RoomDatabase {
     public static AppDatabase getDatabase(Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
-                if (INSTANCE == null) {
-                    Context appContext = context.getApplicationContext();
+                Context appContext = context.getApplicationContext();
 
-                    // Step 1: Initialize SQLCipher native binaries
-                    try {
-                        System.loadLibrary("sqlcipher");
-                    } catch (Throwable ignored) {
-                        // Handled gracefully in JVM test environments
-                    }
-
-                    // Step 2: Retrieve or generate hardware-secured 256-bit encryption key
-                    DatabaseSecurityManager securityManager = new DatabaseSecurityManager(appContext);
-                    byte[] passphrase = securityManager.getOrCreateDatabasePassphrase();
-
-                    // Step 3: Configure Room directly with SQLCipher SupportOpenHelperFactory
-                    SupportOpenHelperFactory supportFactory = new SupportOpenHelperFactory(passphrase);
-
-                    INSTANCE = Room.databaseBuilder(
-                            appContext,
-                            AppDatabase.class,
-                            DATABASE_NAME
-                    )
-                            .openHelperFactory(supportFactory)
-                            .addMigrations(DatabaseMigrations.MIGRATION_1_2)
-                            .addMigrations(DatabaseMigrations.MIGRATION_2_3)
-                            .fallbackToDestructiveMigration(false)
-                            .build();
+                // Step 1: Initialize SQLCipher native binaries
+                try {
+                    System.loadLibrary("sqlcipher");
+                } catch (Throwable ignored) {
+                    // Handled gracefully in JVM test environments
                 }
+
+                // Step 2: Retrieve hardware-secured 256-bit encryption key
+                DatabaseSecurityManager securityManager = new DatabaseSecurityManager(appContext);
+                byte[] passphrase = securityManager.getDatabasePassphrase();
+
+                // Step 3: Configure Room directly with SQLCipher SupportOpenHelperFactory
+                SupportOpenHelperFactory supportFactory = new SupportOpenHelperFactory(passphrase);
+
+                INSTANCE = Room.databaseBuilder(
+                        appContext,
+                        AppDatabase.class,
+                        DATABASE_NAME
+                )
+                        .openHelperFactory(supportFactory)
+                        .addMigrations(DatabaseMigrations.MIGRATION_1_2)
+                        .addMigrations(DatabaseMigrations.MIGRATION_2_3)
+                        .fallbackToDestructiveMigration(false)
+                        .build();
             }
         }
         return INSTANCE;

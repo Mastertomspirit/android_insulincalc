@@ -31,25 +31,25 @@ public final class AppConstants {
     // Schema & Protocol Versions
     // =========================================================================
 
-    /**
-     * Room SQLite Database Schema Version.
-     */
+    /** Room SQLite Database Schema Version. */
     public static final int DATABASE_VERSION = 3;
 
-    /**
-     * JSON Backup Payload Format Version.
-     */
+    /** JSON Backup Payload Format Version. */
     public static final int JSON_BACKUP_VERSION = 3;
 
-    /**
-     * CSV Export & Import Format Version.
-     */
+    /** CSV Export & Import Format Version. */
     public static final int CSV_BACKUP_VERSION = 2;
 
-    /**
-     * Android KeyStore Encryption Key Vault Version.
-     */
+    /** Android KeyStore Encryption Key Vault Version. */
     public static final int SECURITY_KEY_VERSION = 3;
+
+
+    // =========================================================================
+    // Storage & Database Identifiers
+    // =========================================================================
+
+    /** Primary encrypted SQLite database filename. */
+    public static final String DATABASE_NAME = "insulin_calculator.db";
 
     /**
      * Database passphrase key alias for password-based encryption.
@@ -57,41 +57,35 @@ public final class AppConstants {
      */
     public static final String DB_PASSPHRASE_KEY_ALIAS = "network.spiritscorp.insulincalc.db_passphrase_key";
 
-    // =========================================================================
-    // Storage & Database Identifiers
-    // =========================================================================
+    /** Legacy KeyStore master encryption key alias. */
+    public static final String LEGACY_KEY_ALIAS = "network.spiritscorp.insulincalc.db_vault_master_key_v2";
 
-    /**
-     * Primary encrypted SQLite database filename.
-     */
-    public static final String DATABASE_NAME = "insulin_calculator.db";
+    /** Storage Keys for legacy mode */
+    public static final String KEY_ENCRYPTED_PASSPHRASE = "secure_db_encrypted_passphrase";
+    public static final String KEY_PASSPHRASE_IV = "secure_db_passphrase_iv";
 
-    /**
-     * KeyStore master encryption key alias.
-     */
-    public static final String SECURITY_KEY_ALIAS = "network.spiritscorp.insulincalc.db_vault_master_key_v2";
-
-    /**
-     * SharedPreferences file name for migration and preference flags.
-     */
+    /** SharedPreferences file name for migration and preference flags. */
     public static final String SECURITY_PREFS_FILE = "secure_db_vault_prefs";
 
-    /**
-     * Minimum password length for database encryption.
-     */
+    /** Minimum password length for database encryption. */
     public static final int MIN_PASSWORD_LENGTH = 20;
 
-    /**
-     * Number of PBKDF2 iterations for password-based key derivation.
-     */
+    /** Number of PBKDF2 iterations for password-based key derivation. */
     public static final int PBKDF2_ITERATIONS = 100000;
+
+    public static final int PASSPHRASE_BYTE_LENGTH = 32; // 256-bit AES Key
+
+    public static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
+
+    /** Migration flag */
+    public static final String KEY_MIGRATION_V3_COMPLETED = "migration_v3_completed";
+
+    public static final int SALT_LENGTH = 32;
 
     // =========================================================================
     // Preference & Timeout Constants
     // =========================================================================
 
-    /**
-     * Time duration in milliseconds before the medical disclaimer is shown again (30 days).
-     */
+    /** Time duration in milliseconds before the medical disclaimer is shown again (30 days). */
     public static final long DISCLAIMER_RE_SHOW_INTERVAL_MS = 30L * 24 * 60 * 60 * 1000;
 }

@@ -21,11 +21,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -67,26 +64,6 @@ interface PasswordDialogCallback {
 }
 
 /**
- * Callback interface for password verification results.
- */
-interface PasswordVerifyCallback {
-    /**
-     * Called when password verification succeeds.
-     */
-    fun onVerificationSuccess()
-
-    /**
-     * Called when password verification fails.
-     */
-    fun onVerificationFailed()
-
-    /**
-     * Called when dialog is dismissed.
-     */
-    fun onDismiss()
-}
-
-/**
  * Callback interface for password change results.
  */
 interface PasswordChangeCallback {
@@ -108,16 +85,19 @@ interface PasswordChangeCallback {
  * Dialog for setting a new password.
  *
  * @param minLength Minimum password length
+ * @param initialPassword Pre-filled or suggested initial password
  * @param onResult Callback for dialog results
  */
 @Composable
 fun PasswordSetDialog(
     minLength: Int,
+    initialPassword: String = "",
     onResult: PasswordDialogCallback
 ) {
-    var password by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf(initialPassword) }
     var showPassword by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val tooShortError = stringResource(R.string.password_set_dialog_error_too_short, minLength)
 
     AlertDialog(
         title = { Text(stringResource(R.string.password_set_dialog_title)) },
@@ -173,13 +153,7 @@ fun PasswordSetDialog(
         },
         confirmButton = {
             Button(
-                onClick = {
-                    if (password.length < minLength) {
-                        error = stringResource(R.string.password_set_dialog_error_too_short, minLength)
-                    } else {
-                        onResult.onPasswordConfirmed(password)
-                    }
-                },
+                onClick = { onResult.onPasswordConfirmed(password) },
                 enabled = password.length >= minLength
             ) {
                 Text(stringResource(R.string.password_set_button))
@@ -221,87 +195,6 @@ fun PasswordConfirmDialog(
 }
 
 /**
- * Dialog for verifying a password.
- *
- * @param onResult Callback for verification results
- */
-@Composable
-fun PasswordVerifyDialog(
-    onResult: PasswordVerifyCallback
-) {
-    var password by remember { mutableStateOf("") }
-    var showPassword by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    AlertDialog(
-        title = { Text(stringResource(R.string.password_verify_dialog_title)) },
-        text = {
-            Column {
-                Text(stringResource(R.string.password_verify_dialog_message))
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { 
-                        password = it
-                        error = null
-                    },
-                    label = { Text(stringResource(R.string.password_set_dialog_hint)) },
-                    visualTransformation = if (showPassword) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword }) {
-                            Icon(
-                                imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (showPassword) {
-                                    stringResource(R.string.password_hide_button)
-                                } else {
-                                    stringResource(R.string.password_show_button)
-                                }
-                            )
-                        }
-                    },
-                    isError = error != null,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                error?.let {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (password.isEmpty()) {
-                        error = stringResource(R.string.password_verify_dialog_failure)
-                    } else {
-                        onResult.onVerificationSuccess()
-                    }
-                }
-            ) {
-                Text(stringResource(R.string.password_verify_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onResult.onDismiss() }) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        },
-        onDismissRequest = { onResult.onDismiss() }
-    )
-}
-
-/**
  * Dialog for changing password.
  *
  * @param onResult Callback for password change results
@@ -317,6 +210,8 @@ fun PasswordChangeDialog(
     var showNewPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val noMatchError = stringResource(R.string.password_change_error_no_match)
+    val allFieldsRequiredError = stringResource(R.string.password_change_error_all_fields_required)
 
     AlertDialog(
         title = { Text(stringResource(R.string.password_change_dialog_title)) },
@@ -437,9 +332,9 @@ fun PasswordChangeDialog(
             Button(
                 onClick = {
                     if (newPassword.isEmpty() || confirmPassword.isEmpty() || oldPassword.isEmpty()) {
-                        error = "All fields are required"
+                        error = allFieldsRequiredError
                     } else if (newPassword != confirmPassword) {
-                        error = stringResource(R.string.password_change_error_no_match)
+                        error = noMatchError
                     } else {
                         onResult.onPasswordChanged(oldPassword, newPassword)
                     }
@@ -454,64 +349,5 @@ fun PasswordChangeDialog(
             }
         },
         onDismissRequest = { onResult.onDismiss() }
-    )
-}
-
-/**
- * Simple dialog to display a random password for new installations.
- *
- * @param password The randomly generated password to display
- * @param onDismiss Callback when dialog is dismissed
- */
-@Composable
-fun RandomPasswordDialog(
-    password: String,
-    onDismiss: () -> Unit
-) {
-    var showPassword by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        title = { Text(stringResource(R.string.password_set_dialog_title)) },
-        text = {
-            Column {
-                Text(stringResource(R.string.password_set_dialog_message, 20))
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = if (showPassword) password else "".padEnd(password.length, '*'),
-                    onValueChange = {},
-                    label = { Text(stringResource(R.string.password_set_dialog_hint)) },
-                    readOnly = true,
-                    visualTransformation = if (showPassword) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword }) {
-                            Icon(
-                                imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (showPassword) {
-                                    stringResource(R.string.password_hide_button)
-                                } else {
-                                    stringResource(R.string.password_show_button)
-                                }
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.password_set_dialog_char_count, password.length, 20),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        onDismissRequest = onDismiss
     )
 }

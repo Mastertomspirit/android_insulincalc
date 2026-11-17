@@ -442,11 +442,6 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
     <string name="password_set_dialog_confirm_title">Bestätigen</string>
     <string name="password_set_dialog_confirm_message">Dieses Passwort kann nicht wiederhergestellt werden. Ohne dieses Passwort sind Ihre Daten auf neuen Geräten nicht zugänglich!</string>
     <string name="password_set_dialog_confirm_button">Ich habe es sicher gespeichert</string>
-    <string name="password_verify_dialog_title">Passwort überprüfen</string>
-    <string name="password_verify_dialog_message">Geben Sie Ihr Passwort ein, um es zu überprüfen.</string>
-    <string name="password_verify_dialog_success">Passwort überprüft!</string>
-    <string name="password_verify_dialog_failure">Passwortüberprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
-    <string name="password_verify_button">Überprüfen</string>
     <string name="password_change_dialog_title">Passwort ändern</string>
     <string name="password_change_dialog_message">Geben Sie Ihr aktuelles Passwort und ein neues Passwort ein.</string>
     <string name="password_change_dialog_old_hint">Aktuelles Passwort</string>
@@ -457,8 +452,12 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
     <string name="password_show_button">Anzeigen</string>
     <string name="password_hide_button">Verbergen</string>
     <string name="password_set_button">Passwort festlegen</string>
-    <string name="password_verify_button_text">Passwort überprüfen</string>
     <string name="password_change_button">Passwort ändern</string>
+    <string name="password_set_success">Passwort erfolgreich festgelegt</string>
+    <string name="password_set_failed">Passwort konnte nicht festgelegt werden</string>
+    <string name="password_change_success">Passwort erfolgreich geändert</string>
+    <string name="password_change_failed">Passwort konnte nicht geändert werden. Prüfen Sie Ihr aktuelles Passwort.</string>
+    <string name="password_change_error_all_fields_required">Alle Felder müssen ausgefüllt werden</string>
     <string name="migration_alert_title">Neues Sicherheitsfeature</string>
     <string name="migration_alert_message">Sie können jetzt ein Passwort festlegen, um Ihre Daten auf jedem Gerät wiederherzustellen. Dies ermöglicht die Datenwiederherstellung auf anderen Geräten.</string>
     <string name="migration_alert_button">OK</string>
