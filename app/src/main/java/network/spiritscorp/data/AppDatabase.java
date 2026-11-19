@@ -18,12 +18,16 @@ package network.spiritscorp.data;
  */
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory;
+
+import java.util.Objects;
+
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 import network.spiritscorp.util.AppConstants;
@@ -43,17 +47,13 @@ import network.spiritscorp.util.AppConstants;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    private static final String DATABASE_NAME = AppConstants.DATABASE_NAME;
+    private static final String TAG = "AppDatabase";
     private static volatile AppDatabase INSTANCE;
 
-    /**
-     * Data access object for querying and persisting {@link CalculationLog} entries.
-     */
+    /** Data access object for querying and persisting {@link CalculationLog} entries. */
     public abstract CalculationLogDao calculationLogDao();
 
-    /**
-     * Data access object for managing personalized {@link UserSettings} therapy factors and preferences.
-     */
+    /** Data access object for managing personalized {@link UserSettings} therapy factors and preferences. */
     public abstract UserSettingsDao userSettingsDao();
 
     /**
@@ -66,35 +66,70 @@ public abstract class AppDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    Context appContext = context.getApplicationContext();
-
-                    // Step 1: Initialize SQLCipher native binaries
                     try {
-                        System.loadLibrary("sqlcipher");
-                    } catch (Throwable ignored) {
-                        // Handled gracefully in JVM test environments
+                        Context appContext = context.getApplicationContext();
+
+                        // Initialize SQLCipher native binaries
+                        try {
+                            System.loadLibrary("sqlcipher");
+                        } catch (UnsatisfiedLinkError | SecurityException |
+                                 NullPointerException e) {
+                            throw new IllegalStateException("Failed to load SQLCipher native library", e);
+                        }
+
+                        SupportOpenHelperFactory supportFactory = getSupportFactory(appContext);
+
+                        INSTANCE = Room.databaseBuilder(
+                                        appContext,
+                                        AppDatabase.class,
+                                        DatabaseConstants.DATABASE_NAME
+                                )
+                                .openHelperFactory(supportFactory)
+                                .addMigrations(DatabaseMigrations.MIGRATION_1_2)
+                                .addMigrations(DatabaseMigrations.MIGRATION_2_3)
+                                .fallbackToDestructiveMigration(false)
+                                .allowMainThreadQueries()
+                                .build();
+
+                    }catch(IllegalStateException e){
+                        Log.e(TAG, Objects.requireNonNull(e.getMessage()));
+                        return null;
                     }
-
-                    // Step 2: Retrieve or generate hardware-secured 256-bit encryption key
-                    DatabaseSecurityManager securityManager = new DatabaseSecurityManager(appContext);
-                    byte[] passphrase = securityManager.getOrCreateDatabasePassphrase();
-
-                    // Step 3: Configure Room directly with SQLCipher SupportOpenHelperFactory
-                    SupportOpenHelperFactory supportFactory = new SupportOpenHelperFactory(passphrase);
-
-                    INSTANCE = Room.databaseBuilder(
-                            appContext,
-                            AppDatabase.class,
-                            DATABASE_NAME
-                    )
-                            .openHelperFactory(supportFactory)
-                            .addMigrations(DatabaseMigrations.MIGRATION_1_2)
-                            .addMigrations(DatabaseMigrations.MIGRATION_2_3)
-                            .fallbackToDestructiveMigration(false)
-                            .build();
                 }
             }
         }
         return INSTANCE;
+    }
+
+    /** Resets the AppDatabase singleton instance, closes active database connections and deletes the existing database file. */
+    static void resetInstance() {
+        if (AppDatabase.INSTANCE != null) {
+            if (AppDatabase.INSTANCE.isOpen())  AppDatabase.INSTANCE.close();
+            AppDatabase.INSTANCE = null;
+        }
+    }
+
+    /**
+     * Retrieves or generates a hardware-secured 256-bit encryption key
+     * and configures Room directly with the SQLCipher SupportOpenHelperFactory.
+     * <p>
+     * 1. Retrieves a hardware-backed 256-bit encryption key from the
+     *    Android KeyStore, or generates a new one if it doesn't exist yet.
+     * 2. Configures and returns a SQLCipher {@link SupportOpenHelperFactory}
+     *    to ensure encrypted local database storage for Room.
+     *
+     * @param appContext The application context used to access the KeyStore and database.
+     * @return A configured {@link SupportOpenHelperFactory} using the encrypted database key.
+     */
+    private static SupportOpenHelperFactory getSupportFactory(Context appContext) {
+        DatabaseSecurityManager securityManager = new DatabaseSecurityManager(appContext);
+        SupportOpenHelperFactory supportFactory;
+        try {
+            byte[] passphrase = securityManager.getOrCreateDatabasePassphrase();
+            supportFactory = new SupportOpenHelperFactory(passphrase);
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Failed to retrieve or generate database encryption passphrase: " + e.getMessage(), e);
+        }
+        return supportFactory;
     }
 }

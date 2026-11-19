@@ -18,64 +18,33 @@ package network.spiritscorp.util;
  */
 
 /**
- * Central repository for system-wide schema versions, format identifiers,
- * storage constants, and protocol definitions.
+ * Central repository for system-wide schema versions, format identifiers, storage constants, and protocol definitions.
  */
 public final class AppConstants {
 
-    private AppConstants() {
-        // Utility / Constants class - prevent instantiation
-    }
+    /** No instances of this class should be created. */
+    private AppConstants() { }
 
     // =========================================================================
     // Schema & Protocol Versions
     // =========================================================================
 
-    /**
-     * Room SQLite Database Schema Version.
-     */
+    /** Room SQLite Database Schema Version. */
     public static final int DATABASE_VERSION = 3;
 
-    /**
-     * JSON Backup Payload Format Version.
-     */
+    /** JSON Backup Payload Format Version. */
     public static final int JSON_BACKUP_VERSION = 3;
 
-    /**
-     * CSV Export & Import Format Version.
-     */
+    /** CSV Export & Import Format Version. */
     public static final int CSV_BACKUP_VERSION = 2;
 
-    /**
-     * Android KeyStore Encryption Key Vault Version.
-     */
-    public static final int SECURITY_KEY_VERSION = 2;
-
-    // =========================================================================
-    // Storage & Database Identifiers
-    // =========================================================================
-
-    /**
-     * Primary encrypted SQLite database filename.
-     */
-    public static final String DATABASE_NAME = "insulin_calculator.db";
-
-    /**
-     * KeyStore master encryption key alias.
-     */
-    public static final String SECURITY_KEY_ALIAS = "network.spiritscorp.insulincalc.db_vault_master_key_v2";
-
-    /**
-     * SharedPreferences file name for cryptographic key metadata.
-     */
-    public static final String SECURITY_PREFS_FILE = "secure_db_vault_prefs";
+    /** Android KeyStore Encryption Key Vault Version. */
+    public static final int SECURITY_KEY_VERSION = 3;
 
     // =========================================================================
     // Preference & Timeout Constants
     // =========================================================================
 
-    /**
-     * Time duration in milliseconds before the medical disclaimer is shown again (30 days).
-     */
+    /** Time duration in milliseconds before the medical disclaimer is shown again (30 days). */
     public static final long DISCLAIMER_RE_SHOW_INTERVAL_MS = 30L * 24 * 60 * 60 * 1000;
 }

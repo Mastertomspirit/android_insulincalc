@@ -18,6 +18,7 @@ package network.spiritscorp.viewmodel
  */
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -33,9 +35,9 @@ import kotlinx.coroutines.withContext
 import network.spiritscorp.R
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.ai.GeminiMealService
-import network.spiritscorp.ai.MealEstimateResult
 import network.spiritscorp.data.AppDatabase
 import network.spiritscorp.data.DatabaseBackupManager
+import network.spiritscorp.data.DatabaseRestoreManager
 import network.spiritscorp.data.ImportResult
 import network.spiritscorp.data.InsulinRepository
 import network.spiritscorp.model.CalculationLog
@@ -52,107 +54,6 @@ import java.math.RoundingMode
 import java.util.Locale
 
 /**
- * Helper function to instantiate the initial [CalculatorUiState] with default values
- * based on the current time of day and default insulin factor.
- *
- * @param showDisclaimerBanner Flag indicating whether the medical disclaimer banner should be displayed initially.
- * @return Newly constructed [CalculatorUiState] instance.
- */
-internal fun createInitialUiState(
-    showDisclaimerBanner: Boolean = true
-): CalculatorUiState {
-    val currentTime = TimeOfDay.current()
-    val initialFactor = currentTime.defaultFactor
-    return CalculatorUiState(
-        selectedTimeOfDay = currentTime,
-        showDisclaimerBanner = showDisclaimerBanner,
-        calculationSummary = CalculationSummary(
-            0.0,
-            0.0,
-            0.0,
-            initialFactor,
-            0.0,
-            null,
-            null,
-            0.0,
-            0.0,
-            0.0,
-            0.5,
-            false,
-            ""
-        )
-    )
-}
-
-/**
- * Immutable data class representing the complete UI state for the insulin calculator screen,
- * including user inputs, active selections, calculation summaries, and UI flags.
- *
- * @property carbInput Raw string input representing carbohydrates entered by the user.
- * @property selectedUnit The active carbohydrate unit ([CarbUnit]) currently selected (e.g., Grams, KE, BE).
- * @property selectedTimeOfDay The currently active [TimeOfDay] slot (Morning, Noon, Evening, Night).
- * @property factorOverride Optional manual override for the insulin factor.
- * @property isAutoTimeDetection Flag indicating whether time slot detection is automatic based on system clock.
- * @property glucoseUnit The active blood glucose measurement unit ([GlucoseUnit]) (mg/dL or mmol/L).
- * @property currentGlucoseInput Current blood glucose reading input string.
- * @property targetGlucoseInput Target blood glucose level input string.
- * @property correctionFactorInput Individual insulin correction factor input string.
- * @property showCorrection Flag indicating whether correction bolus inputs are currently expanded/visible.
- * @property mealTitle Optional title describing the meal (e.g., Breakfast, Pizza).
- * @property notes Optional free-text notes associated with the meal or calculation.
- * @property showDisclaimerBanner Flag controlling the visibility of the medical disclaimer banner.
- * @property calculationSummary Detailed results object ([CalculationSummary]) holding insulin dosages and breakdown.
- * @property toastMessage Optional transient notification message to display to the user.
- * @property activeTab Index of the currently active bottom navigation tab (0: Calculator, 1: AI Estimator, 2: Logbook, 3: Settings).
- */
-data class CalculatorUiState(
-    val carbInput: String = "",
-    val selectedUnit: CarbUnit = CarbUnit.GRAMS,
-    val selectedTimeOfDay: TimeOfDay = TimeOfDay.current(),
-    val factorOverride: Double? = null,
-    val isAutoTimeDetection: Boolean = true,
-    val glucoseUnit: GlucoseUnit = GlucoseUnit.MG_DL,
-    val currentGlucoseInput: String = "",
-    val targetGlucoseInput: String = "120",
-    val correctionFactorInput: String = "50",
-    val showCorrection: Boolean = false,
-    val mealTitle: String = "",
-    val notes: String = "",
-    val showDisclaimerBanner: Boolean = true,
-    val calculationSummary: CalculationSummary = CalculationSummary(
-        0.0,
-        0.0,
-        0.0,
-        TimeOfDay.current().defaultFactor,
-        0.0,
-        null,
-        null,
-        0.0,
-        0.0,
-        0.0,
-        0.5,
-        false,
-        ""
-    ),
-    val toastMessage: String? = null,
-    val activeTab: Int = 0
-)
-
-/**
- * Sealed interface representing the asynchronous state of AI meal estimation requests.
- */
-sealed interface AiEstimateState {
-    /** Idle state when no AI estimation is currently running. */
-    object Idle : AiEstimateState
-    /** Loading state while communicating with the Gemini AI model. */
-    object Loading : AiEstimateState
-    /** Success state containing the parsed [MealEstimateResult]. */
-    data class Success(val result: MealEstimateResult) : AiEstimateState
-    /** Error state containing failure details. */
-    data class Error(val message: String) : AiEstimateState
-}
-
-/**
  * ViewModel responsible for managing insulin calculation state, user preferences,
  * database interactions, and business logic for the calculator and AI estimation.
  *
@@ -161,7 +62,7 @@ sealed interface AiEstimateState {
  */
 class InsulinCalculatorViewModel(
     application: Application,
-    private val repository: InsulinRepository
+    private var repository: InsulinRepository?
 ) : AndroidViewModel(application) {
 
     /**
@@ -170,44 +71,51 @@ class InsulinCalculatorViewModel(
     @JvmOverloads
     constructor(
         application: Application,
-        db: AppDatabase = AppDatabase.getDatabase(application)
-    ) : this(application, InsulinRepository(db.calculationLogDao(), db.userSettingsDao()))
+        db: AppDatabase? = tryGetDatabase(application)
+    ) : this(
+        application,
+        db?.let { InsulinRepository(it.calculationLogDao(), it.userSettingsDao()) }
+    )
+
+    private val _databaseError = MutableStateFlow(repository == null || initialDatabaseError)
     private val geminiService = GeminiMealService(application)
     private val themePreferences = ThemePreferences(application)
     private val disclaimerPreferences = DisclaimerPreferences(application)
     private var cachedSettings: UserSettings = UserSettings()
+    private val _uiState = MutableStateFlow( createInitialUiState(showDisclaimerBanner = disclaimerPreferences.shouldShowDisclaimer()) )
+    private val _aiState = MutableStateFlow<AiEstimateState>(AiEstimateState.Idle)
+
+    /** Public read-only StateFlow indicating whether a database initialization or access error has occurred. */
+    val databaseError: StateFlow<Boolean> = _databaseError.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.getSettings()
+        if (initialDatabaseError || repository == null) {
+            _databaseError.value = true
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository?.getSettings()
+            }
         }
     }
 
     /** StateFlow exposing the list of past calculation logs for the history / logbook. */
-    val historyLogs: StateFlow<List<CalculationLog>> = repository.allLogs
+    var historyLogs: StateFlow<List<CalculationLog>> = (repository?.allLogs ?: flowOf(emptyList()))
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** StateFlow exposing current user settings (insulin factors, targets, etc.). */
-    val userSettings: StateFlow<UserSettings> = repository.settingsFlow
+    var userSettings: StateFlow<UserSettings> = (repository?.settingsFlow ?: flowOf(null))
         .map { it ?: UserSettings() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
-
-    private val _uiState = MutableStateFlow(
-        createInitialUiState(
-            showDisclaimerBanner = disclaimerPreferences.shouldShowDisclaimer()
-        )
-    )
 
     /** Public read-only StateFlow representing the calculator UI state. */
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
-    private val _aiState = MutableStateFlow<AiEstimateState>(AiEstimateState.Idle)
     /** Public read-only StateFlow representing AI estimation state. */
     val aiState: StateFlow<AiEstimateState> = _aiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            repository.settingsFlow.collect { settingsNullable ->
+            (repository?.settingsFlow ?: flowOf(null)).collect { settingsNullable ->
                 val settings = settingsNullable ?: UserSettings()
                 cachedSettings = settings
                 val gUnit = settings.glucoseUnit
@@ -281,17 +189,13 @@ class InsulinCalculatorViewModel(
         recalculate()
     }
 
-    /**
-     * Resets the carbohydrate input to zero ("0").
-     */
+    /** Resets the carbohydrate input to zero ("0"). */
     fun clearCarbs() {
-        _uiState.update { it.copy(carbInput = "0") }
+        _uiState.update { it.copy(carbInput = "") }
         recalculate()
     }
 
-    /**
-     * Clears all primary calculator input fields (carbs, blood glucose, meal title, notes).
-     */
+    /** Clears all primary calculator input fields (carbs, blood glucose, meal title, notes). */
     fun clearAllCalculatorInputs() {
         _uiState.update {
             it.copy(
@@ -310,14 +214,12 @@ class InsulinCalculatorViewModel(
      * @param unit The new [CarbUnit] to set.
      */
     fun setUnit(unit: CarbUnit) {
-        // Keeps raw input value unchanged as requested ("die eingabe soll sich nicht ändern, wenn umgeschalten wird")
         _uiState.update { it.copy(selectedUnit = unit) }
         recalculate()
     }
 
     /**
-     * Manually selects a specific time of day slot and clears any manual factor override,
-     * disabling automatic time detection.
+     * Manually selects a specific time of day slot and clears any manual factor override, disabling automatic time detection.
      *
      * @param timeOfDay The selected [TimeOfDay].
      */
@@ -332,9 +234,7 @@ class InsulinCalculatorViewModel(
         recalculate()
     }
 
-    /**
-     * Re-enables automatic time-of-day detection based on the current system time.
-     */
+    /** Re-enables automatic time-of-day detection based on the current system time. */
     fun resetToAutoTime() {
         val current = TimeOfDay.current()
         _uiState.update {
@@ -360,19 +260,21 @@ class InsulinCalculatorViewModel(
         recalculate()
     }
 
+    /**
+     * Dismisses the medical disclaimer banner, updates local UI state, persists the
+     * preference dismissal in SharedPreferences, and updates user settings in the database.
+     */
     fun dismissDisclaimer() {
         disclaimerPreferences.dismissDisclaimer()
         _uiState.update { it.copy(showDisclaimerBanner = false) }
         viewModelScope.launch(Dispatchers.IO) {
             val updatedSettings = userSettings.value.copy()
             updatedSettings.isShowDisclaimer = false
-            repository.saveSettings(updatedSettings)
+            repository?.saveSettings(updatedSettings)
         }
     }
 
-    /**
-     * Toggles the visibility of the blood glucose correction inputs section.
-     */
+    /** Toggles the visibility of the blood glucose correction inputs section. */
     fun toggleCorrection() {
         _uiState.update { it.copy(showCorrection = !it.showCorrection) }
         recalculate()
@@ -429,10 +331,7 @@ class InsulinCalculatorViewModel(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    /**
-     * Called when the app resumes from background to refresh
-     * auto-detected time of day if active.
-     */
+    /** Called when the app resumes from background to refresh auto-detected time of day if active. */
     fun onResume() {
         if (_uiState.value.isAutoTimeDetection) {
             recalculate()
@@ -562,7 +461,7 @@ class InsulinCalculatorViewModel(
         )
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.saveCalculation(log)
+            repository?.saveCalculation(log)
             _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_diary_saved_toast)) }
         }
     }
@@ -590,17 +489,15 @@ class InsulinCalculatorViewModel(
      */
     fun deleteLog(logId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteLog(logId)
+            repository?.deleteLog(logId)
             _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.logbook_entry_deleted_toast)) }
         }
     }
 
-    /**
-     * Clears all calculation logs from the database.
-     */
+    /** Clears all calculation logs from the database. */
     fun clearAllLogs() {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.clearLogs()
+            repository?.clearLogs()
             _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_logbook_cleared)) }
         }
     }
@@ -611,9 +508,10 @@ class InsulinCalculatorViewModel(
      * @return JSON string representing the database backup.
      */
     suspend fun exportJsonBackup(): String = withContext(Dispatchers.IO) {
-        val settings = repository.settings
-        val logs = repository.allLogsDirect
-        DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao()).exportToJson(settings, logs)
+        val repo = repository ?: return@withContext ""
+        val settings = repo.settings
+        val logs = repo.allLogsDirect
+        DatabaseBackupManager(repo.userSettingsDao(), repo.calculationLogDao()).exportToJson(settings, logs)
     }
 
     /**
@@ -622,8 +520,49 @@ class InsulinCalculatorViewModel(
      * @return CSV string representing the calculation history.
      */
     suspend fun exportCsvBackup(): String = withContext(Dispatchers.IO) {
-        val logs = repository.allLogsDirect
-        DatabaseBackupManager(repository.userSettingsDao(), repository.calculationLogDao()).exportToCsv(logs)
+        val repo = repository ?: return@withContext ""
+        val logs = repo.allLogsDirect
+        DatabaseBackupManager(repo.userSettingsDao(), repo.calculationLogDao()).exportToCsv(logs)
+    }
+
+    /**
+     * Resets the database file and passphrase, reinstantiates [AppDatabase],
+     * updates the internal repository, and clears the database error state.
+     */
+    fun resetDatabase() {
+            try {
+                DatabaseRestoreManager().resetInstance(getApplication())
+                val newDb = AppDatabase.getDatabase(getApplication())
+                repository = InsulinRepository(newDb.calculationLogDao(), newDb.userSettingsDao())
+                _databaseError.value = false
+                initialDatabaseError = false
+                if (repository != null) {
+                    userSettings = (repository?.settingsFlow ?: flowOf(null))
+                        .map { it ?: UserSettings() }
+                        .stateIn( viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
+                    historyLogs = (repository?.allLogs ?: flowOf(emptyList()))
+                        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+                    val settings = repository?.settings
+                    if (settings != null) {
+                        cachedSettings = settings
+                        recalculate(settings)
+                    }
+                }
+            } catch (e: Throwable) {
+                e.message?.let { Log.e("Test-Tag", it) }
+                _databaseError.value = true
+            }
+
+    }
+
+    /** Signals a database error state to display the recovery dialog. */
+    fun notifyDatabaseError() {
+        _databaseError.value = true
+    }
+
+    /** Clears the active database error state. */
+    fun clearDatabaseError() {
+        _databaseError.value = false
     }
 
     /**
@@ -633,22 +572,35 @@ class InsulinCalculatorViewModel(
      * @return [ImportResult] containing success status and statistics.
      */
     suspend fun importBackupContent(content: String): ImportResult = withContext(Dispatchers.IO) {
-        val manager = DatabaseBackupManager(getApplication<Application>())
+        val app = getApplication<Application>()
+        if (repository == null) {
+            try {
+                val db = AppDatabase.getDatabase(app)
+                repository = InsulinRepository(db.calculationLogDao(), db.userSettingsDao())
+            } catch (e: Throwable) {
+                return@withContext ImportResult(false, 0, false, e.message ?: "Database error")
+            }
+        }
+        val manager = DatabaseBackupManager(app)
         val trimmed = content.trim()
         val result = if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             manager.importFromJson(trimmed)
         } else {
             manager.importFromCsv(trimmed)
         }
-        if (result.isSuccess && result.isImportedSettings) {
-            val updated = repository.settings
-            if (updated != null) {
-                cachedSettings = updated
-                themePreferences.savePreferences(
-                    updated.selectedTheme ?: themePreferences.getSelectedTheme(),
-                    updated.themeMode ?: themePreferences.getThemeMode()
-                )
-                recalculate(updated)
+        if (result.isSuccess) {
+            _databaseError.value = false
+            initialDatabaseError = false
+            if (result.isImportedSettings) {
+                val updated = repository?.settings
+                if (updated != null) {
+                    cachedSettings = updated
+                    themePreferences.savePreferences(
+                        updated.selectedTheme ?: themePreferences.getSelectedTheme(),
+                        updated.themeMode ?: themePreferences.getThemeMode()
+                    )
+                    recalculate(updated)
+                }
             }
         }
         result
@@ -662,7 +614,7 @@ class InsulinCalculatorViewModel(
     fun updateUserSettings(settings: UserSettings) {
         cachedSettings = settings
         viewModelScope.launch(Dispatchers.IO) {
-            repository.saveSettings(settings)
+            repository?.saveSettings(settings)
             // Persist theme choice synchronously in SharedPreferences to prevent start-up flicker
             themePreferences.savePreferences(
                 settings.selectedTheme ?: themePreferences.getSelectedTheme(),
@@ -764,5 +716,21 @@ class InsulinCalculatorViewModel(
             )
         }
         recalculate()
+    }
+
+    companion object {
+        private var initialDatabaseError: Boolean = false
+
+        @JvmStatic
+        fun tryGetDatabase(application: Application): AppDatabase? {
+           val db = AppDatabase.getDatabase(application)
+            if(db == null){
+                initialDatabaseError = true
+                return null
+            }else{
+                initialDatabaseError = false
+                return db
+            }
+        }
     }
 }
