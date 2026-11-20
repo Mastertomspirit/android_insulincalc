@@ -357,7 +357,7 @@ public class CalculatorEngineStateTest {
 
         // Clear carbs
         viewModel.clearCarbs();
-        assertEquals("0", viewModel.getUiState().getValue().getCarbInput());
+        assertEquals("", viewModel.getUiState().getValue().getCarbInput());
     }
 
     @Test

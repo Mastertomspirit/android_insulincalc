@@ -21,17 +21,33 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.security.keystore.StrongBoxUnavailableException;
 import android.util.Base64;
 import android.util.Log;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import network.spiritscorp.util.AppConstants;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+
+import static network.spiritscorp.data.DatabaseConstants.*;
+
 
 /**
  * Enterprise-grade security manager object for SQLite / SQLCipher database encryption.
@@ -44,28 +60,10 @@ import javax.crypto.spec.GCMParameterSpec;
  */
 public class DatabaseSecurityManager {
 
-    /**
-     * Logging tag used for debugging and security audits.
-     */
+    /** Logging tag used for debugging and security audits. */
     private static final String TAG = "DatabaseSecurityManager";
-    private static final String PREFS_FILE = AppConstants.SECURITY_PREFS_FILE;
-
-    // Android KeyStore Alias & Cipher specifications
-    private static final String KEYSTORE_PROVIDER = "AndroidKeyStore";
-    private static final String KEY_ALIAS = AppConstants.SECURITY_KEY_ALIAS;
-    private static final int KEY_VERSION = AppConstants.SECURITY_KEY_VERSION;
-    private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final int GCM_TAG_LENGTH_BITS = 128;
-    private static final int PASSPHRASE_BYTE_LENGTH = 32; // 256-bit AES Key
-
-    // Storage Keys
-    private static final String KEY_ENCRYPTED_PASSPHRASE = "secure_db_encrypted_passphrase";
-    private static final String KEY_PASSPHRASE_IV = "secure_db_passphrase_iv";
-    private static final String FALLBACK_KEY_PASSPHRASE = "secure_db_passphrase_fallback";
-
-    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
-
-    private final SharedPreferences mPrefs;
+    private final SharedPreferences sharedPrefs;
+    private final Context context;
 
     /**
      * Constructs a new DatabaseSecurityManager instance bound to the provided Android context.
@@ -73,17 +71,8 @@ public class DatabaseSecurityManager {
      * @param context Application or activity context.
      */
     public DatabaseSecurityManager(@NonNull Context context) {
-        this(context.getApplicationContext().getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE));
-    }
-
-    /**
-     * Constructs a new DatabaseSecurityManager instance with custom SharedPreferences,
-     * specifically useful for dependency injection and isolated unit testing.
-     *
-     * @param prefs SharedPreferences instance to store encrypted key data.
-     */
-    public DatabaseSecurityManager(@NonNull SharedPreferences prefs) {
-        this.mPrefs = prefs;
+        this.sharedPrefs = context.getApplicationContext().getSharedPreferences(SECURITY_PREFS_FILE, Context.MODE_PRIVATE);
+        this.context = context;
     }
 
     /**
@@ -93,85 +82,112 @@ public class DatabaseSecurityManager {
      * @return 32-byte (256-bit) encryption key suitable for SQLCipher.
      */
     @NonNull
-    public synchronized byte[] getOrCreateDatabasePassphrase() {
-        // 1. Try reading the KeyStore-encrypted passphrase
-        String encryptedPassphraseBase64 = mPrefs.getString(KEY_ENCRYPTED_PASSPHRASE, null);
-        String ivBase64 = mPrefs.getString(KEY_PASSPHRASE_IV, null);
+    public byte[] getOrCreateDatabasePassphrase() throws IllegalStateException {
+        //  Try reading the KeyStore-encrypted passphrase
+        String encryptedValue = sharedPrefs.getString(PASSPHRASE_ENCRYPTED_KEY, null);
+        String ivValue = sharedPrefs.getString(PASSPHRASE_IV_KEY, null);
 
-        if (encryptedPassphraseBase64 != null && !encryptedPassphraseBase64.trim().isEmpty() &&
-                ivBase64 != null && !ivBase64.trim().isEmpty()) {
+        boolean hasEncryptedValue = encryptedValue != null;
+        boolean hasIv = ivValue != null;
+
+        if (hasEncryptedValue || hasIv) {
+            if (!hasEncryptedValue || !hasIv || encryptedValue.trim().isEmpty() || ivValue.trim().isEmpty()) {
+                throw new IllegalStateException( "The stored database key data is incomplete. The database was not changed."
+                );
+            }
+
             try {
-                byte[] encryptedBytes = Base64.decode(encryptedPassphraseBase64, Base64.NO_WRAP);
-                byte[] ivBytes = Base64.decode(ivBase64, Base64.NO_WRAP);
-                byte[] decrypted = decryptWithKeyStore(ivBytes, encryptedBytes);
-                if (decrypted != null && decrypted.length == PASSPHRASE_BYTE_LENGTH) {
-                    return decrypted;
+                byte[] encrypted = Base64.decode(encryptedValue, Base64.NO_WRAP);
+                byte[] iv = Base64.decode(ivValue, Base64.NO_WRAP);
+                byte[] passphrase = decryptWithExistingKey(iv, encrypted);
+
+                if (passphrase.length != PASSPHRASE_BYTE_LENGTH) {
+                    throw new IllegalStateException( "The stored database key has an invalid length." );
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to decrypt stored KeyStore passphrase: " + e.getMessage(), e);
+
+                return passphrase;
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "The stored database key could not be recovered. The database was not changed:\n" + e.getMessage());
+                throw new IllegalStateException( "The stored database key could not be recovered. The database was not changed.", e );
             }
         }
 
-        // 2. Check fallback storage (used in JVM test environments)
-        String fallbackBase64 = mPrefs.getString(FALLBACK_KEY_PASSPHRASE, null);
-        if (fallbackBase64 != null && !fallbackBase64.trim().isEmpty()) {
-            try {
-                byte[] decoded = Base64.decode(fallbackBase64, Base64.NO_WRAP);
-                if (decoded != null && decoded.length == PASSPHRASE_BYTE_LENGTH) {
-                    return decoded;
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to decode fallback passphrase: " + e.getMessage(), e);
-            }
+        if (databaseOrSidecarExists()) {
+            throw new IllegalStateException( "The database exists, but its stored encryption key is missing. The database was not changed." );
         }
 
-        // 3. Generate a new cryptographically random 256-bit passphrase
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] newKey = new byte[PASSPHRASE_BYTE_LENGTH];
-        secureRandom.nextBytes(newKey);
+        //  Generate a new cryptographically random 256-bit passphrase
+        byte[] passphrase = new byte[PASSPHRASE_BYTE_LENGTH];
+        new SecureRandom().nextBytes(passphrase);
 
-        savePassphraseWithKeyStore(newKey);
-        Log.i(TAG, "Successfully generated and persisted new 256-bit database encryption key in KeyStore vault.");
-        return newKey;
+        try {
+            Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
+            cipher.init(Cipher.ENCRYPT_MODE, createKeystoreKey());
+
+            byte[] iv = cipher.getIV();
+            byte[] encrypted = cipher.doFinal(passphrase);
+
+            boolean saved = sharedPrefs.edit()
+                    .putString(PASSPHRASE_IV_KEY, Base64.encodeToString(iv, Base64.NO_WRAP))
+                    .putString(PASSPHRASE_ENCRYPTED_KEY, Base64.encodeToString(encrypted, Base64.NO_WRAP))
+                    .commit();
+
+            if (!saved) {
+                throw new IllegalStateException( "Could not persist the database key." );
+            }
+
+            return passphrase;
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException |
+                 InvalidAlgorithmParameterException | NoSuchProviderException e) {
+            Log.e(TAG, "Could not securely create the database key:\n" + e.getMessage());
+            throw new IllegalStateException("Could not securely create the database key.", e );
+        }
     }
 
-    private void savePassphraseWithKeyStore(byte[] rawPassphrase) {
-        EncryptedData encryptedData = encryptWithKeyStore(rawPassphrase);
-        if (encryptedData != null) {
-            mPrefs.edit()
-                    .putString(KEY_PASSPHRASE_IV, Base64.encodeToString(encryptedData.iv(), Base64.NO_WRAP))
-                    .putString(KEY_ENCRYPTED_PASSPHRASE, Base64.encodeToString(encryptedData.ciphertext(), Base64.NO_WRAP))
-                    .apply();
-        } else {
-            // Fallback for JVM test environments where KeyStore provider is absent
-            mPrefs.edit()
-                    .putString(FALLBACK_KEY_PASSPHRASE, Base64.encodeToString(rawPassphrase, Base64.NO_WRAP))
-                    .apply();
+    private boolean databaseOrSidecarExists() {
+        File database = context.getDatabasePath(DATABASE_NAME);
+        String path = database.getAbsolutePath();
+        return database.exists() || new File(path + "-wal").exists() || new File(path + "-shm").exists();
+    }
+
+    private SecretKey createKeystoreKey() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+        try {
+            KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
+            keyStore.load(null);
+            if (keyStore.containsAlias(SECURITY_KEY_ALIAS)) {
+                KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(SECURITY_KEY_ALIAS, null);
+                if (entry != null) {
+                    return entry.getSecretKey();
+                }
+                throw new IllegalStateException("The existing Android Keystore key is unavailable.");
+            }
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException | UnrecoverableEntryException e){
+            Log.e(TAG, "The Android Keystore could not be accessed:\n" + e.getMessage());
+            throw new IllegalStateException("The Android Keystore could not be accessed.", e);
+        }
+        try {
+            return generateKeystoreKey(true);
+        } catch (StrongBoxUnavailableException unavailable) {
+            // StrongBox is optional; use Android Keystore without StrongBox.
+            Log.w(TAG, "StrongBox is not available on this device");
+            return generateKeystoreKey(false);
         }
     }
 
-    private SecretKey getOrCreateKeyStoreMasterKey() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
-        keyStore.load(null);
-        if (keyStore.containsAlias(KEY_ALIAS)) {
-            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(KEY_ALIAS, null);
-            if (entry != null) {
-                return entry.getSecretKey();
-            }
-        }
-
+    private SecretKey generateKeystoreKey(boolean useStrongBox) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES,
                 KEYSTORE_PROVIDER
         );
         KeyGenParameterSpec keyGenSpec = new KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
+                SECURITY_KEY_ALIAS,
                 KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
         )
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setKeySize(256)
                 .setRandomizedEncryptionRequired(true)
+                .setIsStrongBoxBacked(useStrongBox)
                 .build();
 
         keyGenerator.init(keyGenSpec);
@@ -179,70 +195,28 @@ public class DatabaseSecurityManager {
     }
 
     /**
-     * Encrypts the provided plaintext byte array using the Android KeyStore AES-GCM master key.
-     *
-     * @param plaintext Raw bytes to encrypt (e.g., database passphrase).
-     * @return [EncryptedData] containing the initialization vector (IV) and ciphertext, or null if KeyStore is unavailable.
-     */
-    @Nullable
-    EncryptedData encryptWithKeyStore(@NonNull byte[] plaintext) {
-        try {
-            SecretKey secretKey = getOrCreateKeyStoreMasterKey();
-            Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            byte[] iv = cipher.getIV();
-            byte[] ciphertext = cipher.doFinal(plaintext);
-            return new EncryptedData(iv, ciphertext);
-        } catch (Throwable e) {
-            Log.w(TAG, "AndroidKeyStore encryption not available (e.g. JVM/test environment): " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
      * Decrypts the provided ciphertext byte array using the Android KeyStore AES-GCM master key and IV.
      *
      * @param iv Initialization vector used during encryption.
      * @param ciphertext Encrypted data bytes.
-     * @return Decrypted raw plaintext bytes, or null if decryption fails or KeyStore is unavailable.
+     * @return Decrypted raw plaintext bytes.
      */
-    @Nullable
-    byte[] decryptWithKeyStore(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
+    private byte[] decryptWithExistingKey(@NonNull byte[] iv, @NonNull byte[] ciphertext) {
         try {
-            SecretKey secretKey = getOrCreateKeyStoreMasterKey();
+            KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
+            keyStore.load(null);
+            if (!keyStore.containsAlias(SECURITY_KEY_ALIAS)) {
+                throw new IllegalStateException("Android Keystore key is missing.");
+            }
+            SecretKey secretKey = createKeystoreKey();
             Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
             GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
             return cipher.doFinal(ciphertext);
-        } catch (Throwable e) {
-            Log.w(TAG, "AndroidKeyStore decryption not available (e.g. JVM/test environment): " + e.getMessage());
-            return null;
+        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException |
+                 NoSuchProviderException | InvalidAlgorithmParameterException | CertificateException | KeyStoreException | IOException e) {
+            Log.e(TAG, "AndroidKeyStore decryption not available (e.g. JVM/test environment):\n" + e.getMessage());
+            throw new IllegalStateException("AndroidKeyStore decryption not available (e.g. JVM/test environment)", e);
         }
-    }
-
-    /**
-     * Converts a byte array into a lowercase hex string.
-     *
-     * @param bytes Raw byte array.
-     * @return Hexadecimal representation.
-     */
-    @NonNull
-   static String bytesToHex(@Nullable byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return "";
-        }
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    /**
-     * Immutable container record holding encrypted ciphertext and its initialization vector.
-     */
-    record EncryptedData(byte[] iv, byte[] ciphertext) {
     }
 }

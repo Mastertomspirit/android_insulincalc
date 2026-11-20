@@ -427,4 +427,11 @@ Gib das Ergebnis STRENG im folgenden JSON-Format zurück (ohne Markdown Backtick
   "insulinTip": "Praktischer Hinweis für Diabetiker (z.B. Spritz-Ess-Abstand, FPE-Berechnung für verzögerten Blutzuckeranstieg durch Fett und Protein)"
 }</string>
 
+    <!-- Database Error & Recovery Dialog -->
+    <string name="dialog_db_recovery_title">Datenbank kann nicht geöffnet werden</string>
+    <string name="dialog_db_recovery_message">Der gespeicherte Datenbankschlüssel ist nicht verfügbar. Die vorhandenen lokalen Daten wurden nicht gelöscht. Du kannst ein Backup importieren oder die lokale Datenbank nach einer Bestätigung zurücksetzen.</string>
+    <string name="dialog_db_recovery_import_backup">Backup importieren</string>
+    <string name="dialog_db_recovery_reset_db">Datenbank zurücksetzen</string>
+    <string name="dialog_db_recovery_close_app">App schließen</string>
+
 </resources>

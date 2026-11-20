@@ -427,4 +427,11 @@ Return the result STRICTLY in the following JSON format (without markdown backti
   "insulinTip": "Practical advice for diabetics (e.g. pre-bolus time, FPU calculation for delayed blood glucose spikes due to fat and protein)"
 }</string>
 
+    <!-- Database Error & Recovery Dialog -->
+    <string name="dialog_db_recovery_title">Database cannot be opened</string>
+    <string name="dialog_db_recovery_message">The stored database encryption key is unavailable. Existing local data has not been deleted. You can import a backup or reset the local database after confirmation.</string>
+    <string name="dialog_db_recovery_import_backup">Import Backup</string>
+    <string name="dialog_db_recovery_reset_db">Reset Database</string>
+    <string name="dialog_db_recovery_close_app">Close App</string>
+
 </resources>
