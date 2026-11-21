@@ -64,6 +64,7 @@ import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import network.spiritscorp.viewmodel.LogMainView
 import java.util.Locale
 
 /**
@@ -78,6 +79,7 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
+    logMainView: LogMainView,
     settings: UserSettings,
     modifier: Modifier = Modifier
 ) {
@@ -308,7 +310,7 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.clearAllLogs()
+                        logMainView.clearAllLogs()
                         showResetDbDialog = false
                     },
                     modifier = Modifier.testTag("confirm_reset_all_data_button")

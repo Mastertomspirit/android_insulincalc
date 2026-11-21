@@ -85,15 +85,26 @@ class InsulinCalculatorViewModel(
     /** Public read-only StateFlow indicating whether a database initialization or access error has occurred. */
     internal val databaseError: StateFlow<Boolean> = _databaseError.asStateFlow()
 
+    private val _calculatorUiState = MutableStateFlow(createInitialCalculatorUiState())
+
+    val calculatorUiState: StateFlow<CalculatorUiState> = _calculatorUiState.asStateFlow()
+
     init {
         if (initialDatabaseError || repository == null) {
             _databaseError.value = true
         } else {
             viewModelScope.launch(Dispatchers.IO) {
-                repository?.getSettings()
+                repository?.loadSettings()
             }
         }
     }
+
+    internal val logMainView = LogMainView(
+        application = application,
+        repository = {repository},
+        calculatorStateProvider = {_calculatorUiState.value},
+        onShowToast = ::showToast
+    )
 
     /** StateFlow exposing the list of past calculation logs for the history / logbook. */
     internal var historyLogs: StateFlow<List<CalculationLog>> = (repository?.allLogs ?: flowOf(emptyList()))
@@ -446,48 +457,6 @@ class InsulinCalculatorViewModel(
     }
 
     /**
-     * Saves the current calculator state and calculation summary as a new entry in the logbook history database.
-     * Captures a full snapshot of all inputs, insulin breakdown, and optional overrides.
-     *
-     * @param notesOverride Optional override string for the calculation notes.
-     */
-    fun saveCalculationToLog(notesOverride: String? = null) {
-        // Capture full snapshot synchronously at moment of invocation
-        val state = _uiState.value
-        val summary = state.calculationSummary
-        val autoMealTitle = state.mealTitle.ifBlank {
-            "${getApplication<Application>().getString(state.selectedTimeOfDay.titleResId)} (${summary.carbGrams()}g KH)"
-        }
-        val finalNotes = notesOverride ?: state.notes
-
-        val log = CalculationLog(
-            0L,
-            System.currentTimeMillis(),
-            autoMealTitle,
-            state.carbInput.replace(',', '.').toDoubleOrNull() ?: 0.0,
-            state.selectedUnit,
-            summary.carbGrams(),
-            summary.beValue(),
-            summary.keValue(),
-            state.selectedTimeOfDay,
-            summary.factorUsed(),
-            summary.mealInsulin(),
-            summary.bloodGlucoseInput(),
-            summary.targetGlucose(),
-            state.correctionFactorInput.replace(',', '.').toDoubleOrNull(),
-            summary.correctionInsulin(),
-            summary.rawTotalInsulin(),
-            summary.roundedTotalInsulin(),
-            finalNotes
-        )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            repository?.saveCalculation(log)
-            showToast(getApplication<Application>().getString(R.string.view_model_diary_saved_toast))
-        }
-    }
-
-    /**
      * Shows a toast notification message.
      *
      * @param message Message to display.
@@ -504,33 +473,13 @@ class InsulinCalculatorViewModel(
     }
 
     /**
-     * Deletes a specific calculation log entry from the database.
-     *
-     * @param logId Unique identifier of the log entry to delete.
-     */
-    fun deleteLog(logId: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository?.deleteLog(logId)
-            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.logbook_entry_deleted_toast)) }
-        }
-    }
-
-    /** Clears all calculation logs from the database. */
-    fun clearAllLogs() {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository?.clearLogs()
-            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_logbook_cleared)) }
-        }
-    }
-
-    /**
      * Exports all user settings and calculation logs to a JSON backup string.
      *
      * @return JSON string representing the database backup.
      */
     suspend fun exportJsonBackup(): String = withContext(Dispatchers.IO) {
         val repo = repository ?: return@withContext ""
-        val settings = repo.settings
+        val settings = repo.loadSettings()
         val logs = repo.allLogsDirect
         DatabaseBackupManager(repo.userSettingsDao(), repo.calculationLogDao()).exportToJson(settings, logs)
     }
@@ -563,7 +512,7 @@ class InsulinCalculatorViewModel(
                         .stateIn( viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
                     historyLogs = (repository?.allLogs ?: flowOf(emptyList()))
                         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-                    val settings = repository?.settings
+                    val settings = repository?.loadSettings()
                     if (settings != null) {
                         cachedSettings = settings
                         recalculate(settings)
@@ -613,7 +562,7 @@ class InsulinCalculatorViewModel(
             _databaseError.value = false
             initialDatabaseError = false
             if (result.isImportedSettings) {
-                val updated = repository?.settings
+                val updated = repository?.loadSettings()
                 if (updated != null) {
                     cachedSettings = updated
                     themePreferences.savePreferences(

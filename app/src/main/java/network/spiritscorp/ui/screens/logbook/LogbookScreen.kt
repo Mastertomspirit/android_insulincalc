@@ -42,7 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -64,7 +63,8 @@ import network.spiritscorp.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.util.LogbookExportHelper
-import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import network.spiritscorp.model.GlucoseUnit
+import network.spiritscorp.viewmodel.LogMainView
 import java.util.Calendar
 
 /**
@@ -95,14 +95,16 @@ enum class HistoryFilter(@StringRes val titleRes: Int) {
  * including filtering by time period (ALL, TODAY, LAST_7, LAST_30, CUSTOM), slice navigation for "TODAY" views,
  * export/share dialogs, and empty state handling.
  *
- * @param viewModel The {@link InsulinCalculatorViewModel} handling log deletions, clear-all operations, and data state.
- * @param logs      The complete list of saved {@link CalculationLog} items available for filtering.
- * @param modifier  Optional {@link Modifier} for layout styling.
+ * @param logMainView The ViewModel managing logbook state.
+ * @param logs The list of [CalculationLog] items to be displayed.
+ * @param currentGlucoseUnit The user's preferred [GlucoseUnit] for display.
+ * @param modifier  Optional [Modifier] for layout styling.
  */
 @Composable
 fun LogbookScreen(
-    viewModel: InsulinCalculatorViewModel,
+    logMainView: LogMainView,
     logs: List<CalculationLog>,
+    currentGlucoseUnit: () -> GlucoseUnit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -203,7 +205,7 @@ fun LogbookScreen(
                     val shareChooserTitle = stringResource(R.string.logbook_share_chooser_title, filterDescription)
                     IconButton(
                         onClick = {
-                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription, viewModel.userSettings.value.glucoseUnit)
+                            val exportText = exportHelper.generateExportText(filteredLogs, filterDescription, currentGlucoseUnit())
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
                                 putExtra(Intent.EXTRA_TEXT, exportText)
@@ -326,9 +328,9 @@ fun LogbookScreen(
                 val shareSingleTitle = stringResource(R.string.logbook_share_single_title, log.mealTitle)
                 LogbookItemCard(
                     log = log,
-                    viewModel.userSettings.collectAsState().value.glucoseUnit,
+                    currentGlucoseUnit(),
                     onShareRequest = {
-                        val shareText = exportHelper.formatSingleLogShare(log, viewModel.userSettings.value.glucoseUnit)
+                        val shareText = exportHelper.formatSingleLogShare(log, currentGlucoseUnit())
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, shareText)
@@ -351,7 +353,7 @@ fun LogbookScreen(
         SingleLogDeleteDialog(
             log = targetItem,
             onConfirm = {
-                viewModel.deleteLog(targetItem.id)
+                logMainView.deleteLog(targetItem.id)
                 logToDelete = null
             },
             onDismiss = { logToDelete = null }
@@ -363,7 +365,7 @@ fun LogbookScreen(
         ClearAllLogsDialog(
             totalLogsCount = logs.size,
             onConfirm = {
-                viewModel.clearAllLogs()
+                logMainView.clearAllLogs()
                 showClearAllDialog = false
             },
             onDismiss = { showClearAllDialog = false }

@@ -179,7 +179,7 @@ public class InsulinCalculatorSystemScenarioTest {
         assertTrue(csv.contains("128.0") || (csv.contains("50.0") && csv.contains("48.0") && csv.contains("30.0")));
 
         // Step 7: Export to JSON Backup
-        UserSettings settings = repository.getSettings();
+        UserSettings settings = repository.loadSettings();
         String jsonBackup = backupManager.exportToJson(settings, allLogs);
         assertNotNull(jsonBackup);
 
@@ -330,7 +330,7 @@ public class InsulinCalculatorSystemScenarioTest {
 
         repository.saveSettings(customAiSettings);
 
-        UserSettings retrieved = repository.getSettings();
+        UserSettings retrieved = repository.loadSettings();
         assertNotNull(retrieved);
         assertEquals("AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
         assertEquals(GeminiAiModel.GEMINI_3_7_FLASH, retrieved.getSelectedAiModel());
@@ -500,7 +500,7 @@ public class InsulinCalculatorSystemScenarioTest {
         ImportResult result = backupManager.importFromJson(exportedJson);
         assertTrue(result.isSuccess());
 
-        UserSettings restoredSettings = repository.getSettings();
+        UserSettings restoredSettings = repository.loadSettings();
         assertEquals(AppTheme.OCEAN_BLUE, restoredSettings.getSelectedTheme());
         assertEquals(GlucoseUnit.MMOL_L, restoredSettings.getGlucoseUnit());
         assertTrue(restoredSettings.getGeminiApiKey().isBlank());

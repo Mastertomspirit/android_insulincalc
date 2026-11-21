@@ -284,6 +284,7 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
                     0 -> CalculatorScreen(
                         viewModel = viewModel,
                         uiState = uiState,
+                        logMainView = viewModel.logMainView,
                         onNavigateToAiEstimator = { navigateToTab(1) }
                     )
                     1 -> AiMealEstimatorScreen(
@@ -293,11 +294,13 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
                         geminiApiKey = userSettings.geminiApiKey
                     )
                     2 -> LogbookScreen(
-                        viewModel = viewModel,
-                        logs = historyLogs
+                        logMainView = viewModel.logMainView,
+                        logs = historyLogs,
+                        currentGlucoseUnit = { userSettings.glucoseUnit }
                     )
                     3 -> SettingsScreen(
                         viewModel = viewModel,
+                        logMainView = viewModel.logMainView,
                         settings = userSettings
                     )
                 }

@@ -66,7 +66,7 @@ public class InsulinRepositoryIntegrationTest {
 
     @Test
     public void testDefaultSettingsCreatedWhenNoneExist() {
-        UserSettings settings = repository.getSettings();
+        UserSettings settings = repository.loadSettings();
         assertNotNull(settings);
         assertEquals(1.50, settings.getMorningFactor(), DELTA);
         assertEquals(CarbUnit.GRAMS, settings.getDefaultCarbUnit());
@@ -102,7 +102,7 @@ public class InsulinRepositoryIntegrationTest {
 
         repository.saveSettings(custom);
 
-        UserSettings retrieved = repository.getSettings();
+        UserSettings retrieved = repository.loadSettings();
         assertEquals(1.75, retrieved.getMorningFactor(), DELTA);
         assertEquals(CarbUnit.BE, retrieved.getDefaultCarbUnit());
         assertEquals(AppTheme.SUNSET_AMBER, retrieved.getSelectedTheme());

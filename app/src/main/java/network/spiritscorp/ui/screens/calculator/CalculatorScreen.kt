@@ -36,6 +36,7 @@ import network.spiritscorp.ui.components.MedicalDisclaimerBanner
 import network.spiritscorp.ui.components.TimeOfDaySelector
 import network.spiritscorp.viewmodel.CalculatorUiState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import network.spiritscorp.viewmodel.LogMainView
 
 /**
  * Main Calculator Screen orchestrating the modular calculation cards.
@@ -57,6 +58,7 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 @Composable
 fun CalculatorScreen(
     viewModel: InsulinCalculatorViewModel,
+    logMainView: LogMainView,
     uiState: CalculatorUiState,
     onNavigateToAiEstimator: () -> Unit,
     modifier: Modifier = Modifier
@@ -97,7 +99,7 @@ fun CalculatorScreen(
             uiState = uiState,
             onSaveToLogbook = {
                 closeKeyboard()
-                viewModel.saveCalculationToLog()
+                logMainView.saveCalculationToLog()
                 viewModel.clearAllCalculatorInputs()
             }
         )
