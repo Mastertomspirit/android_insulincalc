@@ -109,8 +109,8 @@ class InsulinCalculatorViewModel(
 
     internal val aiViewModel = AiViewModel(
         application = application,
-        geminiAiModel = userSettings.value.selectedAiModel,
-        geminiApiKey = userSettings.value.geminiApiKey,
+        geminiAiModel = {userSettings.value.selectedAiModel},
+        geminiApiKey = {userSettings.value.geminiApiKey},
         onUpdateSettings = {
             geminiAiModel: GeminiAiModel, geminiApiKey: String ->
                 viewModelScope.launch {

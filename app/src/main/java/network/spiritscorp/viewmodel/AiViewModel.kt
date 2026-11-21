@@ -45,8 +45,8 @@ import java.util.Locale
  */
 internal class AiViewModel(
     application: Application,
-    private var geminiAiModel: GeminiAiModel,
-    private var geminiApiKey: String,
+    private var geminiAiModel: () -> GeminiAiModel,
+    private var geminiApiKey: () -> String,
     private val onUpdateSettings: (geminiAiModel: GeminiAiModel, geminiApiKey: String) -> Unit,
     private val onApplyEstimateToCalculator: (formattedCarbs: String, mealName: String, notesText: String) -> Unit,
     ) : AndroidViewModel(application) {
@@ -75,8 +75,8 @@ internal class AiViewModel(
         viewModelScope.launch {
             val result = geminiMealService.estimateCarbsFromDescription(
                 foodDescription = description,
-                customApiKey = geminiApiKey,
-                selectedModel = geminiAiModel
+                customApiKey = geminiApiKey(),
+                selectedModel = geminiAiModel()
             )
             result.onSuccess { data ->
                 _aiState.value = AiEstimateState.Success(data)
@@ -93,8 +93,6 @@ internal class AiViewModel(
      * @param geminiAiModel Selected [GeminiAiModel].
      */
     internal fun saveAiConfiguration(geminiApiKey: String, geminiAiModel: GeminiAiModel ) {
-        this.geminiAiModel = geminiAiModel
-        this.geminiApiKey = geminiApiKey
         onUpdateSettings(geminiAiModel, geminiApiKey.trim())
     }
 
