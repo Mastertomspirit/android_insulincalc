@@ -17,7 +17,6 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -40,18 +39,16 @@ public interface CalculationLogDao {
      *
      * @return A cold Kotlin {@link Flow} emitting a list of {@link CalculationLog} items whenever the table changes.
      */
-    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
-    Flow<List<CalculationLog>> getAllLogs();
+    @NotNull Flow<@NotNull List<@NotNull CalculationLog>> getAllLogs();
 
     /**
      * Retrieves a snapshot of all calculation log entries ordered chronologically descending by creation timestamp.
      *
      * @return A list of all stored {@link CalculationLog} entries.
      */
-    @NonNull
     @Query("SELECT * FROM calculation_logs ORDER BY timestamp DESC")
-    List<CalculationLog> getAllLogsDirect();
+    @NotNull List<@NotNull CalculationLog> getAllLogsDirect();
 
     /**
      * Inserts or updates a single CalculationLog entry.
