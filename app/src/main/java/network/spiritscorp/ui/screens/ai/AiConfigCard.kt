@@ -79,7 +79,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import network.spiritscorp.BuildConfig
 import network.spiritscorp.ai.GeminiAiModel
-import network.spiritscorp.model.UserSettings
 import androidx.core.net.toUri
 
 /**
@@ -89,33 +88,30 @@ import androidx.core.net.toUri
  * from a dropdown menu, view the current configuration status, and open Google AI Studio
  * to obtain an API key.
  *
- * @param userSettings The current {@link UserSettings} object loaded from the database.
- * @param onSaveConfig Callback invoked when the user saves new configuration settings (apiKey, modelId).
- * @param modifier     Optional {@link Modifier} for styling and layout positioning.
+ * @param geminiAiModel The currently selected [GeminiAiModel] for AI requests.
+ * @param geminiApiKey  The stored Gemini API key string (empty if not yet configured).
+ * @param onSaveConfig  Callback invoked when the user saves new configuration settings (`apiKey`, `modelId`).
+ * @param modifier      Optional [Modifier] for styling and layout positioning.
  */
 @Composable
 fun AiConfigCard(
-    userSettings: UserSettings?,
+    geminiAiModel: GeminiAiModel,
+    geminiApiKey: String,
     onSaveConfig: (apiKey: String, modelId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
 
-    val savedApiKey = userSettings?.geminiApiKey ?: ""
-    val savedModelId = userSettings?.selectedAiModel ?: GeminiAiModel.GEMINI_3_5_FLASH_LITE
-
-    var apiKeyInput by remember { mutableStateOf(savedApiKey) }
-    var selectedModel by remember { mutableStateOf(savedModelId) }
+    var selectedModel by remember { mutableStateOf(geminiAiModel) }
+    var apiKeyInput by remember { mutableStateOf(geminiApiKey) }
     var showApiKey by remember { mutableStateOf(false) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    // Sync state when userSettings load from DB
-    LaunchedEffect(userSettings) {
-        if (userSettings != null) {
-            apiKeyInput = userSettings.geminiApiKey
-            selectedModel = userSettings.selectedAiModel
-        }
+    // Sync state when Model or Api Key load from DB
+    LaunchedEffect(geminiAiModel, geminiApiKey) {
+        selectedModel = geminiAiModel
+        apiKeyInput = geminiApiKey
     }
 
     val hasCustomKey = apiKeyInput.isNotBlank()

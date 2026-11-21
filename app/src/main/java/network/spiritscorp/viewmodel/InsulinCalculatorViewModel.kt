@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.spiritscorp.R
 import network.spiritscorp.ai.GeminiAiModel
-import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.data.AppDatabase
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.data.DatabaseRestoreManager
@@ -78,15 +77,13 @@ class InsulinCalculatorViewModel(
     )
 
     private val _databaseError = MutableStateFlow(repository == null || initialDatabaseError)
-    private val geminiService = GeminiMealService(application)
     private val themePreferences = ThemePreferences(application)
     private val disclaimerPreferences = DisclaimerPreferences(application)
     private var cachedSettings: UserSettings = UserSettings()
     private val _uiState = MutableStateFlow( createInitialUiState(showDisclaimerBanner = disclaimerPreferences.shouldShowDisclaimer()) )
-    private val _aiState = MutableStateFlow<AiEstimateState>(AiEstimateState.Idle)
 
     /** Public read-only StateFlow indicating whether a database initialization or access error has occurred. */
-    val databaseError: StateFlow<Boolean> = _databaseError.asStateFlow()
+    internal val databaseError: StateFlow<Boolean> = _databaseError.asStateFlow()
 
     init {
         if (initialDatabaseError || repository == null) {
@@ -99,19 +96,43 @@ class InsulinCalculatorViewModel(
     }
 
     /** StateFlow exposing the list of past calculation logs for the history / logbook. */
-    var historyLogs: StateFlow<List<CalculationLog>> = (repository?.allLogs ?: flowOf(emptyList()))
+    internal var historyLogs: StateFlow<List<CalculationLog>> = (repository?.allLogs ?: flowOf(emptyList()))
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** StateFlow exposing current user settings (insulin factors, targets, etc.). */
-    var userSettings: StateFlow<UserSettings> = (repository?.settingsFlow ?: flowOf(null))
+    internal var userSettings: StateFlow<UserSettings> = (repository?.settingsFlow ?: flowOf(null))
         .map { it ?: UserSettings() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserSettings())
 
     /** Public read-only StateFlow representing the calculator UI state. */
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
-    /** Public read-only StateFlow representing AI estimation state. */
-    val aiState: StateFlow<AiEstimateState> = _aiState.asStateFlow()
+    internal val aiViewModel = AiViewModel(
+        application = application,
+        geminiAiModel = userSettings.value.selectedAiModel,
+        geminiApiKey = userSettings.value.geminiApiKey,
+        onUpdateSettings = {
+            geminiAiModel: GeminiAiModel, geminiApiKey: String ->
+                viewModelScope.launch {
+                    val updated = userSettings.value.copy()
+                    updated.geminiApiKey = geminiApiKey.trim()
+                    updated.selectedAiModel = geminiAiModel
+                    updateUserSettings(updated)
+            }
+        },
+        onApplyEstimateToCalculator = {
+                    formattedCarbs: String, mealName: String, notesText: String ->
+            _uiState.update {
+                it.copy(
+                    carbInput = formattedCarbs,
+                    mealTitle = mealName,
+                    notes = notesText,
+                )
+            }
+            recalculate()
+            setTab(0)
+        },
+    )
 
     init {
         viewModelScope.launch {
@@ -462,7 +483,7 @@ class InsulinCalculatorViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             repository?.saveCalculation(log)
-            _uiState.update { it.copy(toastMessage = getApplication<Application>().getString(R.string.view_model_diary_saved_toast)) }
+            showToast(getApplication<Application>().getString(R.string.view_model_diary_saved_toast))
         }
     }
 
@@ -645,77 +666,6 @@ class InsulinCalculatorViewModel(
             )
         }
         recalculate(settings)
-    }
-
-    /**
-     * Estimates carbohydrate values from a natural language food description using the Gemini AI service.
-     *
-     * @param description Food description string entered by the user.
-     */
-    fun estimateMealCarbs(description: String) {
-        if (description.isBlank()) return
-        _aiState.value = AiEstimateState.Loading
-        viewModelScope.launch {
-            val settings = userSettings.value
-            val result = geminiService.estimateCarbsFromDescription(
-                foodDescription = description,
-                customApiKey = settings.geminiApiKey,
-                selectedModel = settings.selectedAiModel
-            )
-            result.onSuccess { data ->
-                _aiState.value = AiEstimateState.Success(data)
-            }.onFailure { err ->
-                _aiState.value = AiEstimateState.Error(err.message ?: getApplication<Application>().getString(R.string.view_model_ai_error_generic))
-            }
-        }
-    }
-
-    /**
-     * Saves Gemini AI API key and model configuration to user settings.
-     *
-     * @param apiKey API key string.
-     * @param modelId Selected [GeminiAiModel].
-     */
-    fun saveAiConfiguration(apiKey: String, modelId: GeminiAiModel) {
-        viewModelScope.launch {
-            val current = userSettings.value
-            val updated = current.copy()
-            updated.geminiApiKey = apiKey.trim()
-            updated.selectedAiModel = modelId
-            updateUserSettings(updated)
-        }
-    }
-
-    /**
-     * Applies estimated carbohydrates and meal details from AI estimation directly into the calculator inputs
-     * and switches back to the calculator tab.
-     *
-     * @param carbsGrams Estimated carbohydrate amount in grams.
-     * @param mealName Suggested meal title.
-     * @param notesText Detailed breakdown notes.
-     */
-    fun applyEstimatedCarbsToCalculator(
-        carbsGrams: Double,
-        mealName: String,
-        notesText: String
-    ) {
-        val currentUnit = _uiState.value.selectedUnit
-        val converted = currentUnit.fromGrams(carbsGrams)
-        val formatted = if (currentUnit == CarbUnit.GRAMS) {
-            converted.toInt().toString()
-        } else {
-            "%.1f".format(Locale.getDefault(), converted)
-        }
-
-        _uiState.update {
-            it.copy(
-                carbInput = formatted,
-                mealTitle = mealName,
-                notes = notesText,
-                activeTab = 0 // Switch back to calculator
-            )
-        }
-        recalculate()
     }
 
     companion object {
