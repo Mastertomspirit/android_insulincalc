@@ -71,10 +71,10 @@ class InsulinCalculatorViewModel(
         db?.let { InsulinRepository(it.calculationLogDao(), it.userSettingsDao()) }
     )
 
-    private val _databaseError = MutableStateFlow(repository == null || initialDatabaseError)
-    private val _mainUiState = MutableStateFlow(MainUiState())
-    private val themePreferences = ThemePreferences(application)
     private val disclaimerPreferences = DisclaimerPreferences(application)
+    private val _databaseError = MutableStateFlow(repository == null || initialDatabaseError)
+    private val _mainUiState = MutableStateFlow(MainUiState(0,null,disclaimerPreferences.shouldShowDisclaimer()))
+    private val themePreferences = ThemePreferences(application)
 
     init {
         if (initialDatabaseError || repository == null) {
@@ -162,11 +162,8 @@ class InsulinCalculatorViewModel(
                 calculatorMainView.onTargetGlucoseChange(targetStr)
                 calculatorMainView.onCorrectionFactorChange(corrStr)
                 calculatorMainView.selectTimeOfDay(TimeOfDay.current())
-                _mainUiState.update { current ->
-                    current.copy(
-                        showDisclaimerBanner = disclaimerPreferences.shouldShowDisclaimer()
-                    )
-                }
+                cachedSettings.isShowDisclaimer = _mainUiState.value.showDisclaimerBanner
+
             }
         }
     }

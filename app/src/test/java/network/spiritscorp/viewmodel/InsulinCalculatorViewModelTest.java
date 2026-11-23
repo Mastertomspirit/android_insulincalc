@@ -106,7 +106,8 @@ public class InsulinCalculatorViewModelTest {
         // Dismiss disclaimer in preferences first
         insulinCalculatorViewModel.dismissDisclaimer$app();
 
+        //      SharedPrefs alive a new instances
         InsulinCalculatorViewModel newInsulinCalculatorViewModel = new InsulinCalculatorViewModel(app, mockRepo);
-        assertTrue("Banner should immediately be true in initial StateFlow value when preference was dismissed", newInsulinCalculatorViewModel.getMainUiState$app().getValue().getShowDisclaimerBanner());
+        assertFalse("Banner should immediately be false in initial StateFlow value when preference was dismissed", newInsulinCalculatorViewModel.getMainUiState$app().getValue().getShowDisclaimerBanner());
     }
 }
