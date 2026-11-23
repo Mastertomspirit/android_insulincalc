@@ -79,7 +79,7 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
  * @param onToggleExpand        Callback invoked to toggle section expansion.
  */
 @Composable
-fun BackupRestoreSection(
+internal fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
     onShowResetDbDialog: () -> Unit,
     modifier: Modifier = Modifier,

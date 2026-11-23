@@ -67,7 +67,8 @@ import kotlin.math.abs
 @Composable
 internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     // Collect UI state, AI state, history logs, settings and DB error status from ViewModel
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val mainUiState by viewModel.mainUiState.collectAsStateWithLifecycle()
+    val calculatorUiState by viewModel.calculatorMainView.calculatorUiState.collectAsStateWithLifecycle()
     val aiState by viewModel.aiViewModel.aiState.collectAsStateWithLifecycle()
     val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
@@ -76,7 +77,7 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     // Pager state to manage tab swipes and navigation
-    val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
+    val pagerState = rememberPagerState(initialPage = mainUiState.activeTab, pageCount = { 4 })
     val context = LocalContext.current
 
     // Launcher for file selection to import database backups
@@ -115,7 +116,7 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.onResume()
+                viewModel.calculatorMainView.onResume()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -125,21 +126,21 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     }
 
     // Show toast messages triggered by UI events
-    LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let { message ->
+    LaunchedEffect(mainUiState.toastMessage) {
+        mainUiState.toastMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.clearToast()
         }
     }
 
     // Sync tab selection from ViewModel to pager
-    LaunchedEffect(uiState.activeTab) {
-        if (pagerState.currentPage != uiState.activeTab) {
-            val distance = abs(pagerState.currentPage - uiState.activeTab)
+    LaunchedEffect(mainUiState.activeTab) {
+        if (pagerState.currentPage != mainUiState.activeTab) {
+            val distance = abs(pagerState.currentPage - mainUiState.activeTab)
             if (distance <= 1) {
-                pagerState.animateScrollToPage(uiState.activeTab)
+                pagerState.animateScrollToPage(mainUiState.activeTab)
             } else {
-                pagerState.scrollToPage(uiState.activeTab)
+                pagerState.scrollToPage(mainUiState.activeTab)
             }
         }
     }
@@ -147,7 +148,7 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     // Sync current page from pager back to ViewModel
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { settledPage ->
-            if (uiState.activeTab != settledPage) {
+            if (mainUiState.activeTab != settledPage) {
                 viewModel.setTab(settledPage)
             }
         }
@@ -283,8 +284,9 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
                 when (tabIndex) {
                     0 -> CalculatorScreen(
                         viewModel = viewModel,
-                        uiState = uiState,
+                        calculatorMainView = viewModel.calculatorMainView,
                         logMainView = viewModel.logMainView,
+                        uiState = calculatorUiState,
                         onNavigateToAiEstimator = { navigateToTab(1) }
                     )
                     1 -> AiMealEstimatorScreen(

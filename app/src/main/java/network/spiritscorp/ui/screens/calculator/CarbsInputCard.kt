@@ -76,7 +76,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
-fun CarbsInputCard(
+internal fun CarbsInputCard(
     uiState: CalculatorUiState,
     onCarbInputChange: (String) -> Unit,
     onClearCarbs: () -> Unit,

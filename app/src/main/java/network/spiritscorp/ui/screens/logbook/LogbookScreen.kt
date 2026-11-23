@@ -73,7 +73,7 @@ import java.util.Calendar
  * @param titleRes Resource ID pointing to the localized display string.
  *                 This decouples the enum from Android Context while guaranteeing full i18n support.
  */
-enum class HistoryFilter(@StringRes val titleRes: Int) {
+internal enum class HistoryFilter(@StringRes val titleRes: Int) {
     ALL(R.string.history_filter_all),
     TODAY(R.string.history_filter_today),
     DAYS_7(R.string.history_filter_7_days),
@@ -101,7 +101,7 @@ enum class HistoryFilter(@StringRes val titleRes: Int) {
  * @param modifier  Optional [Modifier] for layout styling.
  */
 @Composable
-fun LogbookScreen(
+internal fun LogbookScreen(
     logMainView: LogMainView,
     logs: List<CalculationLog>,
     currentGlucoseUnit: () -> GlucoseUnit,

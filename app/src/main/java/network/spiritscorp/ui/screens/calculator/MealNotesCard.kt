@@ -79,7 +79,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
-fun MealNotesCard(
+internal fun MealNotesCard(
     uiState: CalculatorUiState,
     onMealTitleChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,

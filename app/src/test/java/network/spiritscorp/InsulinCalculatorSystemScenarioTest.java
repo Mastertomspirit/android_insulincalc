@@ -56,6 +56,9 @@ public class InsulinCalculatorSystemScenarioTest {
     private InsulinRepositoryIntegrationTest.FakeUserSettingsDao fakeSettingsDao;
     private InsulinRepository repository;
 
+    /**
+     * Initializes fake DAOs and repository for end-to-end scenario testing.
+     */
     @Before
     public void setup() {
         fakeLogDao = new InsulinRepositoryIntegrationTest.FakeCalculationLogDao();
@@ -63,6 +66,9 @@ public class InsulinCalculatorSystemScenarioTest {
         repository = new InsulinRepository(fakeLogDao, fakeSettingsDao);
     }
 
+    /**
+     * Verifies a complete daily diabetes management journey including settings, meal logging, and backups.
+     */
     @Test
     public void testFullDayDiabetesManagementJourney() {
         // Step 1: User configures insulin parameters
@@ -162,50 +168,53 @@ public class InsulinCalculatorSystemScenarioTest {
 
         // Step 5: Verify Logbook state & total statistics
         List<CalculationLog> allLogs = repository.getAllLogsDirect();
-        assertEquals(3, allLogs.size());
+        assertEquals("Logbook count incorrect", 3, allLogs.size());
 
         double totalCarbsToday = allLogs.stream().mapToDouble(CalculationLog::getCarbGrams).sum();
-        assertEquals(128.0, totalCarbsToday, DELTA);
+        assertEquals("Total carbs sum incorrect", 128.0, totalCarbsToday, DELTA);
 
         double totalInsulinToday = allLogs.stream().mapToDouble(CalculationLog::getRoundedInsulin).sum();
-        assertEquals(16.5, totalInsulinToday, DELTA);
+        assertEquals("Total insulin sum incorrect", 16.5, totalInsulinToday, DELTA);
 
         // Step 6: Export to CSV and verify all 3 meals are included
         DatabaseBackupManager backupManager = new DatabaseBackupManager();
         String csv = backupManager.exportToCsv(allLogs);
-        assertTrue(csv.contains("Frühstück: Haferflocken mit Beeren"));
-        assertTrue(csv.contains("Mittagessen: Reisgericht"));
-        assertTrue(csv.contains("Abendessen: Vollkornbrot & Salat"));
-        assertTrue(csv.contains("128.0") || (csv.contains("50.0") && csv.contains("48.0") && csv.contains("30.0")));
+        assertTrue("CSV export should contain breakfast title", csv.contains("Frühstück: Haferflocken mit Beeren"));
+        assertTrue("CSV export should contain lunch title", csv.contains("Mittagessen: Reisgericht"));
+        assertTrue("CSV export should contain dinner title", csv.contains("Abendessen: Vollkornbrot & Salat"));
+        assertTrue("CSV export should contain carb totals", csv.contains("128.0") || (csv.contains("50.0") && csv.contains("48.0") && csv.contains("30.0")));
 
         // Step 7: Export to JSON Backup
         UserSettings settings = repository.loadSettings();
         String jsonBackup = backupManager.exportToJson(settings, allLogs);
-        assertNotNull(jsonBackup);
+        assertNotNull("JSON backup string must not be null", jsonBackup);
 
         // Step 8: Simulate clearing database (e.g. device switch / reset)
         repository.clearLogs();
         List<CalculationLog> clearedLogs = repository.getAllLogsDirect();
-        assertEquals(0, clearedLogs.size());
+        assertEquals("Cleared logs count must be zero", 0, clearedLogs.size());
 
         // Step 9: Restore database from JSON Backup
         Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(jsonBackup);
-        assertNotNull(parsed);
+        assertNotNull("Parsed JSON result must not be null", parsed);
         UserSettings restoredSettings = parsed.getFirst();
         List<CalculationLog> restoredLogs = parsed.getSecond();
 
-        assertNotNull(restoredSettings);
-        assertEquals(1.6, restoredSettings.getMorningFactor(), DELTA);
+        assertNotNull("Restored settings must not be null", restoredSettings);
+        assertEquals("Restored morning factor incorrect", 1.6, restoredSettings.getMorningFactor(), DELTA);
 
         repository.saveSettings(restoredSettings);
         repository.saveLogs(restoredLogs);
 
         List<CalculationLog> restoredDbLogs = repository.getAllLogsDirect();
-        assertEquals(3, restoredDbLogs.size());
-        assertEquals(128.0, restoredDbLogs.stream().mapToDouble(CalculationLog::getCarbGrams).sum(), DELTA);
-        assertEquals(16.5, restoredDbLogs.stream().mapToDouble(CalculationLog::getRoundedInsulin).sum(), DELTA);
+        assertEquals("Restored logs count incorrect", 3, restoredDbLogs.size());
+        assertEquals("Restored total carbs incorrect", 128.0, restoredDbLogs.stream().mapToDouble(CalculationLog::getCarbGrams).sum(), DELTA);
+        assertEquals("Restored total insulin incorrect", 16.5, restoredDbLogs.stream().mapToDouble(CalculationLog::getRoundedInsulin).sum(), DELTA);
     }
 
+    /**
+     * Verifies integration between AI meal nutrition estimation and bolus calculation workflows.
+     */
     @Test
     public void testAiMealEstimationToBolusCalculationIntegration() {
         // Given estimated meal from AI
@@ -246,12 +255,15 @@ public class InsulinCalculatorSystemScenarioTest {
                 "KI-geschätzte Mahlzeit (Fettverzögerung beachten)"
         );
 
-        assertEquals("Pizza Margherita mit Rucola", log.getMealTitle());
-        assertEquals(85.0, log.getCarbGrams(), DELTA);
-        assertEquals(10.0, log.getRoundedInsulin(), DELTA);
-        assertTrue(log.getNotes().contains("KI-geschätzte"));
+        assertEquals("AI meal title incorrect", "Pizza Margherita mit Rucola", log.getMealTitle());
+        assertEquals("AI meal carb grams incorrect", 85.0, log.getCarbGrams(), DELTA);
+        assertEquals("AI meal rounded insulin incorrect", 10.0, log.getRoundedInsulin(), DELTA);
+        assertTrue("AI notes tag missing", log.getNotes().contains("KI-geschätzte"));
     }
 
+    /**
+     * Verifies hypoglycemia safety warning scenarios and dose reductions during low blood glucose.
+     */
     @Test
     public void testHypoglycemiaSafetyWarningScenario() {
         // Patient has blood glucose of 55 mg/dl (hypoglycemia threshold < 70)
@@ -270,9 +282,12 @@ public class InsulinCalculatorSystemScenarioTest {
 
         assertTrue("Negative correction should reduce bolus", negativeCorrection < 0);
         assertTrue("Total insulin should remain non-negative", totalInsulin >= 0);
-        assertEquals(2.875, totalInsulin, DELTA);
+        assertEquals("Total insulin calculation incorrect for hypo scenario", 2.875, totalInsulin, DELTA);
     }
 
+    /**
+     * Verifies correct logging and retrieval of custom meal titles and notes.
+     */
     @Test
     public void testMealTitleAndNotesLoggingScenario() {
         CalculationLog customLog = new CalculationLog(
@@ -300,13 +315,16 @@ public class InsulinCalculatorSystemScenarioTest {
 
         List<CalculationLog> allLogs = repository.getAllLogsDirect();
 
-        assertEquals(1, allLogs.size());
+        assertEquals("Log count must be 1", 1, allLogs.size());
         CalculationLog retrieved = allLogs.getFirst();
-        assertEquals("Abendessen im Restaurant", retrieved.getMealTitle());
-        assertEquals("Vorher 30 Min Spaziergang gemacht, Sensorwert stabil", retrieved.getNotes());
-        assertEquals(6.5, retrieved.getRoundedInsulin(), DELTA);
+        assertEquals("Retrieved meal title incorrect", "Abendessen im Restaurant", retrieved.getMealTitle());
+        assertEquals("Retrieved notes incorrect", "Vorher 30 Min Spaziergang gemacht, Sensorwert stabil", retrieved.getNotes());
+        assertEquals("Retrieved rounded insulin incorrect", 6.5, retrieved.getRoundedInsulin(), DELTA);
     }
 
+    /**
+     * Verifies AI configuration, model selection, and secure handling during backup and restore.
+     */
     @Test
     public void testAiConfigurationAndModelSelectionScenario() {
         UserSettings customAiSettings = new UserSettings(
@@ -331,23 +349,27 @@ public class InsulinCalculatorSystemScenarioTest {
         repository.saveSettings(customAiSettings);
 
         UserSettings retrieved = repository.loadSettings();
-        assertNotNull(retrieved);
-        assertEquals("AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
-        assertEquals(GeminiAiModel.GEMINI_3_7_FLASH, retrieved.getSelectedAiModel());
+        assertNotNull("Retrieved settings must not be null", retrieved);
+        assertEquals("Retrieved API key incorrect", "AIzaSyTestCustomKey12345", retrieved.getGeminiApiKey());
+        assertEquals("Retrieved AI model incorrect", GeminiAiModel.GEMINI_3_7_FLASH, retrieved.getSelectedAiModel());
 
         // Test export & restore of AI settings
         DatabaseBackupManager backupManager = new DatabaseBackupManager();
         String json = backupManager.exportToJson(retrieved, java.util.Collections.emptyList());
-        assertFalse(json.contains("AIzaSyTestCustomKey12345"));
-        assertTrue(json.contains(GeminiAiModel.GEMINI_3_7_FLASH.name()));
+        assertNotNull("Exported JSON must not be null", json);
+        assertFalse("Exported JSON must not contain raw API key", json.contains("AIzaSyTestCustomKey12345"));
+        assertTrue("Exported JSON must contain AI model name", json.contains(GeminiAiModel.GEMINI_3_7_FLASH.name()));
 
         Pair<UserSettings, List<CalculationLog>> parsed = backupManager.parseJson(json);
-        assertNotNull(parsed);
-        assertNotNull(parsed.getFirst());
-        assertTrue(parsed.getFirst().getGeminiApiKey().isBlank());
-        assertEquals(GeminiAiModel.GEMINI_3_7_FLASH, parsed.getFirst().getSelectedAiModel());
+        assertNotNull("Parsed backup result must not be null", parsed);
+        assertNotNull("Parsed settings must not be null", parsed.getFirst());
+        assertTrue("Parsed API key should be scrubbed/blank", parsed.getFirst().getGeminiApiKey().isBlank());
+        assertEquals("Parsed AI model incorrect", GeminiAiModel.GEMINI_3_7_FLASH, parsed.getFirst().getSelectedAiModel());
     }
 
+    /**
+     * Verifies saving and clearing all fields scenario in calculator and logbook.
+     */
     @Test
     public void testSaveAndClearAllFieldsScenario() {
         // Given a user enters carbs, blood glucose, meal title, and notes
@@ -379,11 +401,14 @@ public class InsulinCalculatorSystemScenarioTest {
         repository.saveCalculation(log);
 
         List<CalculationLog> logs = repository.getAllLogsDirect();
-        assertEquals(1, logs.size());
-        assertEquals("Abendessen: Lasagne", logs.getFirst().getMealTitle());
-        assertEquals("Vor dem Essen gemessen", logs.getFirst().getNotes());
+        assertEquals("Logs count must be 1", 1, logs.size());
+        assertEquals("Saved meal title incorrect", "Abendessen: Lasagne", logs.getFirst().getMealTitle());
+        assertEquals("Saved notes incorrect", "Vor dem Essen gemessen", logs.getFirst().getNotes());
     }
 
+    /**
+     * Verifies keyboard input persistence and calculation snapshot correctness during save operations.
+     */
     @Test
     public void testKeyboardInputPersistenceDuringSaveScenario() {
 
@@ -429,17 +454,21 @@ public class InsulinCalculatorSystemScenarioTest {
 
         // Verify stored entity is NOT 0
         List<CalculationLog> logs = repository.getAllLogsDirect();
-        assertEquals(1, logs.size());
+        assertEquals("Logs count must be 1", 1, logs.size());
         CalculationLog saved = logs.getFirst();
-        assertEquals(48.0, saved.getRawCarbInput(), DELTA);
-        assertEquals(48.0, saved.getCarbGrams(), DELTA);
-        assertEquals(7.0, saved.getMealInsulin(), DELTA);
-        assertEquals(140.0, saved.getBloodGlucose(), DELTA);
-        assertEquals(8.0, saved.getTotalInsulin(), DELTA);
-        assertEquals(8.0, saved.getRoundedInsulin(), DELTA);
-        assertEquals("Müsli & Banane", saved.getMealTitle());
+        assertEquals("Saved raw carb input incorrect", 48.0, saved.getRawCarbInput(), DELTA);
+        assertEquals("Saved carb grams incorrect", 48.0, saved.getCarbGrams(), DELTA);
+        assertEquals("Saved meal insulin incorrect", 7.0, saved.getMealInsulin(), DELTA);
+        assertNotNull("Saved blood glucose must not be null", saved.getBloodGlucose());
+        assertEquals("Saved blood glucose incorrect", 140.0, saved.getBloodGlucose(), DELTA);
+        assertEquals("Saved total insulin incorrect", 8.0, saved.getTotalInsulin(), DELTA);
+        assertEquals("Saved rounded insulin incorrect", 8.0, saved.getRoundedInsulin(), DELTA);
+        assertEquals("Saved meal title incorrect", "Müsli & Banane", saved.getMealTitle());
     }
 
+    /**
+     * Verifies end-to-end full JSON database backup export and restore functionality.
+     */
     @Test
     public void testFullJsonBackupAndRestoreE2E() {
         UserSettings initialSettings = new UserSettings(
@@ -486,28 +515,28 @@ public class InsulinCalculatorSystemScenarioTest {
 
         DatabaseBackupManager backupManager = new DatabaseBackupManager(fakeSettingsDao, fakeLogDao);
         String exportedJson = backupManager.exportToJson();
-        assertNotNull(exportedJson);
-        assertTrue(exportedJson.contains("OCEAN_BLUE"));
-        assertTrue(exportedJson.contains("Haferflocken & Heidelbeeren"));
-        assertFalse(exportedJson.contains("key-xyz"));
+        assertNotNull("Exported JSON must not be null", exportedJson);
+        assertTrue("Exported JSON must contain theme", exportedJson.contains("OCEAN_BLUE"));
+        assertTrue("Exported JSON must contain meal title", exportedJson.contains("Haferflocken & Heidelbeeren"));
+        assertFalse("Exported JSON must not contain API key", exportedJson.contains("key-xyz"));
 
         // Clear database
         repository.saveSettings(new UserSettings());
         repository.clearLogs();
-        assertEquals(0, repository.getAllLogsDirect().size());
+        assertEquals("Database should be empty after clear", 0, repository.getAllLogsDirect().size());
 
         // Import
         ImportResult result = backupManager.importFromJson(exportedJson);
-        assertTrue(result.isSuccess());
+        assertTrue("Import result must be successful", result.isSuccess());
 
         UserSettings restoredSettings = repository.loadSettings();
-        assertEquals(AppTheme.OCEAN_BLUE, restoredSettings.getSelectedTheme());
-        assertEquals(GlucoseUnit.MMOL_L, restoredSettings.getGlucoseUnit());
-        assertTrue(restoredSettings.getGeminiApiKey().isBlank());
+        assertEquals("Restored theme incorrect", AppTheme.OCEAN_BLUE, restoredSettings.getSelectedTheme());
+        assertEquals("Restored glucose unit incorrect", GlucoseUnit.MMOL_L, restoredSettings.getGlucoseUnit());
+        assertTrue("Restored API key should be blank", restoredSettings.getGeminiApiKey().isBlank());
 
         List<CalculationLog> restoredLogs = repository.getAllLogsDirect();
-        assertEquals(1, restoredLogs.size());
-        assertEquals("Haferflocken & Heidelbeeren", restoredLogs.getFirst().getMealTitle());
-        assertEquals("Sensor leicht steigend", restoredLogs.getFirst().getNotes());
+        assertEquals("Restored logs count must be 1", 1, restoredLogs.size());
+        assertEquals("Restored meal title incorrect", "Haferflocken & Heidelbeeren", restoredLogs.getFirst().getMealTitle());
+        assertEquals("Restored notes incorrect", "Sensor leicht steigend", restoredLogs.getFirst().getNotes());
     }
 }

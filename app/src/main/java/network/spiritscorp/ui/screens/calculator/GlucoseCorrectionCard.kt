@@ -82,7 +82,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
-fun GlucoseCorrectionCard(
+internal fun GlucoseCorrectionCard(
     uiState: CalculatorUiState,
     onToggleCorrection: () -> Unit,
     onGlucoseInputChange: (String) -> Unit,

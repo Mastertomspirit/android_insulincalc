@@ -73,7 +73,7 @@ import network.spiritscorp.ui.theme.AppTheme
  * @param onToggleExpand       Callback invoked to toggle section expansion.
  */
 @Composable
-fun AppearanceSection(
+internal fun AppearanceSection(
     selectedTheme: AppTheme,
     onThemeSelected: (AppTheme) -> Unit,
     themeMode: AppTheme.Mode,

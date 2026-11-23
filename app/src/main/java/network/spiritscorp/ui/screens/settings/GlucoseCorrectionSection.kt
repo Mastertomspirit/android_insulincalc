@@ -74,7 +74,7 @@ import network.spiritscorp.model.GlucoseUnit
  * @param onToggleExpand           Callback invoked to toggle section expansion.
  */
 @Composable
-fun GlucoseCorrectionSection(
+internal fun GlucoseCorrectionSection(
     glucoseUnit: GlucoseUnit,
     onGlucoseUnitChange: (GlucoseUnit) -> Unit,
     targetGlucose: String,

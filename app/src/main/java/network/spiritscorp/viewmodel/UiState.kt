@@ -53,7 +53,7 @@ internal data class MainUiState(
  * @property notes Optional free-text notes associated with the meal or calculation.
  * @property calculationSummary Detailed results object ([CalculationSummary]) holding insulin dosages and breakdown.
  */
-internal data class CalculatorUiStateNew(
+internal data class CalculatorUiState(
         val carbInput: String = "",
         val selectedUnit: CarbUnit = CarbUnit.GRAMS,
         val selectedTimeOfDay: TimeOfDay = TimeOfDay.current(),

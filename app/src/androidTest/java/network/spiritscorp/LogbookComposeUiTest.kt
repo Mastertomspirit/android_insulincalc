@@ -111,6 +111,10 @@ class LogbookComposeUiTest {
             .performScrollTo()
             .assertIsDisplayed("Save to Logbook button should be visible")
             .performClick()
+
+        // Wait a moment for db transactions
+        Thread.sleep(100)
+
     }
 
     @Test

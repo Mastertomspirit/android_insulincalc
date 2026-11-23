@@ -68,7 +68,7 @@ import kotlin.math.abs
  * @param onShareRequest Callback invoked when the user requests sharing of this log entry (e.g., via Share Intent).
  */
 @Composable
-fun LogbookItemCard(
+internal fun LogbookItemCard(
     log: CalculationLog,
     //TODO:  Workaround  use GlucoseUnit from log
     glucoseUnit: network.spiritscorp.model.GlucoseUnit,

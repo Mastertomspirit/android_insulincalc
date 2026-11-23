@@ -67,7 +67,7 @@ import network.spiritscorp.R
  * @param onToggle   Optional callback invoked when the header is clicked to toggle visibility.
  */
 @Composable
-fun SettingsSectionHeader(
+internal fun SettingsSectionHeader(
     icon: ImageVector,
     title: String,
     subtitle: String,
@@ -142,7 +142,7 @@ fun SettingsSectionHeader(
  * @param tagPrefix      Unique test tag prefix for UI test automation.
  */
 @Composable
-fun FactorRow(
+internal fun FactorRow(
     title: String,
     subtitle: String,
     icon: ImageVector,

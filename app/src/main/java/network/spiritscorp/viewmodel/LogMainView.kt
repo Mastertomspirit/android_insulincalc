@@ -35,13 +35,14 @@ import network.spiritscorp.model.CalculationLog
  *
  * @param application The Android application context used for string resources.
  * @param repository Provider lambda supplying the [InsulinRepository] instance or null if unavailable.
- * @param calculatorStateProvider Provider lambda supplying the current [CalculatorUiState].
+ * @param calculatorUiState Provider lambda supplying the current [CalculatorUiState].
  * @param onShowToast Callback lambda invoked to display transient toast notification messages.
  */
-class LogMainView(
+internal class LogMainView(
     application: Application,
+//    todo: replace with dbviewmain.save
     private val repository: () -> InsulinRepository?,
-    private val calculatorStateProvider: () -> CalculatorUiState,
+    private val calculatorUiState: () -> CalculatorUiState,
     private val onShowToast: (String) -> Unit,
 ) : AndroidViewModel(application) {
 
@@ -52,7 +53,7 @@ class LogMainView(
      * @param notesOverride Optional override string for meal notes.
      */
     internal fun saveCalculationToLog(notesOverride: String? = null) {
-        val state = calculatorStateProvider()
+        val state = calculatorUiState()
         val summary = state.calculationSummary
         val autoMealTitle = state.mealTitle.ifBlank {
             "${application.getString(state.selectedTimeOfDay.titleResId)} (${summary.carbGrams()}g KH)"
@@ -80,11 +81,9 @@ class LogMainView(
             finalNotes
         )
 
-        val deferredResult: Deferred<Long> = viewModelScope.async(Dispatchers.IO) {
-            repository()?.saveCalculation(log) ?: -1L
-        }
-        viewModelScope.launch {
-            if(deferredResult.await() > 1){
+        viewModelScope.launch(Dispatchers.IO) {
+            val deferredResult: Long = repository()?.saveCalculation(log) ?: -1L
+            if(deferredResult > 1){
                 onShowToast(application.getString(R.string.view_model_diary_saved_toast))
             }
         }
@@ -97,11 +96,9 @@ class LogMainView(
      * @param logId ID of the log entry to delete.
      */
     internal fun deleteLog(logId: Long) {
-        val deferredResult: Deferred<Boolean> = viewModelScope.async(Dispatchers.IO) {
-            repository()?.deleteLog(logId) ?: false
-        }
-        viewModelScope.launch {
-            if(deferredResult.await()){
+        viewModelScope.launch(Dispatchers.IO) {
+            val deferredResult: Boolean = repository()?.deleteLog(logId) ?: false
+            if(deferredResult){
                 onShowToast(application.getString(R.string.logbook_entry_deleted_toast))
             }
         }
@@ -112,11 +109,9 @@ class LogMainView(
      * and triggers a success toast message upon successful clearance.
      */
     internal fun clearAllLogs() {
-        val deferredResult: Deferred<Boolean> = viewModelScope.async(Dispatchers.IO) {
-            repository()?.clearLogs() ?: false
-        }
-        viewModelScope.launch {
-            if(deferredResult.await()){
+        viewModelScope.launch(Dispatchers.IO) {
+            val deferredResult: Boolean = repository()?.clearLogs() ?: false
+            if(deferredResult){
                 onShowToast(application.getString(R.string.view_model_logbook_cleared))
             }
         }

@@ -20,6 +20,8 @@ package network.spiritscorp.viewmodel
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import network.spiritscorp.R
 import network.spiritscorp.data.InsulinRepository
@@ -41,8 +43,8 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
+import kotlin.collections.mutableListOf
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -52,16 +54,18 @@ import kotlin.time.Duration.Companion.milliseconds
  * correct toast notifications, and repository interactions using Mockito ArgumentCaptor and JUnit 5 assertions.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
-class LogMainViewTest {
+internal class LogMainViewTest {
 
     private lateinit var app: Application
     private lateinit var repository: InsulinRepository
+    private lateinit var toastMessages: MutableList<String>
 
     @Before
     fun setUp() {
         app = ApplicationProvider.getApplicationContext()
         repository = mock(InsulinRepository::class.java)
+
+        toastMessages = mutableListOf()
 
         `when`(repository.clearLogs()).thenReturn(true)
         `when`(repository.deleteLog(any(Long::class.java))).thenReturn(true)
@@ -74,15 +78,11 @@ class LogMainViewTest {
      */
     @Test
     fun testInitialInstantiationAndState() {
-        // Given a mock repository, state provider, and toast collector
-        val calculatorStateProvider = { createInitialUiState() }
-        val toastMessages = mutableListOf<String>()
-
         // When instantiating LogMainView
         val logMainView = LogMainView(
             application = app,
             repository = { repository },
-            calculatorStateProvider = calculatorStateProvider,
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -120,19 +120,21 @@ class LogMainViewTest {
             false,
             ""
         )
-        val uiState = CalculatorUiState(
-            carbInput = "50",
-            selectedUnit = CarbUnit.GRAMS,
-            selectedTimeOfDay = TimeOfDay.NOON,
-            mealTitle = "Test Lunch",
-            notes = "Test notes",
-            calculationSummary = summary
-        )
-        val toastMessages = mutableListOf<String>()
+        val uiState = MutableStateFlow(createInitialCalculatorUiState())
+        uiState.update {
+            it.copy(
+                carbInput = "50",
+                selectedUnit = CarbUnit.GRAMS,
+                selectedTimeOfDay = TimeOfDay.NOON,
+                mealTitle = "Test Lunch",
+                notes = "Test notes",
+                calculationSummary = summary
+            )
+        }
         val logMainView = LogMainView(
             application = app,
             repository = { repository },
-            calculatorStateProvider = { uiState },
+            calculatorUiState = { uiState.value },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -164,13 +166,10 @@ class LogMainViewTest {
      */
     @Test
     fun testSaveCalculationToLogWithNullRepository() = runBlocking {
-        // Given a null repository provider and initial state
-        val uiState = createInitialUiState()
-        val toastMessages = mutableListOf<String>()
         val logMainView = LogMainView(
             application = app,
             repository = { null },
-            calculatorStateProvider = { uiState },
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -196,11 +195,10 @@ class LogMainViewTest {
     fun testDeleteLogWithValidRepository() = runBlocking {
         // Given a valid repository and a specific log ID to delete
         val logId = 98765L
-        val toastMessages = mutableListOf<String>()
         val logMainView = LogMainView(
             application = app,
             repository = { repository },
-            calculatorStateProvider = { createInitialUiState() },
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -228,11 +226,10 @@ class LogMainViewTest {
     fun testDeleteLogWithNullRepository() = runBlocking {
         // Given a null repository provider and log ID
         val logId = 98765L
-        val toastMessages = mutableListOf<String>()
         val logMainView = LogMainView(
             application = app,
             repository = { null },
-            calculatorStateProvider = { createInitialUiState() },
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -257,11 +254,10 @@ class LogMainViewTest {
     @Test
     fun testClearAllLogsWithValidRepository() = runBlocking {
         // Given a valid repository
-        val toastMessages = mutableListOf<String>()
         val logMainView = LogMainView(
             application = app,
             repository = { repository },
-            calculatorStateProvider = { createInitialUiState() },
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 
@@ -288,11 +284,10 @@ class LogMainViewTest {
     @Test
     fun testClearAllLogsWithNullRepository() = runBlocking {
         // Given a null repository provider
-        val toastMessages = mutableListOf<String>()
         val logMainView = LogMainView(
             application = app,
             repository = { null },
-            calculatorStateProvider = { createInitialUiState() },
+            calculatorUiState = { createInitialCalculatorUiState() },
             onShowToast = { toastMessages.add(it) }
         )
 

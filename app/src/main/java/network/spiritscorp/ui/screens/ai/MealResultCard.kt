@@ -63,9 +63,13 @@ import network.spiritscorp.ui.components.toDisplayString
 /**
  * Result display card for AI meal estimation featuring ingredient breakdown,
  * interactive portion adjustments, insulin advisory notes, and one-tap transfer to calculator.
+ *
+ * @param result   The [MealEstimateResult] containing nutritional breakdown and estimated carbs.
+ * @param onApply  Callback invoked with total carbs, meal title, and notes when transferring to calculator.
+ * @param modifier Optional [Modifier] for layout styling and constraints.
  */
 @Composable
-fun MealResultCard(
+internal fun MealResultCard(
     result: MealEstimateResult,
     onApply: (Double, String, String) -> Unit,
     modifier: Modifier = Modifier

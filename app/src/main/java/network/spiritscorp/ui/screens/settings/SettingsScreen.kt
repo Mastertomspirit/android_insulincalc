@@ -72,12 +72,13 @@ import java.util.Locale
  * carbohydrate units, blood glucose targets/units, app theme appearance, backups,
  * and legal information.
  *
- * @param viewModel The {@link InsulinCalculatorViewModel} for database persistence and actions.
- * @param settings  The current {@link UserSettings} state loaded from Room.
- * @param modifier  Optional {@link Modifier} for layout styling and constraints.
+ * @param viewModel   The {@link InsulinCalculatorViewModel} for database persistence and actions.
+ * @param logMainView The {@link LogMainView} helper for managing logs and backups.
+ * @param settings    The current {@link UserSettings} state loaded from Room.
+ * @param modifier    Optional {@link Modifier} for layout styling and constraints.
  */
 @Composable
-fun SettingsScreen(
+internal fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
     logMainView: LogMainView,
     settings: UserSettings,

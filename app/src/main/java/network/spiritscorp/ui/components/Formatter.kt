@@ -28,7 +28,7 @@ import java.util.Locale
  * @param locale The locale to format the number for (e.g. Locale.GERMAN or Locale.US).
  * @return Formatted string representation of the number.
  */
-fun Double.toDisplayString(maxDecimals: Int = 2, locale: Locale): String {
+internal fun Double.toDisplayString(maxDecimals: Int = 2, locale: Locale): String {
     val nf = NumberFormat.getNumberInstance(locale).apply {
         maximumFractionDigits = maxDecimals
         minimumFractionDigits = 0

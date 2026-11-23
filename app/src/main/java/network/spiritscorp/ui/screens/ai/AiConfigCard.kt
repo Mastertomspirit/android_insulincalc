@@ -94,7 +94,7 @@ import androidx.core.net.toUri
  * @param modifier      Optional [Modifier] for styling and layout positioning.
  */
 @Composable
-fun AiConfigCard(
+internal fun AiConfigCard(
     geminiAiModel: GeminiAiModel,
     geminiApiKey: String,
     onSaveConfig: (apiKey: String, modelId: String) -> Unit,
