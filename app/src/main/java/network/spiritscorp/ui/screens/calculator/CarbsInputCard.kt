@@ -66,7 +66,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  * selecting active units via toggle buttons, adding quick increments, viewing live unit equivalents,
  * and providing a shortcut to launch the AI carb estimator assistant.
  *
- * @param uiState The current [CalculatorUiState] containing carb values and selected unit.
+ * @param calculatorUiState The current [CalculatorUiState] containing carb values and selected unit.
  * @param onCarbInputChange Callback invoked when the carb input text changes.
  * @param onClearCarbs Callback invoked to clear the current carb input.
  * @param onUnitSelect Callback invoked when a new carb unit ([CarbUnit]) is selected.
@@ -77,7 +77,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  */
 @Composable
 internal fun CarbsInputCard(
-    uiState: CalculatorUiState,
+    calculatorUiState: CalculatorUiState,
     onCarbInputChange: (String) -> Unit,
     onClearCarbs: () -> Unit,
     onUnitSelect: (CarbUnit) -> Unit,
@@ -151,7 +151,7 @@ internal fun CarbsInputCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = uiState.carbInput,
+                    value = calculatorUiState.carbInput,
                     onValueChange = onCarbInputChange,
                     modifier = Modifier
                         .weight(1f)
@@ -169,7 +169,7 @@ internal fun CarbsInputCard(
                         )
                     },
                     trailingIcon = {
-                        if (uiState.carbInput.isNotEmpty() && uiState.carbInput != "0") {
+                        if (calculatorUiState.carbInput.isNotEmpty() && calculatorUiState.carbInput != "0") {
                             IconButton(
                                 onClick = onClearCarbs,
                                 modifier = Modifier.testTag("clear_carb_button")
@@ -204,7 +204,7 @@ internal fun CarbsInputCard(
 
             // Unit selection (g KH, KE, BE) below input
             UnitSelectorRow(
-                selectedUnit = uiState.selectedUnit,
+                selectedUnit = calculatorUiState.selectedUnit,
                 onUnitSelect = onUnitSelect
             )
 
@@ -215,7 +215,7 @@ internal fun CarbsInputCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                val stepAmounts = when (uiState.selectedUnit) {
+                val stepAmounts = when (calculatorUiState.selectedUnit) {
                     CarbUnit.GRAMS -> listOf(5.0, 10.0, 20.0, 50.0)
                     CarbUnit.KE -> listOf(0.5, 1.0, 2.0, 5.0)
                     CarbUnit.BE -> listOf(0.5, 1.0, 2.0, 5.0)
@@ -258,7 +258,7 @@ internal fun CarbsInputCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${uiState.calculationSummary.carbGrams()} ${stringResource(CarbUnit.GRAMS.shortNameResId)}",
+                        text = "${calculatorUiState.calculationSummary.carbGrams()} ${stringResource(CarbUnit.GRAMS.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -267,7 +267,7 @@ internal fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.keValue()} ${stringResource(CarbUnit.KE.shortNameResId)}",
+                        text = "${calculatorUiState.calculationSummary.keValue()} ${stringResource(CarbUnit.KE.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -276,7 +276,7 @@ internal fun CarbsInputCard(
                         color = MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = "${uiState.calculationSummary.beValue()} ${stringResource(CarbUnit.BE.shortNameResId)}",
+                        text = "${calculatorUiState.calculationSummary.beValue()} ${stringResource(CarbUnit.BE.shortNameResId)}",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurface
                     )

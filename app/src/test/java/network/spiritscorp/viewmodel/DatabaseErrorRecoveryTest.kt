@@ -63,18 +63,18 @@ class DatabaseErrorRecoveryTest {
     fun testViewModelHandlesDatabaseErrorState() {
         // Given a ViewModel initialized with a null repository (database error state)
         val viewModel = InsulinCalculatorViewModel(app, null as InsulinRepository?)
-        assertNotNull("ViewModel databaseError stateflow must not be null", viewModel.databaseError)
+        assertNotNull("ViewModel databaseError stateflow must not be null", viewModel.databaseMainView.databaseError)
 
         // Verify initial error state when created with null repository
-        assertTrue("Database error state should be true initially", viewModel.databaseError.value)
+        assertTrue("Database error state should be true initially", viewModel.databaseMainView.databaseError.value)
 
         // Clear error state
-        viewModel.clearDatabaseError()
-        assertFalse("Database error state should be false after clearing", viewModel.databaseError.value)
+        viewModel.databaseMainView.clearDatabaseError()
+        assertFalse("Database error state should be false after clearing", viewModel.databaseMainView.databaseError.value)
 
         // Trigger database error again
-        viewModel.notifyDatabaseError()
-        assertTrue("Database error state should be true after manual notification", viewModel.databaseError.value)
+        viewModel.databaseMainView.notifyDatabaseError()
+        assertTrue("Database error state should be true after manual notification", viewModel.databaseMainView.databaseError.value)
     }
 
     /**
@@ -86,7 +86,7 @@ class DatabaseErrorRecoveryTest {
         val viewModel = InsulinCalculatorViewModel(app, null as InsulinRepository?)
 
         // Then databaseError should be true to signal error recovery UI
-        assertTrue("Database error state must be true when repository is null on creation", viewModel.databaseError.value)
+        assertTrue("Database error state must be true when repository is null on creation", viewModel.databaseMainView.databaseError.value)
     }
 
     /**
@@ -108,9 +108,9 @@ class DatabaseErrorRecoveryTest {
         val viewModel = InsulinCalculatorViewModel(app, repo)
 
         // Then database error state must be false and stateflows active
-        assertFalse("Database error state must be false when a valid repository is provided", viewModel.databaseError.value)
-        assertNotNull("User settings stateflow must not be null", viewModel.userSettings)
-        assertNotNull("History logs stateflow must not be null", viewModel.historyLogs)
+        assertFalse("Database error state must be false when a valid repository is provided", viewModel.databaseMainView.databaseError.value)
+        assertNotNull("User settings stateflow must not be null", viewModel.cachedSettings)
+        assertNotNull("History logs stateflow must not be null", viewModel.databaseMainView.historyLogs)
     }
 
     /**
@@ -120,15 +120,15 @@ class DatabaseErrorRecoveryTest {
     fun testDatabaseErrorStateFlowEmissionsAndRecoveryFlow() = runTest {
         // Given a ViewModel in error state
         val viewModel = InsulinCalculatorViewModel(app, null as InsulinRepository?)
-        assertTrue("Initial state must indicate database error", viewModel.databaseError.value)
+        assertTrue("Initial state must indicate database error", viewModel.databaseMainView.databaseError.value)
 
         // When clearing database error
-        viewModel.clearDatabaseError()
-        assertFalse("StateFlow must emit false after clearDatabaseError", viewModel.databaseError.value)
+        viewModel.databaseMainView.clearDatabaseError()
+        assertFalse("StateFlow must emit false after clearDatabaseError", viewModel.databaseMainView.databaseError.value)
 
         // When re-notifying database error
-        viewModel.notifyDatabaseError()
-        assertTrue("StateFlow must emit true after notifyDatabaseError", viewModel.databaseError.value)
+        viewModel.databaseMainView.notifyDatabaseError()
+        assertTrue("StateFlow must emit true after notifyDatabaseError", viewModel.databaseMainView.databaseError.value)
     }
 
     /**
@@ -162,10 +162,10 @@ class DatabaseErrorRecoveryTest {
                 // Verify ViewModel and database error value at the end of onCreate / activity launch flow
                 val viewModel = ViewModelProvider(activity)[InsulinCalculatorViewModel::class.java]
                 assertNotNull("Activity ViewModel must not be null", viewModel)
-                assertNotNull("ViewModel databaseError stateflow must not be null", viewModel.databaseError)
+                assertNotNull("ViewModel databaseError stateflow must not be null", viewModel.databaseMainView.databaseError)
 
                 // Normal startup flow with a valid database must result in databaseError == false
-                assertFalse("Database error value must be false during normal MainActivity startup flow", viewModel.databaseError.value)
+                assertFalse("Database error value must be false during normal MainActivity startup flow", viewModel.databaseMainView.databaseError.value)
             }
 
             scenario.close()

@@ -53,7 +53,7 @@ import androidx.compose.runtime.collectAsState
  * - [MealNotesCard] for optional meal title and notes
  *
  * @param viewModel The [InsulinCalculatorViewModel] holding calculator business logic.
- * @param uiState The current [CalculatorUiState] representing input values and results.
+ * @param calculatorUiState The current [CalculatorUiState] representing input values and results.
  * @param onNavigateToAiEstimator Callback to trigger navigation to the AI carb estimator screen.
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
@@ -62,7 +62,7 @@ internal fun CalculatorScreen(
     viewModel: InsulinCalculatorViewModel,
     calculatorMainView: CalculatorMainView,
     logMainView: LogMainView,
-    uiState: CalculatorUiState,
+    calculatorUiState: CalculatorUiState,
     onNavigateToAiEstimator: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -99,7 +99,7 @@ internal fun CalculatorScreen(
 
         // 2. Hero Calculation Result Display & Save to Logbook
         CalculationResultHeroCard(
-            uiState = uiState,
+            uiState = calculatorUiState,
             onSaveToLogbook = {
                 closeKeyboard()
                 logMainView.saveCalculationToLog()
@@ -109,7 +109,7 @@ internal fun CalculatorScreen(
 
         // 3. Carbohydrate Input Card
         CarbsInputCard(
-            uiState = uiState,
+            calculatorUiState = calculatorUiState,
             onCarbInputChange = { calculatorMainView.onCarbInputChange(it) },
             onClearCarbs = {
                 closeKeyboard()
@@ -132,9 +132,9 @@ internal fun CalculatorScreen(
 
         // 4. Time of Day Selector & Active Factor
         TimeOfDaySelector(
-            selectedTimeOfDay = uiState.selectedTimeOfDay,
-            effectiveFactor = uiState.calculationSummary.factorUsed(),
-            isAutoDetected = uiState.isAutoTimeDetection,
+            selectedTimeOfDay = calculatorUiState.selectedTimeOfDay,
+            effectiveFactor = calculatorUiState.calculationSummary.factorUsed(),
+            isAutoDetected = calculatorUiState.isAutoTimeDetection,
             onSelect = {
                 closeKeyboard()
                 calculatorMainView.selectTimeOfDay(it)
@@ -151,7 +151,7 @@ internal fun CalculatorScreen(
 
         // 5. Expandable Blood Glucose Correction Card
         GlucoseCorrectionCard(
-            uiState = uiState,
+            uiState = calculatorUiState,
             onToggleCorrection = {
                 closeKeyboard()
                 calculatorMainView.toggleCorrection()
@@ -164,7 +164,7 @@ internal fun CalculatorScreen(
 
         // 6. Expandable Meal Title & Notes Card
         MealNotesCard(
-            uiState = uiState,
+            uiState = calculatorUiState,
             onMealTitleChange = { calculatorMainView.onMealTitleChange(it) },
             onNotesChange = { calculatorMainView.onNotesChange(it) },
             onDoneKeyboard = { closeKeyboard() }

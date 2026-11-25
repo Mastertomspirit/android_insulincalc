@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // Collect user settings reactively from ViewModel
-            val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+            val userSettings by viewModel.cachedSettings.collectAsStateWithLifecycle()
             val themeEnum = userSettings.selectedTheme ?: initialSavedTheme
             val modeEnum = userSettings.themeMode ?: initialSavedMode
 

@@ -102,7 +102,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.GRAMS);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.MORNING);
@@ -134,7 +134,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.BE);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.NOON);
@@ -168,7 +168,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.BE);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.EVENING);
@@ -207,7 +207,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.GRAMS);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.NIGHT);
@@ -246,7 +246,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.BE);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.NOON);
@@ -285,7 +285,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.55, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MMOL_L,
                 6.7, 2.8, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.KE);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.EVENING);
@@ -325,7 +325,7 @@ public class CalculatorEngineStateTest {
                 1, 1.50, 1.00, 1.20, 0.80, CarbUnit.GRAMS, 12, GlucoseUnit.MG_DL,
                 120.0, 50.0, 0.5, true, AppTheme.MEDICAL_TEAL, AppTheme.Mode.SYSTEM, "", GeminiAiModel.GEMINI_3_1_FLASH_LITE
         );
-        viewModel.updateUserSettings(settings);
+        viewModel.getDatabaseMainView$app().updateUserSettings$app(settings);
 
         calculatorMainView.setCarbUnit$app(CarbUnit.GRAMS);
         calculatorMainView.selectTimeOfDay$app(TimeOfDay.MORNING);

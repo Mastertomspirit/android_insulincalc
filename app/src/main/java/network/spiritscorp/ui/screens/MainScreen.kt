@@ -70,9 +70,9 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     val mainUiState by viewModel.mainUiState.collectAsStateWithLifecycle()
     val calculatorUiState by viewModel.calculatorMainView.calculatorUiState.collectAsStateWithLifecycle()
     val aiState by viewModel.aiViewModel.aiState.collectAsStateWithLifecycle()
-    val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
-    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-    val isDatabaseError by viewModel.databaseError.collectAsStateWithLifecycle()
+    val historyLogs by viewModel.databaseMainView.historyLogs.collectAsStateWithLifecycle()
+    val cachedSettings by viewModel.databaseMainView.cachedSettings.collectAsStateWithLifecycle()
+    val isDatabaseError by viewModel.databaseMainView.databaseError.collectAsStateWithLifecycle()
 
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -89,7 +89,7 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
             val content = backupManager.readTextFromUri(context, it)
             if (content != null) {
                 coroutineScope.launch {
-                    viewModel.importBackupContent(content)
+                    viewModel.databaseMainView.importBackupContent(content)
                 }
             }
         }
@@ -99,11 +99,11 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
     if (isDatabaseError) {
         DatabaseRecoveryDialog(
             onImportBackup = {
-                viewModel.resetDatabase()
+                viewModel.databaseMainView.resetDatabase()
                 backupImportLauncher.launch("*/*")
             },
             onResetDatabase = {
-                viewModel.resetDatabase()
+                viewModel.databaseMainView.resetDatabase()
             },
             onCloseApp = {
                 (context as? Activity)?.finish()
@@ -286,24 +286,24 @@ internal fun MainScreen(viewModel: InsulinCalculatorViewModel) {
                         viewModel = viewModel,
                         calculatorMainView = viewModel.calculatorMainView,
                         logMainView = viewModel.logMainView,
-                        uiState = calculatorUiState,
+                        calculatorUiState = calculatorUiState,
                         onNavigateToAiEstimator = { navigateToTab(1) }
                     )
                     1 -> AiMealEstimatorScreen(
                         aiViewModel = viewModel.aiViewModel,
                         aiState = aiState,
-                        geminiAiModel = userSettings.selectedAiModel,
-                        geminiApiKey = userSettings.geminiApiKey
+                        geminiAiModel = cachedSettings.selectedAiModel,
+                        geminiApiKey = cachedSettings.geminiApiKey
                     )
                     2 -> LogbookScreen(
                         logMainView = viewModel.logMainView,
                         logs = historyLogs,
-                        currentGlucoseUnit = { userSettings.glucoseUnit }
+                        currentGlucoseUnit = { cachedSettings.glucoseUnit }
                     )
                     3 -> SettingsScreen(
                         viewModel = viewModel,
                         logMainView = viewModel.logMainView,
-                        settings = userSettings
+                        settings = cachedSettings
                     )
                 }
             }

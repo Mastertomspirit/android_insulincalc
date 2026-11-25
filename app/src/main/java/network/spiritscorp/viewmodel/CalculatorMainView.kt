@@ -176,7 +176,8 @@ internal class CalculatorMainView(
      * Handles current blood glucose text input changes, sanitizing input and triggering recalculation.
      *
      * @param input Raw input string for current blood glucose.
-     */    internal fun onGlucoseInputChange(input: String) {
+     */
+    internal fun onGlucoseInputChange(input: String) {
         val sanitized = sanitize(input)
         _calculatorUiState.update { it.copy(currentGlucoseInput = sanitized) }
         recalculate()

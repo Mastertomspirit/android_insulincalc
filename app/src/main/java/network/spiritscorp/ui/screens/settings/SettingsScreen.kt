@@ -266,7 +266,7 @@ internal fun SettingsScreen(
                 updated.roundingStep = roundingStep
                 updated.selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL
                 updated.themeMode = themeMode ?: AppTheme.Mode.SYSTEM
-                viewModel.updateUserSettings(updated)
+                viewModel.databaseMainView.updateUserSettings(updated)
                 focusManager.clearFocus()
                 keyboardController?.hide()
             },

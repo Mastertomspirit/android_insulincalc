@@ -84,14 +84,6 @@ internal data class CalculatorUiState(
 )
 
 /**
- * UI state for database health and recovery dialogs, managed by [DatabaseMainView].
- */
-internal data class DatabaseUiState(
-        val databaseError: Boolean = false,
-        val isProcessingBackup: Boolean = false
-)
-
-/**
  * Helper function to instantiate the initial [CalculatorUiState] with default values
  * based on the current time of day and default insulin factor.
  *
