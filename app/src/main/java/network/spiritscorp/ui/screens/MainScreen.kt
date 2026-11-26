@@ -43,7 +43,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.ui.components.DatabaseRecoveryDialog
 import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen

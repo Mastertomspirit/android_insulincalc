@@ -40,7 +40,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.util.DateTimeUtils

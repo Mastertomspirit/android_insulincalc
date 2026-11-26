@@ -41,8 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
-import network.spiritscorp.BuildConfig
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.BuildConfig
+import network.spiritscorp.insulincalc.R
 
 /**
  * Settings section composable displaying legal disclaimers regarding medical calculations,

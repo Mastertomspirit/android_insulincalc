@@ -28,6 +28,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import network.spiritscorp.data.AppDatabase
+import network.spiritscorp.insulincalc.R
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

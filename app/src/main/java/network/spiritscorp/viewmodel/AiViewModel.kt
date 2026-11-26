@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.ai.GeminiMealService
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.model.CarbUnit

@@ -50,7 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.ui.theme.AlertRed
 import network.spiritscorp.ui.theme.InfoBlue
 import network.spiritscorp.viewmodel.CalculatorUiState

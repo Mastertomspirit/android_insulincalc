@@ -23,7 +23,7 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.data.InsulinRepository
 import network.spiritscorp.model.CalculationLog
 

@@ -73,11 +73,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import network.spiritscorp.BuildConfig
+import network.spiritscorp.insulincalc.BuildConfig
 import network.spiritscorp.ai.GeminiAiModel
 import androidx.core.net.toUri
 

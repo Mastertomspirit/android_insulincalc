@@ -63,7 +63,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.data.DatabaseBackupManager
 import network.spiritscorp.util.DateTimeUtils
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
