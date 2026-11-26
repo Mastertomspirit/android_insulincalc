@@ -42,7 +42,7 @@ import network.spiritscorp.R
  * @param onCloseApp Callback invoked when the user chooses to exit the application.
  */
 @Composable
-fun DatabaseRecoveryDialog(
+internal fun DatabaseRecoveryDialog(
     onImportBackup: () -> Unit,
     onResetDatabase: () -> Unit,
     onCloseApp: () -> Unit,

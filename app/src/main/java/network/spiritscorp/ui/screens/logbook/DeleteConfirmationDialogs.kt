@@ -55,7 +55,7 @@ import network.spiritscorp.util.DateTimeUtils
  * @param onDismiss Callback invoked when the dialog is dismissed (user clicks cancel or outside).
  */
 @Composable
-fun SingleLogDeleteDialog(
+internal fun SingleLogDeleteDialog(
     log: CalculationLog,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
@@ -125,7 +125,7 @@ fun SingleLogDeleteDialog(
  * @param onDismiss Callback invoked when the dialog is dismissed without action.
  */
 @Composable
-fun ClearAllLogsDialog(
+internal fun ClearAllLogsDialog(
     totalLogsCount: Int,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit

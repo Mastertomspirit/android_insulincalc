@@ -143,10 +143,10 @@ class DatabaseRecoveryUiTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val viewModel = InsulinCalculatorViewModel(context.applicationContext as Application)
 
-        val settings = viewModel.userSettings.value
+        val settings = viewModel.cachedSettings.value
         assertNotNull("User settings should be initialized after database reset", settings)
 
-        val logs = viewModel.historyLogs.value
+        val logs = viewModel.databaseMainView.historyLogs.value
         assertNotNull("History logs list should be initialized after database reset", logs)
         assertTrue("History logs list should be empty after database reset", logs.isEmpty())
         scenario.close()

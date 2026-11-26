@@ -69,6 +69,9 @@ class AiComposeUiTest {
             .assertIsDisplayed("AI API key input field should be visible when config card is expanded")
             .performTextInput(TEST_API_KEY)
 
+        // Wait on slow startup devices
+        Thread.sleep(2000)
+
         // 4. Save configuration
         composeTestRule.onNodeWithTag(TAG_SAVE_CONFIG_BUTTON)
             .performScrollTo()

@@ -74,7 +74,7 @@ import network.spiritscorp.R
  * @param modifier Optional {@link Modifier} for layout positioning and styling.
  */
 @Composable
-fun LogbookFilterBar(
+internal fun LogbookFilterBar(
     selectedFilter: HistoryFilter,
     onFilterSelected: (HistoryFilter) -> Unit,
     offsetIndex: Int,

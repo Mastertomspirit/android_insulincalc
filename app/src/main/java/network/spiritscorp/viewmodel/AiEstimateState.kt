@@ -27,7 +27,7 @@ sealed interface AiEstimateState {
     object Idle : AiEstimateState
     /** Loading state while communicating with the Gemini AI model. */
     object Loading : AiEstimateState
-    /** Success state containing the parsed [network.spiritscorp.ai.MealEstimateResult]. */
+    /** Success state containing the parsed [MealEstimateResult]. */
     data class Success(val result: MealEstimateResult) : AiEstimateState
     /** Error state containing failure details. */
     data class Error(val message: String) : AiEstimateState

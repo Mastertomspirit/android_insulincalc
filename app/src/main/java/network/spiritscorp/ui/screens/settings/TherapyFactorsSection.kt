@@ -80,7 +80,7 @@ import network.spiritscorp.ui.theme.NoonColor
  * @param onToggleExpand Callback to toggle the expand state of the settings section.
  */
 @Composable
-fun TherapyFactorsSection(
+internal fun TherapyFactorsSection(
     morningFactor: Double,
     onMorningFactorChange: (Double) -> Unit,
     noonFactor: Double,

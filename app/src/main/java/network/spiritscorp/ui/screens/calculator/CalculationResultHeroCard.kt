@@ -68,7 +68,7 @@ import network.spiritscorp.viewmodel.CalculatorUiState
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
-fun CalculationResultHeroCard(
+internal fun CalculationResultHeroCard(
     uiState: CalculatorUiState,
     onSaveToLogbook: () -> Unit,
     modifier: Modifier = Modifier

@@ -48,7 +48,7 @@ import network.spiritscorp.R
  * @param modifier Optional {@link Modifier} for layout styling and positioning.
  */
 @Composable
-fun LogbookStatsHeader(
+internal fun LogbookStatsHeader(
     totalCarbs: Double,
     totalInsulin: Double,
     entryCount: Int,

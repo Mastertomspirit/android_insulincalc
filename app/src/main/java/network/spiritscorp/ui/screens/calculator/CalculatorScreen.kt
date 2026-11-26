@@ -34,8 +34,11 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.ui.components.MedicalDisclaimerBanner
 import network.spiritscorp.ui.components.TimeOfDaySelector
+import network.spiritscorp.viewmodel.CalculatorMainView
 import network.spiritscorp.viewmodel.CalculatorUiState
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import network.spiritscorp.viewmodel.LogMainView
+import androidx.compose.runtime.collectAsState
 
 /**
  * Main Calculator Screen orchestrating the modular calculation cards.
@@ -50,14 +53,16 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
  * - [MealNotesCard] for optional meal title and notes
  *
  * @param viewModel The [InsulinCalculatorViewModel] holding calculator business logic.
- * @param uiState The current [CalculatorUiState] representing input values and results.
+ * @param calculatorUiState The current [CalculatorUiState] representing input values and results.
  * @param onNavigateToAiEstimator Callback to trigger navigation to the AI carb estimator screen.
  * @param modifier Optional [Modifier] for configuring layout behavior.
  */
 @Composable
-fun CalculatorScreen(
+internal fun CalculatorScreen(
     viewModel: InsulinCalculatorViewModel,
-    uiState: CalculatorUiState,
+    calculatorMainView: CalculatorMainView,
+    logMainView: LogMainView,
+    calculatorUiState: CalculatorUiState,
     onNavigateToAiEstimator: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -83,7 +88,7 @@ fun CalculatorScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // 1. Optional Medical Disclaimer Banner
-        if (uiState.showDisclaimerBanner) {
+        if (viewModel.mainUiState.collectAsState().value.showDisclaimerBanner) {
             MedicalDisclaimerBanner(
                 onDismiss = {
                     closeKeyboard()
@@ -94,29 +99,29 @@ fun CalculatorScreen(
 
         // 2. Hero Calculation Result Display & Save to Logbook
         CalculationResultHeroCard(
-            uiState = uiState,
+            uiState = calculatorUiState,
             onSaveToLogbook = {
                 closeKeyboard()
-                viewModel.saveCalculationToLog()
-                viewModel.clearAllCalculatorInputs()
+                logMainView.saveCalculationToLog()
+                calculatorMainView.clearAllCalculatorInputs()
             }
         )
 
         // 3. Carbohydrate Input Card
         CarbsInputCard(
-            uiState = uiState,
-            onCarbInputChange = { viewModel.onCarbInputChange(it) },
+            calculatorUiState = calculatorUiState,
+            onCarbInputChange = { calculatorMainView.onCarbInputChange(it) },
             onClearCarbs = {
                 closeKeyboard()
-                viewModel.clearCarbs()
+                calculatorMainView.clearCarbs()
             },
             onUnitSelect = {
                 closeKeyboard()
-                viewModel.setUnit(it)
+                calculatorMainView.setCarbUnit(it)
             },
             onQuickAdd = {
                 closeKeyboard()
-                viewModel.addCarbs(it)
+                calculatorMainView.addCarbs(it)
             },
             onNavigateToAiEstimator = {
                 closeKeyboard()
@@ -127,41 +132,41 @@ fun CalculatorScreen(
 
         // 4. Time of Day Selector & Active Factor
         TimeOfDaySelector(
-            selectedTimeOfDay = uiState.selectedTimeOfDay,
-            effectiveFactor = uiState.calculationSummary.factorUsed(),
-            isAutoDetected = uiState.isAutoTimeDetection,
+            selectedTimeOfDay = calculatorUiState.selectedTimeOfDay,
+            effectiveFactor = calculatorUiState.calculationSummary.factorUsed(),
+            isAutoDetected = calculatorUiState.isAutoTimeDetection,
             onSelect = {
                 closeKeyboard()
-                viewModel.selectTimeOfDay(it)
+                calculatorMainView.selectTimeOfDay(it)
             },
             onAdjustFactor = {
                 closeKeyboard()
-                viewModel.adjustFactor(it)
+                calculatorMainView.adjustFactor(it)
             },
             onResetAuto = {
                 closeKeyboard()
-                viewModel.resetToAutoTime()
+                calculatorMainView.resetToAutoTime()
             }
         )
 
         // 5. Expandable Blood Glucose Correction Card
         GlucoseCorrectionCard(
-            uiState = uiState,
+            uiState = calculatorUiState,
             onToggleCorrection = {
                 closeKeyboard()
-                viewModel.toggleCorrection()
+                calculatorMainView.toggleCorrection()
             },
-            onGlucoseInputChange = { viewModel.onGlucoseInputChange(it) },
-            onTargetGlucoseChange = { viewModel.onTargetGlucoseChange(it) },
-            onCorrectionFactorChange = { viewModel.onCorrectionFactorChange(it) },
+            onGlucoseInputChange = { calculatorMainView.onGlucoseInputChange(it) },
+            onTargetGlucoseChange = { calculatorMainView.onTargetGlucoseChange(it) },
+            onCorrectionFactorChange = { calculatorMainView.onCorrectionFactorChange(it) },
             onDoneKeyboard = { closeKeyboard() }
         )
 
         // 6. Expandable Meal Title & Notes Card
         MealNotesCard(
-            uiState = uiState,
-            onMealTitleChange = { viewModel.onMealTitleChange(it) },
-            onNotesChange = { viewModel.onNotesChange(it) },
+            uiState = calculatorUiState,
+            onMealTitleChange = { calculatorMainView.onMealTitleChange(it) },
+            onNotesChange = { calculatorMainView.onNotesChange(it) },
             onDoneKeyboard = { closeKeyboard() }
         )
 

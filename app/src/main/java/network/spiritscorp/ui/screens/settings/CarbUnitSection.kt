@@ -73,7 +73,7 @@ import network.spiritscorp.R
  * @param onToggleExpand Callback to toggle the expand state of the settings section.
  */
 @Composable
-fun CarbUnitSection(
+internal fun CarbUnitSection(
     defaultCarbUnit: CarbUnit,
     onDefaultCarbUnitChange: (CarbUnit) -> Unit,
     beDivisor: Int,

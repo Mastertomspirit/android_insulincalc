@@ -68,32 +68,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import network.spiritscorp.R
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import network.spiritscorp.ai.GeminiAiModel
+import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.viewmodel.AiEstimateState
+import network.spiritscorp.viewmodel.AiViewModel
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
 /**
  * Main screen composable for AI-powered meal estimation using Gemini models.
  * <p>
  * Provides a user interface to input meal descriptions, select quick example queries,
- * configure API credentials via {@link AiConfigCard}, trigger carb estimations,
- * and view structured estimation results (`MealResultCard`).
+ * configure API credentials via [AiConfigCard], trigger carb estimations,
+ * and view structured estimation results ([MealResultCard]).
  *
- * @param viewModel The {@link InsulinCalculatorViewModel} handling state and API requests.
- * @param aiState   The current {@link AiEstimateState} (Idle, Loading, Success, Error).
- * @param modifier  Optional {@link Modifier} for styling and layout positioning.
+ * @param aiViewModel   The [AiViewModel] handling AI estimation logic and configuration updates.
+ * @param aiState       The current [AiEstimateState] (Idle, Loading, Success, Error).
+ * @param geminiAiModel The currently selected [GeminiAiModel] used for meal estimations.
+ * @param geminiApiKey  The stored Gemini API key string (empty if not yet configured).
+ * @param modifier      Optional [Modifier] for styling and layout positioning.
  */
 @Composable
-fun AiMealEstimatorScreen(
-    viewModel: InsulinCalculatorViewModel,
+internal fun AiMealEstimatorScreen(
+    aiViewModel: AiViewModel,
     aiState: AiEstimateState,
+    geminiAiModel: GeminiAiModel,
+    geminiApiKey: String,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
     var inputQuery by rememberSaveable { mutableStateOf("") }
 
     val closeKeyboard = {
@@ -168,9 +172,10 @@ fun AiMealEstimatorScreen(
 
         // AI Configuration Card (API Key & Model Selection)
         AiConfigCard(
-            userSettings = userSettings,
+            geminiAiModel = geminiAiModel,
+            geminiApiKey = geminiApiKey,
             onSaveConfig = { apiKey, modelId ->
-                viewModel.saveAiConfiguration(apiKey, GeminiAiModel.fromModelId(modelId))
+                aiViewModel.saveAiConfiguration(apiKey, GeminiAiModel.fromModelId(modelId))
             }
         )
 
@@ -202,7 +207,7 @@ fun AiMealEstimatorScreen(
                     keyboardActions = KeyboardActions(
                         onSearch = {
                             closeKeyboard()
-                            viewModel.estimateMealCarbs(inputQuery)
+                            aiViewModel.estimateMeal(inputQuery)
                         }
                     ),
                     maxLines = 3
@@ -214,7 +219,7 @@ fun AiMealEstimatorScreen(
                 Button(
                     onClick = {
                         closeKeyboard()
-                        viewModel.estimateMealCarbs(inputQuery)
+                        aiViewModel.estimateMeal(inputQuery)
                     },
                     enabled = inputQuery.isNotBlank() && aiState !is AiEstimateState.Loading,
                     modifier = Modifier
@@ -230,8 +235,7 @@ fun AiMealEstimatorScreen(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        val activeModel = userSettings.selectedAiModel
-                        Text(stringResource(R.string.ai_estimator_button_analyzing, stringResource(activeModel.displayName)))
+                        Text(stringResource(R.string.ai_estimator_button_analyzing, stringResource(geminiAiModel.displayName)))
                     } else {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
@@ -267,7 +271,7 @@ fun AiMealEstimatorScreen(
                                 .clickable {
                                     closeKeyboard()
                                     inputQuery = example
-                                    viewModel.estimateMealCarbs(example)
+                                    aiViewModel.estimateMeal(example)
                                 }
                                 .testTag("quick_example_chip"),
                             shape = RoundedCornerShape(8.dp),
@@ -320,7 +324,12 @@ fun AiMealEstimatorScreen(
                 MealResultCard(
                     result = aiState.result,
                     onApply = { carbs, name, notes ->
-                        viewModel.applyEstimatedCarbsToCalculator(carbs, name, notes)
+                        aiViewModel.applyEstimatedCarbsToCalculator(
+                            carbs,
+                            name,
+                            notes,
+                            CarbUnit.GRAMS
+                        )
                     }
                 )
             }

@@ -51,7 +51,7 @@ import network.spiritscorp.R
  * @param modifier Optional {@link Modifier} for layout styling.
  */
 @Composable
-fun AboutAndLegalSection(
+internal fun AboutAndLegalSection(
     modifier: Modifier = Modifier
 ) {
     Card(

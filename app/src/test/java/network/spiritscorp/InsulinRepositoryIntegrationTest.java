@@ -57,6 +57,9 @@ public class InsulinRepositoryIntegrationTest {
     private FakeUserSettingsDao fakeSettingsDao;
     private InsulinRepository repository;
 
+    /**
+     * Initializes fake DAOs and the repository instance before each test.
+     */
     @Before
     public void setup() {
         FakeCalculationLogDao fakeLogDao = new FakeCalculationLogDao();
@@ -64,21 +67,27 @@ public class InsulinRepositoryIntegrationTest {
         repository = new InsulinRepository(fakeLogDao, fakeSettingsDao);
     }
 
+    /**
+     * Verifies that default settings are automatically created and persisted when none exist.
+     */
     @Test
     public void testDefaultSettingsCreatedWhenNoneExist() {
-        UserSettings settings = repository.getSettings();
-        assertNotNull(settings);
-        assertEquals(1.50, settings.getMorningFactor(), DELTA);
-        assertEquals(CarbUnit.GRAMS, settings.getDefaultCarbUnit());
-        assertEquals(120.0, settings.getTargetGlucoseMgDl(), DELTA);
-        assertEquals(50.0, settings.getCorrectionFactorMgDl(), DELTA);
+        UserSettings settings = repository.loadSettings();
+        assertNotNull("Loaded settings must not be null", settings);
+        assertEquals("Default morning factor incorrect", 1.50, settings.getMorningFactor(), DELTA);
+        assertEquals("Default carb unit incorrect", CarbUnit.GRAMS, settings.getDefaultCarbUnit());
+        assertEquals("Default target glucose incorrect", 120.0, settings.getTargetGlucoseMgDl(), DELTA);
+        assertEquals("Default correction factor incorrect", 50.0, settings.getCorrectionFactorMgDl(), DELTA);
 
         // Verify default settings were persisted to DAO
         UserSettings direct = fakeSettingsDao.getSettingsDirect();
-        assertNotNull(direct);
-        assertEquals(1.50, direct.getMorningFactor(), DELTA);
+        assertNotNull("Direct settings from DAO must not be null", direct);
+        assertEquals("Direct morning factor incorrect", 1.50, direct.getMorningFactor(), DELTA);
     }
 
+    /**
+     * Verifies saving and retrieving custom user settings through repository and flows.
+     */
     @Test
     public void testSaveAndRetrieveCustomSettings() {
         UserSettings custom = new UserSettings(
@@ -102,16 +111,19 @@ public class InsulinRepositoryIntegrationTest {
 
         repository.saveSettings(custom);
 
-        UserSettings retrieved = repository.getSettings();
-        assertEquals(1.75, retrieved.getMorningFactor(), DELTA);
-        assertEquals(CarbUnit.BE, retrieved.getDefaultCarbUnit());
-        assertEquals(AppTheme.SUNSET_AMBER, retrieved.getSelectedTheme());
+        UserSettings retrieved = repository.loadSettings();
+        assertEquals("Retrieved morning factor incorrect", 1.75, retrieved.getMorningFactor(), DELTA);
+        assertEquals("Retrieved carb unit incorrect", CarbUnit.BE, retrieved.getDefaultCarbUnit());
+        assertEquals("Retrieved theme incorrect", AppTheme.SUNSET_AMBER, retrieved.getSelectedTheme());
 
         UserSettings flowValue = firstFromFlow(repository.getSettingsFlow());
-        assertNotNull(flowValue);
-        assertEquals(AppTheme.SUNSET_AMBER, flowValue.getSelectedTheme());
+        assertNotNull("Settings flow emission must not be null", flowValue);
+        assertEquals("Flow theme incorrect", AppTheme.SUNSET_AMBER, flowValue.getSelectedTheme());
     }
 
+    /**
+     * Verifies saving a single calculation log and observing updates via reactive Flows.
+     */
     @Test
     public void testSaveSingleCalculationLogAndObserveFlow() {
         CalculationLog log = new CalculationLog(
@@ -136,18 +148,21 @@ public class InsulinRepositoryIntegrationTest {
         );
 
         long id = repository.saveCalculation(log);
-        assertTrue(id > 0);
+        assertTrue("Saved log ID must be positive", id > 0);
 
         List<CalculationLog> logsFromFlow = firstFromFlow(repository.getAllLogs());
-        assertNotNull(logsFromFlow);
-        assertEquals(1, logsFromFlow.size());
-        assertEquals("Mittagessen (Reis mit Hühnchen)", logsFromFlow.getFirst().getMealTitle());
-        assertEquals(5.5, logsFromFlow.getFirst().getRoundedInsulin(), DELTA);
+        assertNotNull("Logs flow emission must not be null", logsFromFlow);
+        assertEquals("Logs flow size incorrect", 1, logsFromFlow.size());
+        assertEquals("Logs flow meal title incorrect", "Mittagessen (Reis mit Hühnchen)", logsFromFlow.getFirst().getMealTitle());
+        assertEquals("Logs flow rounded insulin incorrect", 5.5, logsFromFlow.getFirst().getRoundedInsulin(), DELTA);
 
         List<CalculationLog> directLogs = repository.getAllLogsDirect();
-        assertEquals(1, directLogs.size());
+        assertEquals("Direct logs size incorrect", 1, directLogs.size());
     }
 
+    /**
+     * Verifies batch saving of multiple logs and correct chronological descending ordering.
+     */
     @Test
     public void testSaveMultipleLogsBatchAndOrdering() {
         CalculationLog log1 = new CalculationLog(1L, 1000L, "Mahlzeit 1", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
@@ -155,16 +170,19 @@ public class InsulinRepositoryIntegrationTest {
         CalculationLog log3 = new CalculationLog(3L, 3000L, "Mahlzeit 3", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.EVENING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
 
         long[] insertedIds = repository.saveLogs(Arrays.asList(log1, log2, log3));
-        assertEquals(3, insertedIds.length);
+        assertEquals("Batch inserted IDs count incorrect", 3, insertedIds.length);
 
         List<CalculationLog> allLogs = repository.getAllLogsDirect();
-        assertEquals(3, allLogs.size());
+        assertEquals("All logs size incorrect", 3, allLogs.size());
         // Verify chronological descending order
-        assertEquals("Mahlzeit 3", allLogs.get(0).getMealTitle());
-        assertEquals("Mahlzeit 2", allLogs.get(1).getMealTitle());
-        assertEquals("Mahlzeit 1", allLogs.get(2).getMealTitle());
+        assertEquals("First log in descending order incorrect", "Mahlzeit 3", allLogs.get(0).getMealTitle());
+        assertEquals("Second log in descending order incorrect", "Mahlzeit 2", allLogs.get(1).getMealTitle());
+        assertEquals("Third log in descending order incorrect", "Mahlzeit 1", allLogs.get(2).getMealTitle());
     }
 
+    /**
+     * Verifies deleting a specific calculation log by ID.
+     */
     @Test
     public void testDeleteLogById() {
         CalculationLog log1 = new CalculationLog(10L, 1000L, "Frühstück", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
@@ -172,14 +190,17 @@ public class InsulinRepositoryIntegrationTest {
 
         repository.saveLogs(Arrays.asList(log1, log2));
         List<CalculationLog> initialLogs = repository.getAllLogsDirect();
-        assertEquals(2, initialLogs.size());
+        assertEquals("Initial logs size incorrect", 2, initialLogs.size());
 
         repository.deleteLog(10L);
         List<CalculationLog> remaining = repository.getAllLogsDirect();
-        assertEquals(1, remaining.size());
-        assertEquals("Abendessen", remaining.getFirst().getMealTitle());
+        assertEquals("Remaining logs size after delete incorrect", 1, remaining.size());
+        assertEquals("Remaining log title incorrect", "Abendessen", remaining.getFirst().getMealTitle());
     }
 
+    /**
+     * Verifies clearing all calculation logs from the repository.
+     */
     @Test
     public void testClearAllLogs() {
         CalculationLog log1 = new CalculationLog(1L, 1000L, "Eintrag 1", 0.0, CarbUnit.GRAMS, 0.0, 0.0, 0.0, TimeOfDay.MORNING, 1.0, 0.0, null, null, null, 0.0, 0.0, 0.0, "");
@@ -187,17 +208,24 @@ public class InsulinRepositoryIntegrationTest {
         repository.saveLogs(Arrays.asList(log1, log2));
 
         List<CalculationLog> initialLogs = repository.getAllLogsDirect();
-        assertEquals(2, initialLogs.size());
+        assertEquals("Initial logs size incorrect", 2, initialLogs.size());
 
         repository.clearLogs();
         List<CalculationLog> remainingLogs = repository.getAllLogsDirect();
-        assertEquals(0, remainingLogs.size());
+        assertEquals("Remaining logs size after clear incorrect", 0, remainingLogs.size());
         List<CalculationLog> flowLogs = firstFromFlow(repository.getAllLogs());
-        assertEquals(0, flowLogs.size());
+        assertEquals("Flow logs size after clear incorrect", 0, flowLogs.size());
     }
 
     // --- Coroutine Helper Methods for Flow collection in Java ---
 
+    /**
+     * Collects and returns the first emission from a Kotlin Flow in a blocking manner for Java unit tests.
+     *
+     * @param flow The Kotlin Flow to collect from.
+     * @param <T>  The emission type.
+     * @return The first emitted value.
+     */
     public static <T> T firstFromFlow(Flow<T> flow) {
         try {
             return BuildersKt.runBlocking(
@@ -212,11 +240,17 @@ public class InsulinRepositoryIntegrationTest {
 
     // --- Fake DAO Implementations ---
 
+    /**
+     * In-memory fake implementation of {@link CalculationLogDao} for testing.
+     */
     public static class FakeCalculationLogDao implements CalculationLogDao {
         private final List<CalculationLog> logs = new ArrayList<>();
         private final MutableStateFlow<List<CalculationLog>> flow = StateFlowKt.MutableStateFlow(Collections.emptyList());
         private long nextId = 1L;
 
+        /**
+         * Updates the state flow with sorted logs in chronological descending order.
+         */
         private synchronized void updateFlow() {
             List<CalculationLog> sorted = new ArrayList<>(logs);
             sorted.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
@@ -287,6 +321,9 @@ public class InsulinRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * In-memory fake implementation of {@link UserSettingsDao} for testing.
+     */
     public static class FakeUserSettingsDao implements UserSettingsDao {
         private UserSettings storedSettings = null;
         private final MutableStateFlow<UserSettings> flow = StateFlowKt.MutableStateFlow(null);

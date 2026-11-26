@@ -17,6 +17,8 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import androidx.annotation.VisibleForTesting;
+
 import java.util.List;
 import kotlinx.coroutines.flow.Flow;
 import network.spiritscorp.model.CalculationLog;
@@ -54,7 +56,7 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
      *
      * @return The active {@link UserSettings} instance.
      */
-    public UserSettings getSettings() {
+    public UserSettings loadSettings() {
         UserSettings existing = userSettingsDao.getSettingsDirect();
         if (existing == null) {
             UserSettings defaultSettings = new UserSettings();
@@ -98,6 +100,7 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
      * @param logs List of {@link CalculationLog} items to insert.
      * @return Array of row IDs.
      */
+    @VisibleForTesting()
     public long[] saveLogs(List<CalculationLog> logs) {
         return calculationLogDao.insertLogs(logs);
     }
@@ -107,14 +110,18 @@ public record InsulinRepository(CalculationLogDao calculationLogDao, UserSetting
      *
      * @param logId The primary key ID of the log entry to delete.
      */
-    public void deleteLog(long logId) {
+    public boolean deleteLog(long logId) {
+//     TODO: Check if transaction succeeded
         calculationLogDao.deleteLogById(logId);
+        return true;
     }
 
     /**
      * Deletes all calculation logs from the database.
      */
-    public void clearLogs() {
+    public boolean clearLogs() {
+//     TODO: Check if transaction succeeded
         calculationLogDao.clearAllLogs();
+        return true;
     }
 }

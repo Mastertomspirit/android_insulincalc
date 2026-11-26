@@ -79,7 +79,7 @@ import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
  * @param onToggleExpand        Callback invoked to toggle section expansion.
  */
 @Composable
-fun BackupRestoreSection(
+internal fun BackupRestoreSection(
     viewModel: InsulinCalculatorViewModel,
     onShowResetDbDialog: () -> Unit,
     modifier: Modifier = Modifier,
@@ -97,7 +97,7 @@ fun BackupRestoreSection(
     ) { uri ->
         if (uri != null) {
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val json = viewModel.exportJsonBackup()
+                val json = viewModel.databaseMainView.exportJsonBackup()
                 val success = backupManager.writeTextToUri(context, uri, json)
                 viewModel.showToast(if (success) backupSuccess else backupError)
             }
@@ -113,7 +113,7 @@ fun BackupRestoreSection(
     ) { uri ->
         if (uri != null) {
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val csv = viewModel.exportCsvBackup()
+                val csv = viewModel.databaseMainView.exportCsvBackup()
                 val success = backupManager.writeTextToUri(context, uri, csv)
                 viewModel.showToast(if (success) backupSuccessCsv else backupErrorCsv)
             }
@@ -134,7 +134,7 @@ fun BackupRestoreSection(
                     viewModel.showToast(backupReadError)
                     return@launch
                 }
-                val result = viewModel.importBackupContent(content)
+                val result = viewModel.databaseMainView.importBackupContent(content)
                 if (result.isSuccess) {
                     viewModel.showToast(result.message)
                 } else {
@@ -232,7 +232,8 @@ fun BackupRestoreSection(
                         OutlinedButton(
                             onClick = {
                                 viewModel.viewModelScope.launch(Dispatchers.IO) {
-                                    val json = viewModel.exportJsonBackup()
+//                                    ToDo: Needed?
+                                    val json = viewModel.databaseMainView.exportJsonBackup()
                                     withContext(Dispatchers.Main) {
                                         try {
                                             val sendIntent = Intent().apply {
@@ -266,7 +267,7 @@ fun BackupRestoreSection(
                         OutlinedButton(
                             onClick = {
                                 viewModel.viewModelScope.launch(Dispatchers.IO) {
-                                    val csv = viewModel.exportCsvBackup()
+                                    val csv = viewModel.databaseMainView.exportCsvBackup()
                                     withContext(Dispatchers.Main) {
                                         try {
                                             val sendIntent = Intent().apply {

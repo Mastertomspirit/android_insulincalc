@@ -67,9 +67,11 @@ public class InsulinCalculatorInstrumentedTest {
     public void testRepositoryAndDeviceBackupWorkflow() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         AppDatabase database = AppDatabase.getDatabase(appContext);
+
+        assertNotNull(database);
         InsulinRepository repository = new InsulinRepository(database.calculationLogDao(), database.userSettingsDao());
 
-        UserSettings settings = repository.getSettings();
+        UserSettings settings = repository.loadSettings();
         assertNotNull(settings);
         assertTrue(settings.getMorningFactor() > 0.0);
 

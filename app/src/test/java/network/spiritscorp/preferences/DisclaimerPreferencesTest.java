@@ -80,7 +80,7 @@ public class DisclaimerPreferencesTest {
         // Simulate time passing: set last dismissed timestamp to past the re-show interval
         long pastTime = System.currentTimeMillis() - (AppConstants.DISCLAIMER_RE_SHOW_INTERVAL_MS + 86400000L); // 31 days ago
         mockPrefs.edit()
-                .putLong("last_dismissed_timestamp", pastTime)
+                .putLong("key_last_seen_timestamp", pastTime)
                 .apply();
 
         assertTrue("Disclaimer should be shown again after 30 days have passed", disclaimerPreferences.shouldShowDisclaimer());

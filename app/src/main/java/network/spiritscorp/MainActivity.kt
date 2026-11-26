@@ -17,78 +17,25 @@ package network.spiritscorp
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import android.app.Activity
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Calculate
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.testTag
-import network.spiritscorp.data.DatabaseBackupManager
-import network.spiritscorp.ui.components.DatabaseRecoveryDialog
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
-import kotlin.math.abs
 import network.spiritscorp.preferences.ThemePreferences
-import network.spiritscorp.ui.screens.ai.AiMealEstimatorScreen
-import network.spiritscorp.ui.screens.calculator.CalculatorScreen
-import network.spiritscorp.ui.screens.logbook.LogbookScreen
-import network.spiritscorp.ui.screens.settings.SettingsScreen
+import network.spiritscorp.ui.screens.MainScreen
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.ui.theme.MyApplicationTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
-import androidx.compose.ui.res.stringResource
 
 /**
  * The primary entry point Activity for the application.
  * Responsible for initializing Edge-to-Edge window displays, managing global Theme preferences,
- * and hosting the root Jetpack Compose UI hierarchy via [MainApp].
+ * and hosting the root Jetpack Compose UI hierarchy via [MainScreen].
  */
 class MainActivity : ComponentActivity() {
 
@@ -112,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // Collect user settings reactively from ViewModel
-            val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+            val userSettings by viewModel.cachedSettings.collectAsStateWithLifecycle()
             val themeEnum = userSettings.selectedTheme ?: initialSavedTheme
             val modeEnum = userSettings.themeMode ?: initialSavedMode
 
@@ -124,250 +71,8 @@ class MainActivity : ComponentActivity() {
             }
 
             // Apply custom application theme to entire Compose tree
-            MyApplicationTheme(
-                selectedTheme = themeEnum,
-                darkTheme = isDark
-            ) {
-                MainApp(viewModel = viewModel)
-            }
-        }
-    }
-}
-
-/**
- * Root composable hosting the primary layout structure, including the top app bar,
- * bottom navigation bar, snackbar host, and tab content switching with slide/fade animations.
- *
- * @param viewModel The shared [InsulinCalculatorViewModel] supplying UI state and event handlers.
- */
-@Composable
-fun MainApp(viewModel: InsulinCalculatorViewModel) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val aiState by viewModel.aiState.collectAsStateWithLifecycle()
-    val historyLogs by viewModel.historyLogs.collectAsStateWithLifecycle()
-    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-    val isDatabaseError by viewModel.databaseError.collectAsStateWithLifecycle()
-
-    val focusManager = LocalFocusManager.current
-    val coroutineScope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(initialPage = uiState.activeTab, pageCount = { 4 })
-    val context = LocalContext.current
-
-
-    val backupImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            val backupManager = DatabaseBackupManager(context)
-            val content = backupManager.readTextFromUri(context, it)
-            if (content != null) {
-                coroutineScope.launch {
-                    viewModel.importBackupContent(content)
-                }
-            }
-        }
-    }
-
-    if (isDatabaseError) {
-        DatabaseRecoveryDialog(
-            onImportBackup = {
-                viewModel.resetDatabase()
-                backupImportLauncher.launch("*/*")
-            },
-            onResetDatabase = {
-                viewModel.resetDatabase()
-            },
-            onCloseApp = {
-                (context as? Activity)?.finish()
-            }
-        )
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.onResume()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            viewModel.clearToast()
-        }
-    }
-
-    // Sync PagerState when ViewModel changes activeTab programmatically (e.g. from AI Estimator)
-    LaunchedEffect(uiState.activeTab) {
-        if (pagerState.currentPage != uiState.activeTab) {
-            val distance = abs(pagerState.currentPage - uiState.activeTab)
-            if (distance <= 1) {
-                pagerState.animateScrollToPage(uiState.activeTab)
-            } else {
-                pagerState.scrollToPage(uiState.activeTab)
-            }
-        }
-    }
-
-    // Sync ViewModel with settled pager changes from swipe gestures
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }.collect { settledPage ->
-            if (uiState.activeTab != settledPage) {
-                viewModel.setTab(settledPage)
-            }
-        }
-    }
-
-    // Dismiss keyboard when page scrolling begins
-    LaunchedEffect(pagerState.isScrollInProgress) {
-        if (pagerState.isScrollInProgress) {
-            focusManager.clearFocus()
-        }
-    }
-
-    val navigateToTab: (Int) -> Unit = { targetIndex ->
-        focusManager.clearFocus()
-        viewModel.setTab(targetIndex)
-        coroutineScope.launch {
-            val distance = abs(pagerState.currentPage - targetIndex)
-            if (distance <= 1) {
-                pagerState.animateScrollToPage(targetIndex)
-            } else {
-                pagerState.scrollToPage(targetIndex)
-            }
-        }
-    }
-
-    val activeDisplayPage = pagerState.targetPage
-
-    val topBarTitle = when (activeDisplayPage) {
-        0 -> stringResource(R.string.main_top_bar_calculator)
-        1 -> stringResource(R.string.main_top_bar_ai_estimator)
-        2 -> stringResource(R.string.main_top_bar_logbook)
-        3 -> stringResource(R.string.main_top_bar_settings)
-        else -> stringResource(R.string.main_top_bar_calculator)
-    }
-
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            },
-        contentWindowInsets = WindowInsets.systemBars,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = topBarTitle,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp,
-                modifier = Modifier.testTag("bottom_navigation_bar")
-            ) {
-                NavigationBarItem(
-                    selected = activeDisplayPage == 0,
-                    onClick = { navigateToTab(0) },
-                    icon = {
-                        Icon(
-                            imageVector = if (activeDisplayPage == 0) Icons.Filled.Calculate else Icons.Outlined.Calculate,
-                            contentDescription = stringResource(R.string.main_nav_calculator_label)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.main_nav_calculator_label)) },
-                    modifier = Modifier.testTag("nav_calculator")
-                )
-
-                NavigationBarItem(
-                    selected = activeDisplayPage == 1,
-                    onClick = { navigateToTab(1) },
-                    icon = {
-                        Icon(
-                            imageVector = if (activeDisplayPage == 1) Icons.Filled.AutoAwesome else Icons.Outlined.AutoAwesome,
-                            contentDescription = stringResource(R.string.main_nav_ai_estimator_label)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.main_nav_ai_estimator_label)) },
-                    modifier = Modifier.testTag("nav_ai_estimator")
-                )
-
-                NavigationBarItem(
-                    selected = activeDisplayPage == 2,
-                    onClick = { navigateToTab(2) },
-                    icon = {
-                        Icon(
-                            imageVector = if (activeDisplayPage == 2) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = stringResource(R.string.main_nav_logbook_label)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.main_nav_logbook_label)) },
-                    modifier = Modifier.testTag("nav_logbook")
-                )
-
-                NavigationBarItem(
-                    selected = activeDisplayPage == 3,
-                    onClick = { navigateToTab(3) },
-                    icon = {
-                        Icon(
-                            imageVector = if (activeDisplayPage == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
-                            contentDescription = stringResource(R.string.main_nav_settings_label)
-                        )
-                    },
-                    label = { Text(stringResource(R.string.main_nav_settings_label)) },
-                    modifier = Modifier.testTag("nav_settings")
-                )
-            }
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
-                .imePadding()
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                beyondViewportPageCount = 1
-            ) { tabIndex ->
-                when (tabIndex) {
-                    0 -> CalculatorScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onNavigateToAiEstimator = { navigateToTab(1) }
-                    )
-                    1 -> AiMealEstimatorScreen(
-                        viewModel = viewModel,
-                        aiState = aiState
-                    )
-                    2 -> LogbookScreen(
-                        viewModel = viewModel,
-                        logs = historyLogs
-                    )
-                    3 -> SettingsScreen(
-                        viewModel = viewModel,
-                        settings = userSettings
-                    )
-                }
+            MyApplicationTheme( selectedTheme = themeEnum, darkTheme = isDark ) {
+                MainScreen(viewModel = viewModel)
             }
         }
     }

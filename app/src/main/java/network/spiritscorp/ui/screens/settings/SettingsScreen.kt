@@ -64,6 +64,7 @@ import network.spiritscorp.model.GlucoseUnit
 import network.spiritscorp.model.UserSettings
 import network.spiritscorp.ui.theme.AppTheme
 import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
+import network.spiritscorp.viewmodel.LogMainView
 import java.util.Locale
 
 /**
@@ -71,13 +72,15 @@ import java.util.Locale
  * carbohydrate units, blood glucose targets/units, app theme appearance, backups,
  * and legal information.
  *
- * @param viewModel The {@link InsulinCalculatorViewModel} for database persistence and actions.
- * @param settings  The current {@link UserSettings} state loaded from Room.
- * @param modifier  Optional {@link Modifier} for layout styling and constraints.
+ * @param viewModel   The {@link InsulinCalculatorViewModel} for database persistence and actions.
+ * @param logMainView The {@link LogMainView} helper for managing logs and backups.
+ * @param settings    The current {@link UserSettings} state loaded from Room.
+ * @param modifier    Optional {@link Modifier} for layout styling and constraints.
  */
 @Composable
-fun SettingsScreen(
+internal fun SettingsScreen(
     viewModel: InsulinCalculatorViewModel,
+    logMainView: LogMainView,
     settings: UserSettings,
     modifier: Modifier = Modifier
 ) {
@@ -263,7 +266,7 @@ fun SettingsScreen(
                 updated.roundingStep = roundingStep
                 updated.selectedTheme = selectedTheme ?: AppTheme.MEDICAL_TEAL
                 updated.themeMode = themeMode ?: AppTheme.Mode.SYSTEM
-                viewModel.updateUserSettings(updated)
+                viewModel.databaseMainView.updateUserSettings(updated)
                 focusManager.clearFocus()
                 keyboardController?.hide()
             },
@@ -308,7 +311,7 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.clearAllLogs()
+                        logMainView.clearAllLogs()
                         showResetDbDialog = false
                     },
                     modifier = Modifier.testTag("confirm_reset_all_data_button")

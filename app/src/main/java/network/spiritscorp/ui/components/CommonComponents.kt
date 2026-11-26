@@ -78,7 +78,7 @@ import network.spiritscorp.R
  * @param onDismiss Optional callback invoked when the user clicks the close icon to dismiss the banner.
  */
 @Composable
-fun MedicalDisclaimerBanner(
+internal fun MedicalDisclaimerBanner(
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null
 ) {
@@ -138,7 +138,7 @@ fun MedicalDisclaimerBanner(
  * @param modifier Optional [Modifier] for layout configuration.
  */
 @Composable
-fun TimeOfDaySelector(
+internal fun TimeOfDaySelector(
     selectedTimeOfDay: TimeOfDay,
     effectiveFactor: Double,
     isAutoDetected: Boolean,
@@ -378,7 +378,7 @@ fun TimeOfDaySelector(
  * @param modifier Optional [Modifier] for layout positioning.
  */
 @Composable
-fun UnitSelectorRow(
+internal fun UnitSelectorRow(
     selectedUnit: CarbUnit,
     onUnitSelect: (CarbUnit) -> Unit,
     modifier: Modifier = Modifier
