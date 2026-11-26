@@ -1,3 +1,5 @@
+@file:Suppress("AvoidDuplicateDependencies")
+
 import org.sonatype.gradle.plugins.scan.ossindex.OutputFormat
 import java.util.Properties
 
@@ -25,8 +27,8 @@ android {
     applicationId = "network.spiritscorp.insulincalc"
     minSdk = 30
     targetSdk = 37
-    versionCode = 1030903
-    versionName = "1.3.9.3"
+    versionCode = 1030906
+    versionName = "1.3.9.6"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

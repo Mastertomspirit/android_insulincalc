@@ -4,9 +4,7 @@ updates:
   # 1. GRADLE CONFIGURATION - MAIN BRANCH
   # ==========================================================================
   - package-ecosystem: "gradle"
-    directories:
-      - "/"
-      - "/app"
+    directory: "/"
     target-branch: "dev"
     schedule:
       interval: "daily"

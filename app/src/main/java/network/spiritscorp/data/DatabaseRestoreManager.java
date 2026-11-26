@@ -17,6 +17,7 @@ package network.spiritscorp.data;
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 /**
@@ -24,12 +25,18 @@ import android.content.Context;
  * {@link AppDatabase} lifecycle internals.
  */
 public class DatabaseRestoreManager {
+
     /**
      * Resets the AppDatabase singleton instance, closes active database connections,
      * deletes the existing database file, and clears stored security key preferences.
      *
+     * <p>Note: {@code commit()} is intentionally used instead of {@code apply()} here because
+     * the database deletion and preference clearing must be executed and synchronized
+     * sequentially before any subsequent restore steps occur.
+     *
      * @param context Application context.
      */
+    @SuppressLint({"ApplySharedPref"})
     public void resetInstance(Context context) {
         AppDatabase.resetInstance();
         Context appContext = context.getApplicationContext();
