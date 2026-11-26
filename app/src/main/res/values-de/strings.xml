@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App name -->
     <string name="app_name">InsulinRechner</string>
 
@@ -73,7 +73,6 @@
     <string name="main_nav_settings_label">Einstellungen</string>
 
     <!-- InsulinCalculatorViewModel -->
-    <string name="view_model_advisory_standard">Standard-Mahlzeitendosis</string>
     <string name="view_model_advisory_hypo">Achtung: Niedriger Blutzucker (&lt; %1$s)! Bitte zuerst 1–2 schnell wirksame Kohlenhydrate (z.B. Traubenzucker/Saft) zu dir nehmen.</string>
     <string name="view_model_advisory_below_target">Blutzucker unter Zielwert: Korrektur reduziert Gesamtdosis.</string>
     <string name="view_model_advisory_above_target">Erhöhter Blutzucker: Korrekturbolus hinzugefügt.</string>
@@ -176,7 +175,7 @@
     <string name="meal_result_card_carbs_format">%1$s g</string>
     <string name="meal_result_card_be_format">ca. %1$s BE</string>
     <string name="meal_result_card_total_weight_format">Gewicht: %1$d g</string>
-    <string name="meal_result_card_calories_format">%1$d kcal</string>
+    <string name="meal_result_card_calories_format" tools:ignore="PluralsCandidate">%1$d kcal</string>
     <string name="meal_result_card_adjust_title">Gesamtgewicht anpassen:</string>
     <string name="meal_result_card_minus_10g">-10g</string>
     <string name="meal_result_card_plus_10g">+10g</string>
