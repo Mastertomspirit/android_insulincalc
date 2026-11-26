@@ -67,7 +67,7 @@ import network.spiritscorp.model.TimeOfDay
 import network.spiritscorp.ui.theme.accentColor
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 
 /**
  * A professional Jetpack Compose UI component that displays a medical disclaimer banner.

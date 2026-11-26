@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector;
 import java.util.Calendar;
 import java.util.Locale;
 
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 
 /**
  * Enumeration representing distinct time-of-day categories for diabetic insulin calculations,

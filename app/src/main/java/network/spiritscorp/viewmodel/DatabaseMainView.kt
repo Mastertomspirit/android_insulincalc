@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.data.AppDatabase
 import network.spiritscorp.data.DatabaseBackupManager

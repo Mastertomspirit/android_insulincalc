@@ -19,9 +19,19 @@ val localProperties = Properties().apply {
   }
 }
 
+kotlin {
+  jvmToolchain(25)
+}
+
 android {
-  namespace = "network.spiritscorp"
-  compileSdk = 37
+  namespace = "network.spiritscorp.insulincalc"
+  compileSdk {
+    version = release(37) {
+      minorApiLevel = 2
+    }
+  }
+  // The file name for the apk
+  base.archivesName.set("${defaultConfig.applicationId}_v${defaultConfig.versionName}")
 
   defaultConfig {
     applicationId = "network.spiritscorp.insulincalc"
@@ -65,10 +75,6 @@ android {
       )
     }
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-  }
   buildFeatures {
     compose = true
     buildConfig = true
@@ -95,9 +101,6 @@ android {
     includeInApk = false
     includeInBundle = true
   }
-  buildToolsVersion = "36.0.0"
-  // The file name for the apk
-  base.archivesName.set("${defaultConfig.applicationId}_v${defaultConfig.versionName}")
 }
 
 // Configure Sonatype OSS Index Audit to scan dependencies for known vulnerabilities

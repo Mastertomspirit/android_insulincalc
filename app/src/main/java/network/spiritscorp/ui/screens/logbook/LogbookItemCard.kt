@@ -50,7 +50,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.util.DateTimeUtils
 import androidx.compose.ui.platform.LocalLocale

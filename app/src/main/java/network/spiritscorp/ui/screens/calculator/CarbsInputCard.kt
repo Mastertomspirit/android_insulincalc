@@ -54,7 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.ui.components.UnitSelectorRow
 import network.spiritscorp.viewmodel.CalculatorUiState

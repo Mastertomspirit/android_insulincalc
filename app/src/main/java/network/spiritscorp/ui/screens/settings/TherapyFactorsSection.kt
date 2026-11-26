@@ -51,7 +51,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.ui.theme.EveningColor
 import network.spiritscorp.ui.theme.MorningColor
 import network.spiritscorp.ui.theme.NightColor

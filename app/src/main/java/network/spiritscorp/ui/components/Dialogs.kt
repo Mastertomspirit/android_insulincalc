@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 
 /**
  * Displays a non-dismissible recovery dialog when the encrypted database cannot be opened or initialized.

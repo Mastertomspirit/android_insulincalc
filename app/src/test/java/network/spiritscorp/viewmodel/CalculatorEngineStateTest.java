@@ -27,7 +27,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import kotlinx.coroutines.flow.FlowKt;
 import kotlinx.coroutines.flow.StateFlow;
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.data.CalculationLogDao;
 import network.spiritscorp.data.InsulinRepository;

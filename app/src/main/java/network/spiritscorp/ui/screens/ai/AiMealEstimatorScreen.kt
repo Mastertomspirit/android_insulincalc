@@ -67,12 +67,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.ai.GeminiAiModel
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.viewmodel.AiEstimateState
 import network.spiritscorp.viewmodel.AiViewModel
-import network.spiritscorp.viewmodel.InsulinCalculatorViewModel
 
 /**
  * Main screen composable for AI-powered meal estimation using Gemini models.

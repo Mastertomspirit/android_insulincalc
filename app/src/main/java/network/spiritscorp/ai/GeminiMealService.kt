@@ -19,8 +19,8 @@ package network.spiritscorp.ai
 
 import android.content.Context
 import android.util.Log
-import network.spiritscorp.BuildConfig
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.BuildConfig
+import network.spiritscorp.insulincalc.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

@@ -23,7 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.data.InsulinRepository
 import network.spiritscorp.model.CalculationLog
 import network.spiritscorp.model.CalculationSummary
