@@ -24,7 +24,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import kotlin.Pair;
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.UserSettings;
 

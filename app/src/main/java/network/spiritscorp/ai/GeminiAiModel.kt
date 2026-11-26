@@ -18,7 +18,7 @@ package network.spiritscorp.ai
  */
 
 import androidx.annotation.StringRes
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 
 /**
  * Supported Gemini AI Models for carb & meal estimation.

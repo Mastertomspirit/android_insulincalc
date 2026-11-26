@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 import network.spiritscorp.model.CalculationSummary
 import network.spiritscorp.model.CarbUnit
 import network.spiritscorp.model.GlucoseUnit

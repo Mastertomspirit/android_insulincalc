@@ -26,7 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 import network.spiritscorp.ai.GeminiAiModel;
 import network.spiritscorp.ui.theme.AppTheme;
 

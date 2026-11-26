@@ -54,7 +54,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLocale
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 
 /**
  * Reusable section header component for settings categories with an icon, title,

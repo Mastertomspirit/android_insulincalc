@@ -18,7 +18,7 @@ package network.spiritscorp.util;
  */
 
 import android.content.Context;
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.GlucoseUnit;
 

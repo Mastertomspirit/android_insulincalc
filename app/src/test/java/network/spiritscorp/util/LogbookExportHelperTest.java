@@ -20,7 +20,7 @@ package network.spiritscorp.util;
 import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 import network.spiritscorp.model.CalculationLog;
 import network.spiritscorp.model.CarbUnit;
 import network.spiritscorp.model.GlucoseUnit;

@@ -21,7 +21,7 @@ import androidx.annotation.StringRes;
 
 import java.util.Locale;
 
-import network.spiritscorp.R;
+import network.spiritscorp.insulincalc.R;
 
 /**
  * Enum representing blood glucose measurement units (mg/dl or mmol/l).

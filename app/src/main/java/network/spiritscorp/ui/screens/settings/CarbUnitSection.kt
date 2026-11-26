@@ -55,7 +55,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import network.spiritscorp.R
+import network.spiritscorp.insulincalc.R
 
 /**
  * Settings composable for carbohydrate unit selection.
